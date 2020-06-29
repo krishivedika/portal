@@ -1,23 +1,16 @@
-const { verifySignUp } = require("../middlewares");
 const controller = require("../controllers/auth");
+const validation = require("../validations/auth");
 
 module.exports = (app) => {
-  app.use((_, res, next) => {
-    res.header(
-      "Access-Control-Allow-Headers",
-      "x-access-token, Origin, Content-Type, Accept"
-    );
-    next();
-  });
+
+  app.post("/otp", [validation.newOtp], controller.newOtp);
 
   app.post(
     "/signup",
-    [
-      verifySignUp.checkDuplicateUsernameOrEmail,
-      verifySignUp.checkRolesExisted,
-    ],
+    [validation.checkDuplicateUser, validation.signup],
     controller.signup
   );
 
-  app.post("/signin", controller.signin);
+  app.post("/signin/staff", [validation.staffSignin], controller.staffSignin);
+  app.post("/signin", [validation.signin], controller.signin);
 };

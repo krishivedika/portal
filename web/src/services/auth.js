@@ -1,34 +1,24 @@
 import axios from "axios";
-import config from "../config";
-
-const API_URL = config.REACT_APP_API_URL;
 
 class AuthService {
-  login(username, password) {
-    return axios
-      .post(`${API_URL}signin`, {
-        username,
-        password,
-      })
-      .then((response) => {
-        if (response.data.accessToken) {
-          localStorage.setItem("user", JSON.stringify(response.data));
-        }
+  login(data) {
+    return axios.post(`/signin`, data);
+  }
 
-        return response.data;
-      });
+  staffLogin(data) {
+    return axios.post(`/signin/staff`, data);
   }
 
   logout() {
     localStorage.removeItem("user");
   }
 
-  register(username, email, password) {
-    return axios.post(`${API_URL}signup`, {
-      username,
-      email,
-      password,
-    });
+  register(data) {
+    return axios.post(`/signup`, data);
+  }
+
+  requestOtp(data) {
+    return axios.post(`/otp`, data);
   }
 
   getCurrentUser() {

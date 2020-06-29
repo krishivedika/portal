@@ -1,21 +1,21 @@
 import axios from "axios";
 
-import authHeader from "./auth-header";
-import config from "../config";
-
-const API_URL = config.REACT_APP_API_URL;
-
 class UserService {
-  getPublicContent() {
-    return axios.get(`${API_URL}role/all`);
+
+  getUser(data) {
+    return axios.get(`/user`, { params: data });
   }
 
-  getUserBoard() {
-    return axios.get(`${API_URL}role/user`, { headers: authHeader() });
+  getUsers(data) {
+    return axios.get(`/users`, { params: data });
   }
 
-  getAdminBoard() {
-    return axios.get(`${API_URL}role/admin`, { headers: authHeader() });
+  updateRole(data) {
+    return axios.post(`/user/member/onboard`, data);
+  }
+
+  updateProfile(data) {
+    return axios.post(`/user/member/update`, data);
   }
 }
 

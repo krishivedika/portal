@@ -1,57 +1,62 @@
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const config = require("../config");
 const db = require("../models");
-const Role = db.role;
+const { sms } = require("../utils");
+const { ROLES } = require("../../constants");
+
 const User = db.user;
-const Op = db.Sequelize.Op;
+const Role = db.role;
 
 exports.signup = (req, res) => {
-  // Save User to Database
-  User.create({
-    username: req.body.username,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 8),
-  })
+  if (!sms.verifyOtp(req.body.phone, req.body.otp)) {
+    return res.status(400).send({message: "Invalid OTP.", code: 1});
+  }
+  const userObj = {
+    prefix: req.body.prefix,
+    phone: req.body.phone,
+  }
+
+  User.create(userObj)
     .then((user) => {
-      if (config.ADMINS.includes(req.body.email)) {
-        // user role 2 - Admin
-        user.setRoles([2]).then(() => {
-          res.send({ message: "Admin was registered successfully!" });
-        });
-      } else {
-        // user role 1 - Farmer/FieldAgent
-        user.setRoles([1]).then(() => {
-          res.send({ message: "User was registered successfully!" });
-        });
-      }
+      user.setRoles([5]).then(() => {
+        res.send({message: "Member was registered successfully."});
+      });
     })
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      res.status(500).send({message: err.message});
     });
 };
 
 exports.signin = (req, res) => {
-  User.findOne({
+  User.scope('withoutPassword').findOne({
     where: {
-      username: req.body.username,
+      phone: req.body.phone,
+      isActive: true,
     },
+    include: [{
+      model: Role,
+    }]
   })
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: "User Not found." });
+      } else if (!user.isOnboarded) {
+        return res.status(404).send({ message: "Member onboarding is being processed." });
       }
 
-      const passwordIsValid = bcrypt.compareSync(
-        req.body.password,
-        user.password
-      );
+      if (user.roles[0].name !== ROLES.FARMER.name) {
+        return res.status(400).send({
+          message: "Staff should use Email to login.",
+          code: 1,
+        });
+      }
 
-      if (!passwordIsValid) {
-        return res.status(401).send({
-          accessToken: null,
-          message: "Invalid Password!",
+      if (!sms.verifyOtp(req.body.phone, req.body.otp)) {
+        return res.status(400).send({
+          message: "Invalid OTP",
+          code: 1,
         });
       }
 
@@ -62,18 +67,77 @@ exports.signin = (req, res) => {
       let authorities = [];
       user.getRoles().then((roles) => {
         for (let i = 0; i < roles.length; i++) {
-          authorities.push(`ROLE_${roles[i].name.toUpperCase()}`);
+          authorities.push(`${roles[i].name.toUpperCase()}`);
         }
-        res.status(200).send({
+        return res.status(200).send({
           id: user.id,
-          username: user.username,
-          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
           roles: authorities,
           accessToken: token,
         });
       });
     })
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      console.log(err);
+      res.status(500).send({message: err.message});
     });
+};
+
+exports.staffSignin = (req, res) => {
+  User.findOne({
+    where: {
+      email: req.body.email,
+      isActive: true,
+    },
+  })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: "User Not found." });
+      } else if (!user.isOnboarded) {
+        return res.status(404).send({ message: "Staff onboarding is being processed." });
+      }
+
+      const passwordIsValid = bcrypt.compareSync(
+        req.body.password,
+        user.password
+      );
+
+      if (!passwordIsValid) {
+        return res.status(400).send({
+          message: "Invalid Password",
+          code: 1,
+        });
+      }
+
+      const token = jwt.sign({ id: user.id }, config.SECRET_KEY, {
+        expiresIn: 1209600, // Fortnite
+      });
+
+      let authorities = [];
+      user.getRoles().then((roles) => {
+        for (let i = 0; i < roles.length; i++) {
+          authorities.push(`${roles[i].name.toUpperCase()}`);
+        }
+        return res.status(200).send({
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          roles: authorities,
+          accessToken: token,
+        });
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send({message: err.message});
+    });
+};
+
+exports.newOtp = (req, res) => {
+  sms.generateOtp();
+  res.send({message: 'OTP sent.'});
 };

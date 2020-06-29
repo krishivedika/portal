@@ -16,11 +16,9 @@ module.exports = {
   // App Secret Key
   SECRET_KEY: process.env.SECRET_KEY,
 
-  // Hard Coded Admins
-  ADMINS: [
-    "kamia.uppal@gmail.com",
-    "pulumati.priyank@gmail.com",
-    "anagin@gmail.com",
-    "hmadanaraj@gmail.com",
-  ],
+  // Allowed Origins
+  ORIGIN: process.env.ORIGIN,
+
+  // Staff Password
+  DEFAULT_STAFF_PASSWORD: process.env.DEFAULT_STAFF_PASSWORD
 };

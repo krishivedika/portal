@@ -5,6 +5,11 @@ const config = require("../config");
 const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
   host: config.HOST,
   dialect: config.DIALECT,
+  dialectOptions: {
+    options: {
+        encrypt: true,
+    }
+}
 });
 
 const db = {};
@@ -17,7 +22,6 @@ db.sequelize = sequelize;
 
 db.user = require("../models/user.js")(sequelize, Sequelize);
 db.role = require("../models/role.js")(sequelize, Sequelize);
-db.permission = require("../models/permission.js")(sequelize, Sequelize);
 
 db.role.belongsToMany(db.user, {
   through: "user_roles",
@@ -29,12 +33,7 @@ db.user.belongsToMany(db.role, {
   foreignKey: "userId",
   otherKey: "roleId",
 });
-db.permission.belongsToMany(db.role, {
-  through: "role_permissions",
-  foreignKey: "roleId",
-  otherKey: "permissionId"
-})
 
-db.ROLES = ["user", "admin"];
+db.ROLES = ["farmer", "admin", "csr", "sadmin"];
 
 module.exports = db;
