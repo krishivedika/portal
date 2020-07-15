@@ -71,7 +71,7 @@ const NavigationBar = (props) => {
     let menu = menuItems.map(item => {
       let formattedItem = item.replace(" ", "");
       return (
-        <Menu.Item key={item}>
+        <Menu.Item key={formattedItem}>
           <Link to={`${Routes[formattedItem]}`}>{item}</Link>
         </Menu.Item>
       );
@@ -96,13 +96,13 @@ const NavigationBar = (props) => {
 
   return (
     <Header style={{ position: "fixed", zIndex: 1, width: "100%" }}>
-      <div>
-        <Row>
-          <Col xs={16} sm={18} md={10} lg={12} xl={12} offset={1}>
-            <img src={logoImage} alt="KrishiVidya" />
-          </Col>
-          {!isMobile ? (
-            <Col xs={2} sm={2} md={10} lg={8} xl={8} offset={3}>
+      <Row>
+        <Col xs={16} sm={18} md={10} lg={4} offset={1}>
+          <img src={logoImage} alt="KrishiVidya" />
+        </Col>
+        {!isMobile ? (
+          <>
+            <Col xs={2} sm={2} md={10} lg={14}>
               <Menu mode="horizontal" selectedKeys={[currentTab]} onClick={(e) => setCurrentTab(e.key)}>
                 {!isLoggedIn &&
                   <Menu.Item key="LOGIN">
@@ -110,10 +110,14 @@ const NavigationBar = (props) => {
                   </Menu.Item>
                 }
                 {menu}
+              </Menu>
+            </Col>
+            <Col xs={2} sm={2} md={10} lg={5}>
+              <Menu mode="horizontal" selectedKeys={[]} >
                 {isLoggedIn &&
-                  <Menu.Item key="LOGOUT">
+                  <Menu.Item key="USER">
                     <Dropdown overlay={
-                      <Menu>
+                      <Menu >
                         <Menu.Item key="profile">
                           <Link to={Routes.PROFILE}>PROFILE</Link>
                         </Menu.Item>
@@ -123,50 +127,53 @@ const NavigationBar = (props) => {
                       </Menu>
                     } trigger={['click']}>
                       <Button type="link" className="ant-dropdown-link" onClick={e => e.preventDefault()}>
-                        <UserOutlined /> <DownOutlined />
+                        Welcome, {state.user.firstName} ({state.user.roles}) <UserOutlined /> <DownOutlined />
                       </Button>
                     </Dropdown>
                   </Menu.Item>
                 }
               </Menu>
             </Col>
-          ) : (
-              <Col xs={2} sm={2} md={12} lg={8} xl={4} offset={2}>
-                <Button
-                  className="nav-button"
-                  type="primary"
-                  onClick={toggleCollapsed}
-                  style={{ marginBottom: 16 }}
-                >
-                  {React.createElement(
-                    collapsed ? MenuUnfoldOutlined : MenuFoldOutlined
-                  )}
-                </Button>
-              </Col>
-            )}
-        </Row>
-        <Menu
-          defaultSelectedKeys={["1"]}
-          defaultOpenKeys={["sub1"]}
-          mode="inline"
-          inlineCollapsed={collapsed}
-          onClick={toggleCollapsed}
-        >
-          {!isLoggedIn &&
-            <Menu.Item key="LOGIN">
-              <Link to="/">LOGIN</Link>
-            </Menu.Item>
-          }
-          {menu}
-          {isLoggedIn &&
-            <Menu.Item key="LOGOUT">
-              <a href="/" onClick={logOut}>
-                LOGOUT
-              </a>
-            </Menu.Item>
-          }
-        </Menu>
-      </div>
+          </>
+        ) : (
+            <Col xs={2} sm={2} md={12} lg={8} xl={4} offset={2}>
+              <Button
+                className="nav-button"
+                type="primary"
+                onClick={toggleCollapsed}
+                style={{ marginBottom: 16 }}
+              >
+                {React.createElement(
+                  collapsed ? MenuUnfoldOutlined : MenuFoldOutlined
+                )}
+              </Button>
+            </Col>
+          )}
+      </Row>
+      <Menu
+        defaultSelectedKeys={["1"]}
+        defaultOpenKeys={["sub1"]}
+        mode="inline"
+        inlineCollapsed={collapsed}
+        onClick={toggleCollapsed}
+      >
+        {!isLoggedIn &&
+          <Menu.Item key="LOGIN">
+            <Link to="/">LOGIN</Link>
+          </Menu.Item>
+        }
+        {menu}
+        {isLoggedIn &&
+          <Menu.Item key="profile">
+            <Link to={Routes.PROFILE}>PROFILE</Link>
+          </Menu.Item>
+        }
+        {isLoggedIn &&
+          <Menu.Item key="LOGOUT">
+            <a href="/" onClick={logOut}>LOGOUT</a>
+          </Menu.Item>
+        }
+      </Menu>
     </Header>
   );
 };

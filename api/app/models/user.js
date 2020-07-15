@@ -26,7 +26,7 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
     },
     age: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.DATE,
     },
     district: {
       type: Sequelize.STRING,
@@ -45,11 +45,9 @@ module.exports = (sequelize, Sequelize) => {
     },
     isActive: {
       type: Sequelize.BOOLEAN,
-      defaultValue: true,
     },
     isOnboarded: {
       type: Sequelize.BOOLEAN,
-      defaultValue: false,
     },
     updatedBy: {
       type: Sequelize.STRING,

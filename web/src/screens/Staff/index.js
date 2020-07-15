@@ -3,7 +3,7 @@ import { Row, Col } from 'antd';
 
 import { UserManagement } from "../../components";
 
-const Admin = () => {
+const Staff = () => {
 
   const [loading, setLoading] = useState(true);
 
@@ -20,4 +20,4 @@ const Admin = () => {
   );
 }
 
-export default Admin;
+export default Staff;

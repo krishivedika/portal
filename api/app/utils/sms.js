@@ -1,13 +1,24 @@
+const axios = require('axios').default;
+
+const config = require("../config");
+
+const hostname = "https://api.msg91.com";
+const baseURL = "/api/v5/otp";
+
 const generateOtp = (phone) => {
-  return {status: true};
-}
+  return axios.get(`${hostname}${baseURL}`, {params: {mobile: phone, template_id: config.TEMPLATEID, authkey: config.AUTHKEY}});
+};
 
 const verifyOtp = (phone, otp) => {
-  if (otp === '123456') return true;
-  return false;
-}
+  return axios.post(`${hostname}${baseURL}/verify`, {}, {params: {mobile: phone, otp: otp, authkey: config.AUTHKEY}});
+};
+
+const resendOtp = (phone, otp) => {
+  return axios.post(`${hostname}${baseURL}/retry`, {}, {params: {mobile: phone, authkey: config.AUTHKEY}});
+};
 
 module.exports = {
   generateOtp,
   verifyOtp,
+  resendOtp,
 }

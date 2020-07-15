@@ -2,7 +2,6 @@ import React, { useContext, useState, useEffect } from "react";
 import axios from 'axios';
 import { Form, Input, Button, Row, Col, Tabs, Typography, message } from "antd";
 
-import "./index.css";
 import AuthService from "../../services/auth.js";
 import Routes from "../../routes";
 import farmerImage from "../../images/banner.jpg";
@@ -16,7 +15,7 @@ const layout = {
   wrapperCol: { span: 16 },
 };
 const tailLayout = {
-  wrapperCol: { offset: 6, span: 16 },
+  wrapperCol: { xs: {offset: 0, span: 16}, md: {offset: 4, span: 16} },
 };
 
 let retries = 0;
@@ -24,10 +23,11 @@ let retries = 0;
 const Login = (props) => {
 
   const [_, setState] = useContext(SharedContext);
-  const [form] = Form.useForm();
   const [tab, setTab] = useState('member');
+
+  const [form] = Form.useForm();
   const [otpButton, setOtpButton] = useState(true);
-  const [loginButton, setLoginButton] = useState(false);
+  const [loginButton, setLoginButton] = useState(true);
   const [resendOtpButton, setResendOtpButton] = useState(false);
 
   const handleLogin = (values) => {
@@ -41,7 +41,7 @@ const Login = (props) => {
           setState(state => ({ ...state, user: currentUser }));
           redirectUser(currentUser.roles[0])
         }
-      }).catch((err) => {
+      }).catch(err => {
         console.log(err);
         if (err.response.data.code === 1) {
           retries += 1;
@@ -50,7 +50,7 @@ const Login = (props) => {
             setLoginButton(false);
           }
         }
-        message.error(`Login Failed, reason: ${err.response.data.message}`);
+        message.error(`Login Failed, ${err.response.data.message}`);
       });
     } else if (tab === 'staff') {
       AuthService.staffLogin({ email: values.email, password: values.password }).then(response => {
@@ -64,7 +64,7 @@ const Login = (props) => {
         }
       }).catch((err) => {
         console.log(err);
-        message.error(`Login Failed, reason: ${err.response.data.message}`);
+        message.error(`Login Failed, ${err.response.data.message}`);
       });
     }
   };
@@ -80,49 +80,41 @@ const Login = (props) => {
     if (currentUser) redirectUser(currentUser.roles[0]);
   });
 
-  const sendOtp = async () => {
-    setLoginButton(true);
-    try {
-      await form.validateFields();
-      setOtpButton(false);
-      requestOtp();
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const resendOtp = async () => {
-    try {
-      await form.validateFields();
-      setResendOtpButton(false);
-      requestOtp();
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const showOtpsentMessage = (success) => {
-    if (success) message.info('OTP sent to your mobile.');
-    else message.error('Failed to send OTP, try again later.');
+  const showOtpsentMessage = (success, msg) => {
+    if (success) message.info('OTP sent to your phone.');
+    else message.error(`Failed to send OTP, ${msg}.`);
   };
 
   const otpRetryError = 'Maximum retries reached, try after 1 Hour.';
-  const requestOtp = async () => {
+  const requestOtp = async (type='') => {
     const checkOtpRetries = new Date(localStorage.getItem("otp_retries_time"));
     if ((new Date() - checkOtpRetries) > (60 * 60 * 1000)) {
-      setTimeout(() => {
-        setResendOtpButton(true);
-      }, 1000 * 12);
       let values;
       try {
         values = await form.validateFields();
-        setOtpButton(false);
-        AuthService.requestOtp({ phone: values.phone }).then(() => {
+        const onRequest = () => {
           showOtpsentMessage((true))
-        }).catch(err => {
-          console.log(err.response.data);
-          showOtpsentMessage(false);
-        });
+          setOtpButton(false);
+          setResendOtpButton(false);
+          setTimeout(() => {
+            setResendOtpButton(true);
+          }, 1000 * 120);
+        };
+        if (type === 'resend') {
+          AuthService.resendOtp({ phone: values.phone }).then(() => {
+            onRequest();
+          }).catch(err => {
+            console.log(err.response.data);
+            showOtpsentMessage(false);
+          });
+        } else {
+          AuthService.requestOtp({ phone: values.phone }).then(() => {
+            onRequest();
+          }).catch(err => {
+            console.log(err.response.data);
+            showOtpsentMessage(false, err.response.data.message);
+          });
+        }
       } catch (err) {
         console.log(err);
       }
@@ -135,7 +127,7 @@ const Login = (props) => {
   return (
     <Row>
       <div className="farmer-image">
-        <img src={farmerImage} alt="FarmerFirst" />
+        <img style={{width: '100%', minHeight: '100px'}} src={farmerImage} alt="FarmerFirst" />
       </div>
       <Col xs={1} sm={4} md={4} lg={6} xl={8}></Col>
       <Col xs={22} sm={16} md={16} lg={12} xl={8}>
@@ -150,12 +142,12 @@ const Login = (props) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please input your Phone No.",
+                        message: "Please input your Phone Number",
                       },
                       { min: 10, message: 'Phone numbers should be 10 digits long.' },
                       { max: 10, message: 'Phone numbers should be 10 digits long.' },
                     ]}>
-                    <Input placeholder="Enter your Phone No." />
+                    <Input placeholder="Enter your Phone Number" />
                   </Form.Item>
                   {!otpButton &&
                     <Form.Item name="otp" label="OTP"
@@ -164,8 +156,8 @@ const Login = (props) => {
                           required: true,
                           message: "Please input OTP.",
                         },
-                        { min: 6, message: 'OTP must be 6 digits long.' },
-                        { max: 6, message: 'OTP must be 6 digits long.' },
+                        { min: 4, message: 'OTP must be 4 digits long.' },
+                        { max: 4, message: 'OTP must be 4 digits long.' },
                       ]}>
                       <Input placeholder="Enter your OTP" />
                     </Form.Item>
@@ -179,13 +171,16 @@ const Login = (props) => {
                         <Text type="danger">{otpRetryError}</Text>
                       }
                       {resendOtpButton && loginButton &&
-                        <Button type="link" onClick={resendOtp}>Resend OTP</Button>
+                        <Button type="link" onClick={() => requestOtp('resend')}>Resend OTP</Button>
+                      }
+                      {!resendOtpButton &&
+                        <Button type="link" onClick={requestOtp} disabled>Resend OTP</Button>
                       }
                     </Form.Item>
                   }
                   {otpButton &&
                     <Form.Item {...tailLayout}>
-                      <Button type="primary" onClick={sendOtp}>Send OTP</Button>
+                      <Button type="primary" onClick={requestOtp}>Send OTP</Button>
                     </Form.Item>
                   }
                 </>
@@ -202,7 +197,7 @@ const Login = (props) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please input your Email.",
+                        message: "Please input Email.",
                       },
                       { type: 'email' },
                     ]}>
@@ -228,7 +223,9 @@ const Login = (props) => {
           </TabPane>
         </Tabs>
       </Col>
-      <Col xs={1} sm={4} md={4} lg={6} xl={8}></Col>
+      <Col xs={1} sm={4} md={4} lg={6} xl={7}></Col>
+      <Col xs={0} sm={0} md={0} lg={0} xl={1} style={{marginBottom: '400px'}}>
+      </Col>
     </Row>
   );
 }

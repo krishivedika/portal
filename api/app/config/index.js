@@ -20,5 +20,10 @@ module.exports = {
   ORIGIN: process.env.ORIGIN,
 
   // Staff Password
-  DEFAULT_STAFF_PASSWORD: process.env.DEFAULT_STAFF_PASSWORD
+  DEFAULT_STAFF_PASSWORD: process.env.DEFAULT_STAFF_PASSWORD,
+
+  // OTPs
+  AUTHKEY: process.env.AUTHKEY,
+  TEMPLATEID: process.env.TEMPLATEID,
+
 };

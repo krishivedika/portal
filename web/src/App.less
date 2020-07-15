@@ -1,16 +1,16 @@
 @import '~antd/dist/antd.less';
 
+// header
 .ant-layout-header {
   padding: 0;
-  background: none;
+  background: #ffffff;
 }
 
 .header-container {
-  background: #ffffff;
   height: 70px;
-  border-bottom: 2px solid #88c73f;
 }
 
+// menu
 .ant-menu-horizontal {
   border-bottom: 0px;
 }
@@ -19,6 +19,7 @@
   display: none;
 }
 
+// layout
 .ant-layout-content {
   margin-top: 70px;
 }
@@ -27,7 +28,26 @@
   background-color: #ffffff;
 }
 
+// footer
 .ant-layout-footer {
   background-color: #ffffff;
   z-index: 10;
+}
+
+// custom table
+.g-table-striped-rows tr:nth-child(even) td {
+  background-color: #fafafa;
+}
+
+.g-ant-table-cell {
+  .ant-table-cell {
+    padding: 5px 16px !important;
+  }
+}
+
+// custom card
+.g-ant-card {
+  .ant-card-head{
+    background-color: #fafafa;
+  }
 }

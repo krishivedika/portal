@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Drawer, Button, Card, Row, Col, Table, Input, Form, message, Tag } from "antd";
+import { Drawer, Button, Card, Row, Col, Table, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
 
+import "./index.less"
 import UserService from "../../services/user";
 import { MemberForm, StaffForm } from "../../components";
 
@@ -8,6 +9,7 @@ const UserManagement = () => {
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   const columns = [
     {
@@ -63,13 +65,13 @@ const UserManagement = () => {
       ),
     },
     {
-      title: 'Created At',
+      title: 'Created On',
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (_, item) => (
-        <>
-        {new Date(item.createdAt).toDateString()}
-        </>
+        <Tooltip placement="top" title={new Date(item.createdAt).toLocaleTimeString()}>
+          {new Date(item.createdAt).toDateString()}
+        </Tooltip>
       )
     },
     {
@@ -82,35 +84,46 @@ const UserManagement = () => {
       key: 'action',
       render: (_, item) => (
         <>
-        {item.isOnboarded &&
-          <Button type="link" onClick={() => review(item)}>Update</Button>
-        }
-        {!item.isOnboarded &&
-          <Button type="link" onClick={() => review(item)}>Review</Button>
-        }
-      </>
+          {item.isOnboarded &&
+            <Button type="link" onClick={() => review(item)}>Update</Button>
+          }
+          {!item.isOnboarded &&
+            <Button type="link" onClick={() => review(item)}>Review</Button>
+          }
+        </>
       ),
     },
   ];
 
-  const [searchString, setSearchString] = useState('');
+  const [formSearch] = Form.useForm();
 
-  const search = () => {
-    fetchAndUpdateUsers();
+  const search = async () => {
+    const values = await formSearch.validateFields();
+    fetchAndUpdateUsers(values);
   };
 
-  const fetchAndUpdateUsers = () => {
+  const fetchAndUpdateUsers = (values) => {
     setLoading(true);
-    UserService.getUsers({ search: searchString}).then(response => {
-      setUsers(() => {
-        return response.data.users;
+    UserService.getUsers({ search: values.search || '', isOnboarded: values.onboarded || false}).then(response => {
+      const tempUsers = [...response.data.users];
+      tempUsers.forEach(user => {
+        if (user.age) user.age = new Date().getFullYear() - new Date(user.age).getFullYear();
+        else user.age = undefined;
       });
+      setUsers(() => tempUsers);
       setLoading(false);
     })
   };
 
+  const handleWindowResize = () => {
+    console.log(window.innerWidth);
+    setIsMobile(window.innerWidth <= 768);
+  };
+
   useEffect(() => {
-    fetchAndUpdateUsers();
+    fetchAndUpdateUsers({search: ''});
+    window.addEventListener("load", handleWindowResize);
+    window.addEventListener("resize", handleWindowResize);
   }, []);
 
   const [showDrawer, setShowDrawer] = useState(false);
@@ -132,7 +145,7 @@ const UserManagement = () => {
         fetchAndUpdateUsers();
       }).catch(err => {
         console.log(err);
-        message.error(`Failed to update User, reason: ${err.response.data.message}`);
+        message.error(`Failed to update User, ${err.response.data.message}`);
       });
     } else {
       UserService.updateProfile(formValues).then(() => {
@@ -141,25 +154,30 @@ const UserManagement = () => {
         fetchAndUpdateUsers();
       }).catch(err => {
         console.log(err);
-        message.error(`Failed to update User, reason: ${err.response.data.message}`);
+        message.error(`Failed to update User, ${err.response.data.message}`);
       });
     }
   }
 
   return (
     <>
-      <Row gutter={4}>
-        <Col xs={24} lg={5}>
-          <Card title="Filters">
-            <Form form={form}>
-              <Form.Item name='search'>
-                <Input placeholder='Search By Phone or Email' onPressEnter={search} onChange={e => setSearchString(e.target.value)}/>
+      <Row style={{ padding: '10px' }}>
+        <Col xs={24} lg={4}>
+          <Card title="Filters" className={!isMobile ? "c-ant-card g-ant-card" : "g-ant-card"}>
+            <Form form={formSearch} layout="vertical">
+              <Form.Item name='search' label="Search">
+                <Input placeholder='Search By Phone or Email' onPressEnter={search} />
+              </Form.Item>
+              <Form.Item name="onboarded" label="Onboarded" valuePropName="checked">
+                <Checkbox onChange={search}>
+                  Pending Only
+                </Checkbox>
               </Form.Item>
             </Form>
           </Card>
         </Col>
-        <Col xs={24} lg={19}>
-          <Table dataSource={users} columns={columns} loading={loading} rowKey='id' />
+        <Col xs={24} lg={20}>
+          <Table className="g-table-striped-rows g-ant-table-cell" dataSource={users} columns={columns} loading={loading} rowKey='id' scroll={{x: true}}/>
         </Col>
       </Row>
       <Drawer visible={showDrawer} width={920} onClose={() => setShowDrawer(false)}>

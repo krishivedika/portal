@@ -21,6 +21,10 @@ class AuthService {
     return axios.post(`/otp`, data);
   }
 
+  resendOtp(data) {
+    return axios.post(`/otp/resend`, data);
+  }
+
   getCurrentUser() {
     return JSON.parse(localStorage.getItem("user"));
   }

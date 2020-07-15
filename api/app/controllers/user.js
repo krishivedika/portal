@@ -1,7 +1,9 @@
 const Sequelize = require("sequelize");
+const bcrypt = require("bcryptjs");
 
 const db = require("../models");
 const constants = require("../../constants");
+const config = require("../config");
 
 const Op = Sequelize.Op;
 const User = db.user;
@@ -18,7 +20,7 @@ exports.user = (req, res) => {
   })
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: "No User exists." });
+        return res.status(404).send({ message: "No User exists" });
       }
       res.status(200).send({
         user: user,
@@ -31,20 +33,34 @@ exports.user = (req, res) => {
 };
 
 exports.users = (req, res) => {
-  User.scope('withoutPassword').findAll({
-    where: {
+  console.log(req.query);
+  let where = {
+    [Op.or]: [
+      { email: { [Op.like]: `%${req.query.search}%` } },
+      { phone: { [Op.like]: `%${req.query.search}%` } },
+    ]
+  }
+  if (req.query.isOnboarded === 'true') {
+    where = {
       [Op.or]: [
         { email: { [Op.like]: `%${req.query.search}%` } },
         { phone: { [Op.like]: `%${req.query.search}%` } },
+      ],
+      [Op.and]: [
+        { isOnboarded: false},
       ]
-    },
+    }
+  }
+
+  User.scope('withoutPassword').findAll({
+    where: where,
     include: [{
       model: Role,
     }]
   })
     .then((users) => {
       if (!users) {
-        return res.status(404).send({ message: "No Users exist." });
+        return res.status(404).send({ message: "No Users exist" });
       }
       let customisedUsers = [];
       users.forEach(user => {
@@ -86,9 +102,15 @@ exports.onBoardMember = async (req, res) => {
   User.scope('withoutPassword').findByPk(req.body.id)
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: "No Users exist." });
+        return res.status(404).send({ message: "No Users exist" });
       }
       let updatedValues = { ...req.body };
+      const dateNow = new Date();
+      dateNow.setFullYear(dateNow.getFullYear() - updatedValues.age);
+      dateNow.setMonth(0);
+      dateNow.setDate(1);
+      updatedValues.age = dateNow;
+
       User.findOne({
         where: req.userId
       }).then(admin => {
@@ -119,19 +141,27 @@ exports.updateMember = (req, res) => {
     }]
   }).then((user) => {
     if (!user) {
-      return res.status(404).send({ message: "User Not found." });
+      return res.status(404).send({ message: "User Not found" });
     }
     let updatedValues = { ...req.body };
-    let role, roleId;
+    const dateNow = new Date();
+    dateNow.setFullYear(dateNow.getFullYear() - updatedValues.age);
+    dateNow.setMonth(0);
+    dateNow.setDate(1);
+    updatedValues.age = dateNow;
+
+    let roleId;
     Object.keys(constants.ROLES).forEach(key => {
       if (constants.ROLES[key].name === req.body.role) {
-        role = constants.ROLES[key].name;
         roleId = constants.ROLES[key].id;
       }
     });
+    if (user.roles[0].name === 'farmer' && user.roles[0].id !== roleId) {
+      updatedValues.password = bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8);
+    }
     user.update(updatedValues).then((user) => {
-      user.setRoles([roleId]).then(u => {
-        return res.send({ user: u });
+      user.setRoles([roleId]).then(() => {
+        return res.send({ user: user });
       })
     });
   })

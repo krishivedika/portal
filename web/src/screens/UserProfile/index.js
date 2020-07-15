@@ -1,121 +1,127 @@
 import React, { useState, useEffect } from "react";
-import { List, Row, Col, Card, Skeleton, Form, message, Button, Drawer, Descriptions } from "antd";
-import { SmileTwoTone } from '@ant-design/icons';
+import { Row, Col, Card, Skeleton, Form, message, Button, Drawer, Descriptions } from "antd";
 
 import AuthService from "../../services/auth";
 import UserService from "../../services/user";
 import { MemberForm, StaffForm } from "../../components";
+import profileImage from "../../images/profile.jpg";
 
 const UserProfile = () => {
 
   const [userProfile, setUserProfile] = useState({});
+  const [currentForm, setCurrentForm] = useState({});
   const [showDrawer, setShowDrawer] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const setAge = (response) => {
+    if (response.data.user.age) response.data.user.age = new Date().getFullYear() - new Date(response.data.user.age).getFullYear();
+    else response.data.user.age = undefined;
+  }
   useEffect(() => {
     const user = AuthService.getCurrentUser();
     UserService.getUser({ id: user.id }).then(response => {
-      setUserProfile(() => {
-        return response.data.user;
-      });
-      setLoading(false);
+      setAge(response);
+      setUserProfile(() => response.data.user);
+      setCurrentForm(() => response.data.user);
     }).catch(err => {
       console.log(err);
-      message.error(`Failed to get user, reason: ${err.response.data.message}`);
+      message.error(`Failed to get user, ${err.response.data.message}`);
     });
   }, []);
+
+  useEffect(() => {
+    setLoading(false);
+  }, [userProfile]);
 
   const [form] = Form.useForm();
   const onFinish = (values) => {
     let formValues = { ...values };
     formValues.id = userProfile.id;
+    formValues.role = userProfile.roles[0].name;
     UserService.updateProfile(formValues).then(response => {
-      console.log(response.data);
+      setAge(response);
       setUserProfile(response.data.user);
+      setCurrentForm(response.data.user);
       message.success(`User successfully updated.`);
       setShowDrawer(false);
     }).catch(err => {
       console.log(err);
-      message.error(`Failed to update User, reason: ${err.response.data.message}`);
+      setCurrentForm(state => ({...state, ...values}))
+      message.error(`Failed to update User, ${err.response.data.message}`);
     });
   }
 
   return (
     <Row style={{ marginTop: '20px' }}>
-      <Col xs={{ span: 22, offset: 1 }} xl={{ span: 20, offset: 2 }}>
-        <List
-          loading={loading}
-          itemLayout="horizontal"
-          dataSource={[userProfile]}
-          renderItem={item => (
-            <Card>
-              <List.Item
-                actions={[<Button key="update" onClick={() => setShowDrawer(true)}>Update</Button>]}>
-                <List.Item.Meta
-                  avatar={<SmileTwoTone style={{ fontSize: '40px' }} />}
-                  title={`Welcome, ${item.firstName} ${item.lastName}`}
-                  description={`Email: ${item.phone}`}
-                />
-              </List.Item>
-            </Card>
-          )}
-        />
+      <Col xs={0} xl={12}>
+        <div>
+          <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%' }} />
+        </div>
       </Col>
-      <Col xs={{ span: 22, offset: 1 }} xl={{ span: 9, offset: 2 }}>
-        {loading &&
-          <>
-            <Skeleton active />
-            <Skeleton active />
-            <Skeleton active />
-            <Skeleton active />
-          </>
-        }
-        {!loading &&
-          <>
-            <Card title="Profile" style={{ marginTop: '20px' }}>
-              <Descriptions column={2}>
-                <Descriptions.Item label="Name">{userProfile.firstName} {userProfile.lastName}</Descriptions.Item>
-                <Descriptions.Item label="Telephone">{userProfile.phone}</Descriptions.Item>
-                <Descriptions.Item label="Email">{userProfile.email}</Descriptions.Item>
-                <Descriptions.Item label="Age">{userProfile.age}</Descriptions.Item>
-                <Descriptions.Item label="Gender">{userProfile.gender}</Descriptions.Item>
-                <Descriptions.Item label="Ration">{userProfile.ration}</Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </>
-        }
+      <Col xs={24} xl={12}>
+        <Row>
+          <Col xs={{ span: 22, offset: 1 }} xl={{ span: 22 }}>
+            {loading &&
+              <>
+                <Skeleton active />
+                <Skeleton active />
+                <Skeleton active />
+                <Skeleton active />
+              </>
+            }
+                <Button type="primary" onClick={() => setShowDrawer(true)}>Update Profile</Button>
+                <Card title="Profile" className="g-ant-card" style={{ marginTop: '20px' }}>
+                  <Descriptions loading={loading} column={1} bordered>
+                    <Descriptions.Item label="First Name">{userProfile.firstName} </Descriptions.Item>
+                    <Descriptions.Item label="Last Name">{userProfile.lastName}</Descriptions.Item>
+                    <Descriptions.Item label="Gender">{userProfile.gender}</Descriptions.Item>
+                    {userProfile.age &&
+                      <Descriptions.Item label="Age">{userProfile.age}</Descriptions.Item>
+                    }
+                    {!userProfile.age &&
+                      <Descriptions.Item label="Age"></Descriptions.Item>
+                    }
+                    <Descriptions.Item label="Email">{userProfile.email}</Descriptions.Item>
+                    <Descriptions.Item label="Phone">{userProfile.phone}</Descriptions.Item>
+                    {userProfile.roles && userProfile.roles[0].name.toUpperCase() === 'FARMER' &&
+                      <>
+                        <Descriptions.Item label="Ration">{userProfile.ration}</Descriptions.Item>
+                      </>
+                    }
+                  </Descriptions>
+                </Card>
+          </Col>
+          <Col xs={{ span: 22, offset: 1 }} xl={{ span: 22 }}>
+            {loading &&
+              <>
+                <Skeleton active />
+                <Skeleton active />
+                <Skeleton active />
+                <Skeleton active />
+              </>
+            }
+                <Card title="Demographics" className="g-ant-card" style={{ marginTop: '20px' }}>
+                  <Descriptions loading={loading} column={1} bordered >
+                    <Descriptions.Item label="Address">{userProfile.address}</Descriptions.Item>
+                    {userProfile.roles && userProfile.roles[0].name.toUpperCase() === 'FARMER' &&
+                      <>
+                        <Descriptions.Item label="District">{userProfile.district}</Descriptions.Item>
+                        <Descriptions.Item label="Mandala">{userProfile.mandala}</Descriptions.Item>
+                        <Descriptions.Item label="Panchayat">{userProfile.panchayat}</Descriptions.Item>
+                        <Descriptions.Item label="Hamlet">{userProfile.hamlet}</Descriptions.Item>
+                      </>
+                    }
+                  </Descriptions>
+                </Card>
+          </Col>
+        </Row>
       </Col>
-      <Col xs={{ span: 22, offset: 1 }} xl={{ span: 9, offset: 2 }}>
-        {loading &&
-          <>
-            <Skeleton active />
-            <Skeleton active />
-            <Skeleton active />
-            <Skeleton active />
-          </>
-        }
-        {!loading &&
-          <>
-            <Card title="Location Demographics" style={{ marginTop: '20px' }}>
-              <Descriptions column={2}>
-                <Descriptions.Item label="Address" span={2}>
-                  {userProfile.address}
-                </Descriptions.Item>
-                <Descriptions.Item label="District">{userProfile.district}</Descriptions.Item>
-                <Descriptions.Item label="Mandala">{userProfile.mandala}</Descriptions.Item>
-                <Descriptions.Item label="Panchayat">{userProfile.panchayat}</Descriptions.Item>
-                <Descriptions.Item label="Hamlet">{userProfile.hamlet}</Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </>
-        }
-      </Col>
-      <Drawer visible={showDrawer} width={window.innerWidth > 800 ? 900 : window.innerWidth} onClose={() => setShowDrawer(false)}>
+      <Drawer visible={showDrawer} width={window.innerWidth > 768 ? 900 : window.innerWidth} onClose={() => setShowDrawer(false)}>
         {userProfile.roles && userProfile.roles[0].name.toUpperCase() === 'FARMER' &&
-          <MemberForm type="self" fields={userProfile} form={form} onFinish={onFinish} />
+          <MemberForm type="self" fields={currentForm} form={form} onFinish={onFinish} />
         }
         {userProfile.roles && userProfile.roles[0].name.toUpperCase() !== 'FARMER' &&
-          <StaffForm type="self" fields={userProfile} form={form} onFinish={onFinish} />
+          <StaffForm type="self" fields={currentForm} form={form} onFinish={onFinish} />
         }
       </Drawer>
     </Row>

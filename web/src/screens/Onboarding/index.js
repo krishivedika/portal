@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Form, Input, Select, Button, message, Row, Col, Typography, Tabs } from "antd";
 
-import "./index.css";
 import AuthService from "../../services/auth";
 import Routes from "../../routes";
 import onboardingImage from "../../images/onboarding.png";
@@ -11,7 +10,7 @@ const { Text } = Typography;
 const { TabPane } = Tabs;
 
 const layout = {
-  labelCol: { span: 8 },
+  labelCol: { span: 6 },
   wrapperCol: { span: 12 },
 };
 const tailLayout = {
@@ -21,11 +20,11 @@ const tailLayout = {
 let retries = 0
 
 const OnBoardingForm = ({ history }) => {
-  const [otpButton, setOtpButton] = useState(true);
-  const [resendOtpButton, setResendOtpButton] = useState(false);
-  const [registerButton, setRegisterButton] = useState(true);
 
   const [form] = Form.useForm();
+  const [otpButton, setOtpButton] = useState(true);
+  const [registerButton, setRegisterButton] = useState(true);
+  const [resendOtpButton, setResendOtpButton] = useState(false);
 
   const handleRegister = (values) => {
     if (values.otp && values.otp !== '') {
@@ -43,52 +42,33 @@ const OnBoardingForm = ({ history }) => {
               setRegisterButton(false);
             }
           }
-          message.error(`Registration Failed, reason: ${err.response.data.message}`);
+          message.error(`Registration Failed, ${err.response.data.message}`);
         });
     }
   };
 
-  const sendOtp = async () => {
-    try {
-      await form.validateFields();
-      setOtpButton(false);
-      requestOtp();
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const resendOtp = async () => {
-    try {
-      await form.validateFields();
-      setResendOtpButton(false);
-      requestOtp();
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const showOtpsentMessage = (success) => {
-    if (success) message.info('OTP sent to your mobile.');
-    else message.error('Failed to send OTP, try again later.');
+  const showOtpsentMessage = (success, msg) => {
+    if (success) message.info('OTP sent to your phone.');
+    else message.error(`Failed to send OTP, ${msg}.`);
   };
 
   const otpRetryError = 'Maximum retries reached, try after 1 Hour.';
   const requestOtp = async () => {
     const checkOtpRetries = new Date(localStorage.getItem("otp_retries_time"));
     if ((new Date() - checkOtpRetries) > (60 * 60 * 1000)) {
-        setTimeout(() => {
-          setResendOtpButton(true);
-        }, 1000 * 12);
       let values;
       try {
         values = await form.validateFields();
-        setOtpButton(false);
         AuthService.requestOtp({ phone: values.phone }).then(() => {
-          showOtpsentMessage((true))
+          showOtpsentMessage(true, '');
+          setOtpButton(false);
+          setResendOtpButton(false);
+          setTimeout(() => {
+            setResendOtpButton(true);
+          }, 1000 * 120);
         }).catch(err => {
           console.log(err.response.data);
-          showOtpsentMessage(false);
+          showOtpsentMessage(false, err.response.data.message);
         });
       } catch (err) {
         console.log(err);
@@ -115,12 +95,12 @@ const OnBoardingForm = ({ history }) => {
     <Row>
       <Col xs={0} md={0} lg={12}>
         <div>
-          <img className="onboarding-image" src={onboardingImage} alt="On Boarding" />
+          <img style={{width: '90%', height: '90%'}} src={onboardingImage} alt="On Boarding" />
         </div>
       </Col>
       <Col xs={24} md={24} lg={10}>
         <Tabs style={{ margin: '50px' }}>
-          <TabPane tab='On Boarding' key='onboarding'>
+          <TabPane tab='Onboarding' key='onboarding'>
             <Form
               {...layout}
               form={form}
@@ -130,17 +110,18 @@ const OnBoardingForm = ({ history }) => {
               }}
               scrollToFirstError
             >
-              <Form.Item name="phone" label="Phone Number"
+              <Form.Item name="phone" label="Phone"
                 rules={[
                   {
                     required: true,
-                    message: "Please input your Phone No.",
+                    message: "Please input Phone Number",
                   },
                   { min: 10, message: 'Phone Number must be at least 10 characters' },
                   { max: 10, message: 'Phone Number must be at least 10 characters' },
                 ]}
               >
                 <Input
+                  placeholder="Enter your Phone Number"
                   addonBefore={prefixSelector}
                   style={{
                     width: "100%",
@@ -152,49 +133,50 @@ const OnBoardingForm = ({ history }) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your AADHAR number!",
+                    message: "Please input AADHAR number!",
                     whitespace: true,
                   },
                   { min: 16, message: 'AADHAR must be at least 16 characters' },
                   { max: 16, message: 'AADHAR must be at least 16 characters' },
                 ]}
               >
-                <Input />
+                <Input  placeholder="Enter AADHAR number" />
               </Form.Item>
               {!otpButton &&
                 <Form.Item name="otp" label="OTP"
                   rules={[
                     {
                       required: true,
-                      message: "Please input the OTP sent to your Phone",
+                      message: "Please input OTP",
                     },
-                    { min: 6, message: 'OTP must be at least 6' },
-                    { max: 6, message: 'OTP must be at least 6 digits' },
+                    { min: 4, message: 'OTP must be at least 4 digits' },
+                    { max: 4, message: 'OTP must be at least 4 digits' },
                   ]}
                 >
-                  <Input />
+                  <Input placeholder="Enter your OTP" />
                 </Form.Item>
               }
               {!otpButton &&
                 <>
                   <Form.Item {...tailLayout}>
                     {registerButton &&
-                      <Button type="primary" htmlType="submit">
-                        Register
-                      </Button>
+                      <Button type="primary" htmlType="submit">Register</Button>
                     }
                     {!registerButton &&
                       <Text type="danger">{otpRetryError}</Text>
                     }
                     {resendOtpButton && registerButton &&
-                      <Button type="link" onClick={resendOtp}>Resend OTP</Button>
+                      <Button type="link" onClick={requestOtp}>Resend OTP</Button>
+                    }
+                    {!resendOtpButton &&
+                      <Button type="link" onClick={requestOtp} disabled>Resend OTP</Button>
                     }
                   </Form.Item>
                 </>
               }
               {otpButton &&
                 <Form.Item {...tailLayout}>
-                  <Button type="primary" onClick={sendOtp}>Send OTP</Button>
+                  <Button type="primary" onClick={requestOtp}>Send OTP</Button>
                 </Form.Item>
               }
             </Form>

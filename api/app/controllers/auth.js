@@ -10,24 +10,31 @@ const User = db.user;
 const Role = db.role;
 
 exports.signup = (req, res) => {
-  if (!sms.verifyOtp(req.body.phone, req.body.otp)) {
-    return res.status(400).send({message: "Invalid OTP.", code: 1});
-  }
-  const userObj = {
-    prefix: req.body.prefix,
-    phone: req.body.phone,
-  }
+  sms.verifyOtp(req.body.phone, req.body.otp).then(response => {
+    if (response.data.type === "error") {
+      return res.status(400).send({ message: response.data.message, code: 100 });
+    }
+    const userObj = {
+      prefix: req.body.prefix,
+      phone: req.body.phone,
+      isActive: true,
+      isOnboarded: false,
+    }
 
-  User.create(userObj)
-    .then((user) => {
-      user.setRoles([5]).then(() => {
-        res.send({message: "Member was registered successfully."});
+    User.create(userObj)
+      .then((user) => {
+        user.setRoles([5]).then(() => {
+          res.send({ message: "Member was registered successfully" });
+        });
+      })
+      .catch(() => {
+        res.status(500).send({ message: "Unknown Error", code: 2 });
       });
-    })
-    .catch((err) => {
-      res.status(500).send({message: err.message});
-    });
-};
+  }).catch(err => {
+    console.log(err);
+    return res.status(400).send({ message: "Invalid OTP", code: 1 });
+  });
+}
 
 exports.signin = (req, res) => {
   User.scope('withoutPassword').findOne({
@@ -38,28 +45,23 @@ exports.signin = (req, res) => {
     include: [{
       model: Role,
     }]
-  })
-    .then((user) => {
-      if (!user) {
-        return res.status(404).send({ message: "User Not found." });
-      } else if (!user.isOnboarded) {
-        return res.status(404).send({ message: "Member onboarding is being processed." });
-      }
+  }).then((user) => {
+    if (!user) {
+      return res.status(404).send({ message: "User Not found" });
+    } else if (!user.isOnboarded) {
+      return res.status(404).send({ message: "Member onboarding is being processed" });
+    }
 
-      if (user.roles[0].name !== ROLES.FARMER.name) {
-        return res.status(400).send({
-          message: "Staff should use Email to login.",
-          code: 1,
-        });
+    if (user.roles[0].name !== ROLES.FARMER.name) {
+      return res.status(400).send({
+        message: "Staff should use Email to login",
+        code: 1,
+      });
+    }
+    sms.verifyOtp(req.body.phone, req.body.otp).then(response => {
+      if (response.data.type === "error") {
+        return res.status(400).send({ message: response.data.message, code: 100 });
       }
-
-      if (!sms.verifyOtp(req.body.phone, req.body.otp)) {
-        return res.status(400).send({
-          message: "Invalid OTP",
-          code: 1,
-        });
-      }
-
       const token = jwt.sign({ id: user.id }, config.SECRET_KEY, {
         expiresIn: 1209600, // Fortnite
       });
@@ -79,10 +81,11 @@ exports.signin = (req, res) => {
         });
       });
     })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).send({message: err.message});
-    });
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send({ message: err.message });
+      });
+  });
 };
 
 exports.staffSignin = (req, res) => {
@@ -94,9 +97,9 @@ exports.staffSignin = (req, res) => {
   })
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: "User Not found." });
+        return res.status(404).send({ message: "User Not found" });
       } else if (!user.isOnboarded) {
-        return res.status(404).send({ message: "Staff onboarding is being processed." });
+        return res.status(404).send({ message: "Staff onboarding is being processed" });
       }
 
       const passwordIsValid = bcrypt.compareSync(
@@ -133,11 +136,22 @@ exports.staffSignin = (req, res) => {
     })
     .catch((err) => {
       console.log(err);
-      res.status(500).send({message: err.message});
+      res.status(500).send({ message: err.message });
     });
 };
 
 exports.newOtp = (req, res) => {
-  sms.generateOtp();
-  res.send({message: 'OTP sent.'});
+  sms.generateOtp(req.body.phone).then(() => {
+    res.send({ message: 'OTP sent' });
+  }).catch(err => {
+    console.log(err);
+  });
+};
+
+exports.resendOtp = (req, res) => {
+  sms.resendOtp(req.body.phone).then(() => {
+    res.send({ message: 'OTP sent' });
+  }).catch(err => {
+    console.log(err);
+  });
 };

@@ -9,6 +9,6 @@ export default {
   HELP: '/help',
   ANALYTICS: '/analytics',
   LOGOUT: '/logout',
-  USERMANAGEMENT: '/users',
+  USERMANAGEMENT: '/usermanagement',
   SERVICES: '/services',
 };

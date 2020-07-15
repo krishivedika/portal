@@ -3,7 +3,7 @@ const controller = require("../controllers/user");
 
 module.exports = (app) => {
 
-  app.get("/user", [commonValidations.verifyToken], controller.user); 
+  app.get("/user", [commonValidations.verifyToken], controller.user);
 
   app.get("/users", [commonValidations.verifyToken], controller.users);
 
