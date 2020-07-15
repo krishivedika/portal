@@ -11,4 +11,5 @@ export default {
   LOGOUT: '/logout',
   USERMANAGEMENT: '/usermanagement',
   SERVICES: '/services',
+  RESET: '/reset',
 };

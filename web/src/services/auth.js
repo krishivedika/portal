@@ -9,6 +9,14 @@ class AuthService {
     return axios.post(`/signin/staff`, data);
   }
 
+  forgotPassword(data) {
+    return axios.post(`/forgot`, data);
+  }
+
+  resetPassword(data) {
+    return axios.post(`/reset`, data);
+  }
+
   logout() {
     localStorage.removeItem("user");
   }
@@ -17,8 +25,12 @@ class AuthService {
     return axios.post(`/signup`, data);
   }
 
-  requestOtp(data) {
-    return axios.post(`/otp`, data);
+  requestNewOtp(data) {
+    return axios.post(`/otp/new`, data);
+  }
+
+  requestLoginOtp(data) {
+    return axios.post(`/otp/signin`, data);
   }
 
   resendOtp(data) {

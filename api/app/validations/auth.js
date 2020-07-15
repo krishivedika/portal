@@ -59,6 +59,42 @@ const staffSignin = (req, res, next) => {
   });
 };
 
+const forgot = (req, res, next) => {
+  const validationRule = {
+    email: "required|string",
+  };
+  validator(req.body, validationRule, {}, (err, status) => {
+    if (!status) {
+      return res.status(412).send({
+        success: false,
+        message: "Validation failed",
+        data: err,
+      });
+    } else {
+      next();
+    }
+  });
+};
+
+const reset = (req, res, next) => {
+  const validationRule = {
+    key: "required|string",
+    password: "required|string",
+    confirmPassword: "required|string",
+  };
+  validator(req.body, validationRule, {}, (err, status) => {
+    if (!status) {
+      return res.status(412).send({
+        success: false,
+        message: "Validation failed",
+        data: err,
+      });
+    } else {
+      next();
+    }
+  });
+};
+
 const newOtp = (req, res, next) => {
   const validationRule = {
     phone: "required|string|min:10",
@@ -82,11 +118,29 @@ const checkDuplicateUser = (req, res, next) => {
       phone: req.body.phone,
     },
   }).then(user => {
-    console.log(req.body);
     if (user) {
-      console.log(user.id);
       return res.status(412).send({
         message: "Phone is already in use"
+      });
+    } else {
+      next();
+    }
+  });
+}
+
+const isOnboarded = (req, res, next) => {
+  User.scope('withoutPassword').findOne({
+    where: {
+      phone: req.body.phone,
+    },
+  }).then(user => {
+    if (!user) {
+      return res.status(412).send({
+        message: "User Not found"
+      });
+    } else if (!user.isOnboarded) {
+      return res.status(412).send({
+        message: "Member onboarding is being processed"
       });
     } else {
       next();
@@ -100,4 +154,7 @@ module.exports = {
   staffSignin,
   newOtp,
   checkDuplicateUser,
+  isOnboarded,
+  forgot,
+  reset,
 };

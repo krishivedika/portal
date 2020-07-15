@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import axios from 'axios';
-import { Form, Input, Button, Row, Col, Tabs, Typography, message } from "antd";
+import { Form, Input, Button, Row, Col, Tabs, Modal, Typography, message } from "antd";
 
 import AuthService from "../../services/auth.js";
 import Routes from "../../routes";
@@ -15,7 +15,7 @@ const layout = {
   wrapperCol: { span: 16 },
 };
 const tailLayout = {
-  wrapperCol: { xs: {offset: 0, span: 16}, md: {offset: 4, span: 16} },
+  wrapperCol: { xs: { offset: 0, span: 16 }, md: { offset: 4, span: 16 } },
 };
 
 let retries = 0;
@@ -86,7 +86,7 @@ const Login = (props) => {
   };
 
   const otpRetryError = 'Maximum retries reached, try after 1 Hour.';
-  const requestOtp = async (type='') => {
+  const requestOtp = async (type = '') => {
     const checkOtpRetries = new Date(localStorage.getItem("otp_retries_time"));
     if ((new Date() - checkOtpRetries) > (60 * 60 * 1000)) {
       let values;
@@ -108,7 +108,7 @@ const Login = (props) => {
             showOtpsentMessage(false);
           });
         } else {
-          AuthService.requestOtp({ phone: values.phone }).then(() => {
+          AuthService.requestLoginOtp({ phone: values.phone }).then(() => {
             onRequest();
           }).catch(err => {
             console.log(err.response.data);
@@ -124,10 +124,29 @@ const Login = (props) => {
     }
   };
 
+  const [formForgot] = Form.useForm();
+  const [visibleForgot, setVisibleForgot] = useState(false);
+
+  const handleForgotCancel = () => {
+    setVisibleForgot(false);
+  }
+
+  const handleForgot = async () => {
+    const values = await formForgot.validateFields();
+    console.log(values);
+    AuthService.forgotPassword(values).then(response => {
+      message.info(response.data.message);
+      setVisibleForgot(false);
+    }).catch(err => {
+      console.log(err);
+      message.error(err.response.data.message);
+    });
+  };
+
   return (
     <Row>
-      <div className="farmer-image">
-        <img style={{width: '100%', minHeight: '100px'}} src={farmerImage} alt="FarmerFirst" />
+      <div>
+        <img style={{ width: '100%', minHeight: '100px' }} src={farmerImage} alt="FarmerFirst" />
       </div>
       <Col xs={1} sm={4} md={4} lg={6} xl={8}></Col>
       <Col xs={22} sm={16} md={16} lg={12} xl={8}>
@@ -215,7 +234,7 @@ const Login = (props) => {
                   </Form.Item>
                   <Form.Item {...tailLayout}>
                     <Button type="primary" htmlType="submit">Log in</Button>
-                    <Button type="link">Forgot Password</Button>
+                    <Button type="link" onClick={() => setVisibleForgot(true)}>Forgot Password</Button>
                   </Form.Item>
                 </>
               }
@@ -224,8 +243,27 @@ const Login = (props) => {
         </Tabs>
       </Col>
       <Col xs={1} sm={4} md={4} lg={6} xl={7}></Col>
-      <Col xs={0} sm={0} md={0} lg={0} xl={1} style={{marginBottom: '400px'}}>
+      <Col xs={0} sm={0} md={0} lg={0} xl={1} style={{ marginBottom: '400px' }}>
       </Col>
+      <Modal
+        title="Forgot Password"
+        visible={visibleForgot}
+        onOk={handleForgot}
+        onCancel={handleForgotCancel}
+      >
+        <Form form={formForgot} >
+          <Form.Item name="email" label="Email"
+            rules={[
+              {
+                required: true,
+                message: "Please input Email.",
+              },
+              { type: 'email' },
+            ]}>
+            <Input placeholder="Enter your Email" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Row>
   );
 }

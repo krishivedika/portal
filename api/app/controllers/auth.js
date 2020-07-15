@@ -1,13 +1,15 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require('uuid');
 
 const config = require("../config");
 const db = require("../models");
-const { sms } = require("../utils");
+const { sms, email } = require("../utils");
 const { ROLES } = require("../../constants");
 
 const User = db.user;
 const Role = db.role;
+const Reset = db.reset;
 
 exports.signup = (req, res) => {
   sms.verifyOtp(req.body.phone, req.body.otp).then(response => {
@@ -83,7 +85,7 @@ exports.signin = (req, res) => {
     })
       .catch((err) => {
         console.log(err);
-        res.status(500).send({ message: err.message });
+        return res.status(500).send({ message: err.message });
       });
   });
 };
@@ -140,18 +142,81 @@ exports.staffSignin = (req, res) => {
     });
 };
 
-exports.newOtp = (req, res) => {
-  sms.generateOtp(req.body.phone).then(() => {
-    res.send({ message: 'OTP sent' });
+exports.forgotPassword = (req, res) => {
+  User.findOne({
+    where: {
+      email: req.body.email,
+      isActive: true,
+    },
+  }).then(user => {
+    if (user) {
+      const resetObj = {
+        key: uuidv4(config.SECRET_KEY, uuidv4.URL),
+        email: req.body.email,
+        isActive: true,
+      }
+      Reset.create(resetObj).then(reset => {
+        const emailBody = `
+        Dear KVP Member,
+        <br><br>
+        You have requested to reset password.
+        Click on this <a href="${config.ORIGIN}/reset?key=${reset.key}">link</a> to reset your password.
+        <br>
+        If you have not requested reset password, then please ignore.
+        <br><br>
+        Thanks,
+        KVP Admin.
+        `
+        email.sendEmail(req.body.email, 'KVP: Forgot Password', emailBody).then(response => {
+          return res.send({ message: 'Email sent with reset link, check your email' });
+        }).catch(err => {
+          console.log(err);
+          return res.status(500).send({ message: 'Failed to send reset link' });
+        });
+      }).catch(err => {
+        console.log(err);
+        return res.status(500).send({ message: 'Failed to send reset link' });
+      });
+    } else {
+      return res.status(500).send({ message: 'Email send with reset link, check your email' });
+    }
   }).catch(err => {
     console.log(err);
+    return res.send({ message: 'Failed to send reset link' });
+  });
+};
+
+exports.resetPassword = (req, res) => {
+  Reset.findOne({ where: { key: req.body.key, isActive: true } }).then(reset => {
+    if (!reset) return res.status(500).send({ message: 'Link not valid or expired, try again.' });
+    User.findOne({ where: { email: reset.email } }).then(user => {
+      reset.update({isActive: false}).then(() => {
+        const newPassword = bcrypt.hashSync(req.body.password, 8);
+        user.update({password: newPassword}).then(() => {
+          return res.send({ message: 'Password updated successfully' });
+        });
+      });
+    });
+  }).catch(err => {
+    console.log(err);
+    return res.send({ message: 'Failed to reset password' });
+  });;
+}
+
+exports.newOtp = (req, res) => {
+  sms.generateOtp(req.body.phone).then(() => {
+    return res.send({ message: 'OTP sent' });
+  }).catch(err => {
+    console.log(err);
+    return res.send({ message: 'Failed to send OTP' });
   });
 };
 
 exports.resendOtp = (req, res) => {
   sms.resendOtp(req.body.phone).then(() => {
-    res.send({ message: 'OTP sent' });
+    return res.send({ message: 'OTP sent' });
   }).catch(err => {
     console.log(err);
+    return res.send({ message: 'Failed to send OTP' });
   });
 };

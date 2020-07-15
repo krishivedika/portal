@@ -59,7 +59,7 @@ const OnBoardingForm = ({ history }) => {
       let values;
       try {
         values = await form.validateFields();
-        AuthService.requestOtp({ phone: values.phone }).then(() => {
+        AuthService.requestNewOtp({ phone: values.phone }).then(() => {
           showOtpsentMessage(true, '');
           setOtpButton(false);
           setResendOtpButton(false);

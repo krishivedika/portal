@@ -102,7 +102,7 @@ const UserManagement = () => {
     fetchAndUpdateUsers(values);
   };
 
-  const fetchAndUpdateUsers = (values) => {
+  const fetchAndUpdateUsers = (values={search: ''}) => {
     setLoading(true);
     UserService.getUsers({ search: values.search || '', isOnboarded: values.onboarded || false}).then(response => {
       const tempUsers = [...response.data.users];
@@ -116,12 +116,11 @@ const UserManagement = () => {
   };
 
   const handleWindowResize = () => {
-    console.log(window.innerWidth);
     setIsMobile(window.innerWidth <= 768);
   };
 
   useEffect(() => {
-    fetchAndUpdateUsers({search: ''});
+    fetchAndUpdateUsers();
     window.addEventListener("load", handleWindowResize);
     window.addEventListener("resize", handleWindowResize);
   }, []);
