@@ -17,6 +17,40 @@ class UserService {
   updateProfile(data) {
     return axios.post(`/user/member/update`, data);
   }
+
+  // Farm Record end points
+  getFarmRecords(data) {
+    return axios.get(`/farms`, { params: data })
+  } 
+
+  addFarmRecords(data) {
+    return axios.post(`/farm/add`, data);
+  }
+
+  updateFarmRecords(data) {
+    return axios.post(`/farm/update`, data)
+  }
+
+  deleteFarmRecords(data) {
+    return axios.delete(`/farm/delete/${data}`)
+  }
+
+  // Survey End Points
+  getSurveys(data) {
+    return axios.get(`/farms/surveys/${data}`)
+  } 
+
+  addSurvey(data) {
+    return axios.post(`/farm/survey/add`, data);
+  }
+
+  updateSurvey(data) {
+    return axios.post(`/farm/survey/update`, data)
+  }
+
+  deleteSurvey(data) {
+    return axios.delete(`/farm/survey/delete/${data}`)
+  }
 }
 
 let userServiceInstance = new UserService();

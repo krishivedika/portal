@@ -8,7 +8,7 @@ const User = db.user;
 const signup = (req, res, next) => {
   const validationRule = {
     phone: "required|string|min:10",
-    aadhar: "required|string|min: 16",
+    aadhar: "required|string|min: 12",
   };
   validator(req.body, validationRule, {}, (err, status) => {
     if (!status) {
@@ -43,7 +43,7 @@ const signin = (req, res, next) => {
 
 const staffSignin = (req, res, next) => {
   const validationRule = {
-    email: "required|string|min:6",
+    email: "required|string|min:6|email",
     password: "required|string|min:6",
   };
   validator(req.body, validationRule, {}, (err, status) => {

@@ -37,7 +37,7 @@ const UserProfile = () => {
   const onFinish = (values) => {
     let formValues = { ...values };
     formValues.id = userProfile.id;
-    formValues.role = userProfile.roles[0].name;
+    formValues.role = userProfile.Roles[0].name;
     UserService.updateProfile(formValues).then(response => {
       setAge(response);
       setUserProfile(response.data.user);
@@ -117,10 +117,10 @@ const UserProfile = () => {
         </Row>
       </Col>
       <Drawer visible={showDrawer} width={window.innerWidth > 768 ? 900 : window.innerWidth} onClose={() => setShowDrawer(false)}>
-        {userProfile.roles && userProfile.roles[0].name.toUpperCase() === 'FARMER' &&
+        {userProfile.Roles && userProfile.Roles[0].name.toUpperCase() === 'FARMER' &&
           <MemberForm type="self" fields={currentForm} form={form} onFinish={onFinish} />
         }
-        {userProfile.roles && userProfile.roles[0].name.toUpperCase() !== 'FARMER' &&
+        {userProfile.Roles && userProfile.Roles[0].name.toUpperCase() !== 'FARMER' &&
           <StaffForm type="self" fields={currentForm} form={form} onFinish={onFinish} />
         }
       </Drawer>

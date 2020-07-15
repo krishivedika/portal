@@ -179,7 +179,7 @@ const UserManagement = () => {
           <Table className="g-table-striped-rows g-ant-table-cell" dataSource={users} columns={columns} loading={loading} rowKey='id' scroll={{x: true}}/>
         </Col>
       </Row>
-      <Drawer visible={showDrawer} width={920} onClose={() => setShowDrawer(false)}>
+      <Drawer visible={showDrawer} width={window.innerWidth > 768 ? 900 : window.innerWidth} onClose={() => setShowDrawer(false)}>
         {selectedItem.roles && selectedItem.roles[0].name.toUpperCase() === 'FARMER' &&
           <MemberForm type="sadmin" fields={selectedItem} form={form} onFinish={onFinish} />
         }

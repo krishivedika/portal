@@ -136,8 +136,8 @@ const OnBoardingForm = ({ history }) => {
                     message: "Please input AADHAR number!",
                     whitespace: true,
                   },
-                  { min: 16, message: 'AADHAR must be at least 16 characters' },
-                  { max: 16, message: 'AADHAR must be at least 16 characters' },
+                  { min: 12, message: 'AADHAR must be at least 12 characters' },
+                  { max: 12, message: 'AADHAR must be at least 12 characters' },
                 ]}
               >
                 <Input  placeholder="Enter AADHAR number" />

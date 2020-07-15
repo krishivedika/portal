@@ -7,9 +7,9 @@ const helmet = require('helmet')
 const morgan = require('morgan')
 const bcrypt = require("bcryptjs");
 
-const config = require("./app/config");
+const config = require("./config");
 const constants = require("./constants");
-const db = require("./app/models");
+const db = require("./models");
 
 const app = express();
 
@@ -45,8 +45,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-require('./app/routes/auth')(app);
-require('./app/routes/user')(app);
+require('./routes/auth')(app);
+require('./routes/user')(app);
+require('./routes/farm')(app);
 
 const Role = db.role;
 const User = db.user;
@@ -73,6 +74,7 @@ const initial = () => {
     {firstName: 'Kamia', lastName: 'U', email: 'kamia.uppal@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
     {firstName: 'Hari', lastName: 'M', email: 'hmadanaraj@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
     {firstName: 'Nagen', lastName: 'S', email: 'anagin@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
+    {firstName: 'Shiva', lastName: 'V', email: 'shiv@varmafoods.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
   ]
   systemAdmins.forEach(admin => {
     User.findOne({where: {email: admin.email}}).then(a => {

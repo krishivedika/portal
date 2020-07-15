@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const config = require("../config");
 const db = require("../models");
 const { sms, email } = require("../utils");
-const { ROLES } = require("../../constants");
+const { ROLES } = require("../constants");
 
 const User = db.user;
 const Role = db.role;
@@ -54,7 +54,7 @@ exports.signin = (req, res) => {
       return res.status(404).send({ message: "Member onboarding is being processed" });
     }
 
-    if (user.roles[0].name !== ROLES.FARMER.name) {
+    if (user.Roles[0].name !== ROLES.FARMER.name) {
       return res.status(400).send({
         message: "Staff should use Email to login",
         code: 1,
@@ -138,7 +138,7 @@ exports.staffSignin = (req, res) => {
     })
     .catch((err) => {
       console.log(err);
-      res.status(500).send({ message: err.message });
+      return res.status(500).send({ message: err.message });
     });
 };
 
@@ -182,7 +182,7 @@ exports.forgotPassword = (req, res) => {
     }
   }).catch(err => {
     console.log(err);
-    return res.send({ message: 'Failed to send reset link' });
+    return res.status(500).send({ message: 'Failed to send reset link' });
   });
 };
 

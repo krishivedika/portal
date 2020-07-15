@@ -7,6 +7,7 @@ export default {
   SUPPORT: '/support',
   FUNCTIONS: '/functions',
   HELP: '/help',
+  FARMRECORDS: '/farmrecords',
   ANALYTICS: '/analytics',
   LOGOUT: '/logout',
   USERMANAGEMENT: '/usermanagement',

@@ -8,7 +8,7 @@ import Routes from "./routes";
 import authHeader from "./services/authHeader";
 import AuthService from "./services/auth";
 import config from "./config";
-import { Admin, Login, Reset, Onboarding, UserProfile, Staff } from "./screens";
+import { Admin, Login, Reset, Onboarding, UserProfile, Staff, FarmRecords } from "./screens";
 import { Header } from "./components";
 import { SharedContext } from "./context";
 
@@ -54,6 +54,7 @@ const App = (props) => {
                   <Route exact path={Routes.RESET} component={Reset} />
                   <Route exact path={Routes.ONBOARDING} component={Onboarding} />
                   <Route exact path={Routes.PROFILE} component={UserProfile} />
+                  <Route exact path={Routes.FARMRECORDS} component={FarmRecords} />
                   <Route exact path={Routes.ADMIN} component={Admin} />
                   <Route exact path={Routes.USERMANAGEMENT} component={Staff} />
                 </Switch>

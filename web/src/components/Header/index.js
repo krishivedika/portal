@@ -97,12 +97,12 @@ const NavigationBar = (props) => {
   return (
     <Header style={{ position: "fixed", zIndex: 1, width: "100%" }}>
       <Row>
-        <Col xs={16} sm={18} md={10} lg={4} offset={1}>
-          <img src={logoImage} alt="KrishiVidya" />
+        <Col xs={16} sm={18} md={10} lg={3} xl={4} offset={1}>
+          <img src={logoImage} alt="KrishiVedika" />
         </Col>
         {!isMobile ? (
           <>
-            <Col xs={2} sm={2} md={10} lg={14}>
+            <Col xs={2} sm={2} md={5} lg={9} xl={9} offset={2}>
               <Menu mode="horizontal" selectedKeys={[currentTab]} onClick={(e) => setCurrentTab(e.key)}>
                 {!isLoggedIn &&
                   <Menu.Item key="LOGIN">
@@ -112,7 +112,7 @@ const NavigationBar = (props) => {
                 {menu}
               </Menu>
             </Col>
-            <Col xs={2} sm={2} md={10} lg={5}>
+            <Col xs={2} sm={2} md={5} lg={7} xl={7} offset={1}>
               <Menu mode="horizontal" selectedKeys={[]} >
                 {isLoggedIn &&
                   <Menu.Item key="USER">
