@@ -70,7 +70,7 @@ const Login = (props) => {
   };
 
   const redirectUser = (role) => {
-    if (role === 'FARMER') props.history.push(Routes.PROFILE);
+    if (role === 'FARMER') props.history.push(Routes.FARMRECORDS);
     else if (role === 'SADMIN') props.history.push(Routes.ADMIN);
     else props.history.push(Routes.USERMANAGEMENT);
   };

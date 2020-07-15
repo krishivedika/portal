@@ -186,7 +186,7 @@ const FarmRecords = () => {
   return (
     <>
       <Row style={{ padding: "15px", borderTop: "1px solid #90d150" }}>
-        <Col xs={10} sm={10} md={10} lg={16} xl={10}>
+        <Col xs={12} md={12} lg={12} xl={12}>
           <Form form={formSearch} layout="vertical">
             <Form.Item
               name="search"
@@ -197,15 +197,7 @@ const FarmRecords = () => {
             </Form.Item>
           </Form>
         </Col>
-        <Col
-          xs={10}
-          sm={10}
-          md={16}
-          lg={16}
-          xl={10}
-          offset={1}
-          style={{ textAlign: "end" }}
-        >
+        <Col xs={10} md={10} lg={10} xl={10} offset={1} style={{ textAlign: "end" }}>
           <Button type="primary" onClick={openNewForm}>
             Add Farm Record
           </Button>
