@@ -8,7 +8,8 @@ module.exports = (sequelize, DataTypes) => {
     state: DataTypes.STRING,
     district: DataTypes.STRING,
     mandala: DataTypes.STRING,
-    panchayat: DataTypes.STRING
+    panchayat: DataTypes.STRING,
+    isActive: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Farm',

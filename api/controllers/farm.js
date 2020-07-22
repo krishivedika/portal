@@ -1,9 +1,6 @@
 const Sequelize = require("sequelize");
-const bcrypt = require("bcryptjs");
 
 const db = require("../models");
-const constants = require("../constants");
-const config = require("../config");
 
 const Op = Sequelize.Op;
 const Farm = db.farm;
@@ -12,6 +9,7 @@ const Survey = db.survey;
 // Farm Record End Points
 exports.farmRecords = (req, res) => {
   let where = {
+    isActive: true,
     [Op.or]: [
       { name: { [Op.like]: `%${req.query.search}%` } },
       { streetAddress: { [Op.like]: `%${req.query.search}%` } },
@@ -21,27 +19,11 @@ exports.farmRecords = (req, res) => {
     where: where,
   })
     .then((farms) => {
+      console.log(farms);
       if (!farms) {
         return res.status(404).send({ message: "No Farm Records exist" });
       }
-      let customisedRecords = [];
-      farms.forEach((farm) => {
-        customisedRecords.push({
-          id: farm.id,
-          name: farm.name,
-          streetAddress: farm.streetAddress,
-          state: farm.state,
-          district: farm.district,
-          mandala: farm.mandala,
-          panchayat: farm.panchayat,
-          surveys: farm.Surveys,
-          createdAt: farm.createdAt,
-          updateAt: farm.updateAt,
-        });
-      });
-      res.status(200).send({
-        farms: customisedRecords,
-      });
+      return res.status(200).send({farms: farms});
     })
     .catch((err) => {
       console.log(err);
@@ -51,7 +33,7 @@ exports.farmRecords = (req, res) => {
 
 exports.addFarmRecord = (req, res) => {
   let farmRecords = { ...req.body };
-
+  farmRecords.isActive = true;
   Farm.create(farmRecords)
     .then(() => {
       return res.status(200).send({
@@ -93,7 +75,7 @@ exports.deleteFarmRecord = (req, res) => {
       if (!farm) {
         res.status(404).send({ message: "Farm Record doesn't exist" });
       }
-      farm.destroy().then(() => {
+      farm.update({isActive: false}).then(() => {
         return res.send({ message: "Farm Record Successfully Deleted!" });
       });
     })
@@ -104,15 +86,16 @@ exports.deleteFarmRecord = (req, res) => {
 
 // Survey Endpoints
 exports.addSurveyRecord = (req, res) => {
-  let surveyRecords = { ...req.body };
-  console.log(" in survey add");
-  Survey.create(surveyRecords)
+  let surveyRecord = { ...req.body };
+  surveyRecord.isActive = true;
+  Survey.create(surveyRecord)
     .then(() => {
       return res.status(200).send({
         message: "Survey Created Successfully!",
       });
     })
-    .catch(() => {
+    .catch(err => {
+      console.log(err);
       res.status(500).send({ message: "Unknown Error", code: 2 });
     });
 };
@@ -121,28 +104,15 @@ exports.surveys = (req, res) => {
   Survey.findAll({
     where: {
       FarmId: req.params.FarmId,
+      isActive: true,
     },
   })
     .then((surveys) => {
       if (!surveys) {
         return res.status(404).send({ message: "No Survey Records exist" });
       }
-      let customisedRecords = [];
-      surveys.forEach((survey) => {
-        customisedRecords.push({
-          id: survey.id,
-          farmId: survey.FarmId,
-          name: survey.name,
-          subdivision: survey.subdivision,
-          extent: survey.extent,
-          link: survey.link,
-          comment: survey.comment,
-          createdAt: survey.createdAt,
-          updateAt: survey.updatedAt,
-        });
-      });
-      res.status(200).send({
-        surveys: customisedRecords,
+      return res.status(200).send({
+        surveys: surveys,
       });
     })
     .catch((err) => {
@@ -152,7 +122,7 @@ exports.surveys = (req, res) => {
 };
 
 exports.updateSurveyRecord = (req, res) => {
-  let surveyRecords = { ...req.body };
+  let surveyRecord = { ...req.body };
   Survey.findOne({
     where: {
       id: req.body.id,
@@ -162,11 +132,12 @@ exports.updateSurveyRecord = (req, res) => {
       res.status(404).send({ message: "Survey Record not found" });
     }
     survey
-      .update(surveyRecords)
-      .then((survey) => {
+      .update(surveyRecord)
+      .then(() => {
         res.status(200).send({ message: "Survey Updated Successfully" });
       })
-      .catch(() => {
+      .catch(err => {
+        console.log(err);
         res.status(500).send({ message: "Unknown Error", code: 2 });
       });
   });
@@ -182,7 +153,7 @@ exports.deleteSurveyRecord = (req, res) => {
       if (!survey) {
         res.status(404).send({ message: "Survey doesn't exist" });
       }
-      survey.destroy().then(() => {
+      survey.updated({isActive: false}).then(() => {
         return res.send({ message: "Survey Successfully Deleted!" });
       });
     })

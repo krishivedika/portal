@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Button, Table } from "antd";
-import UserService from "../../services/user";
 
+import UserService from "../../services/user";
 
 const SurveyTable = (props) => {
   const [loading, setLoading] = useState(true);
   const [surveys, setSurveys] = useState([]);
 
   const columns = [
-    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Survey Name", dataIndex: "name", key: "name" },
     { title: "Subdivision", dataIndex: "subdivision", key: "subdivision" },
     { title: "Extent", dataIndex: "extent", key: "extent" },
     { title: "Link", dataIndex: "link", key: "link" },
@@ -18,8 +18,7 @@ const SurveyTable = (props) => {
       key: "",
       render: (_, item) => (
         <span className="table-operation">
-          <Button type="link" onClick={(event) => props.review(item, event)}>Edit</Button>
-          <Button type="link" onClick={(event) => props.review(item, event)}>View</Button>
+          <Button type="link" onClick={() => props.review(item, 'edit_survey')}>Edit</Button>
         </span>
       ),
     },

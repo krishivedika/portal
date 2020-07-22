@@ -18,16 +18,18 @@ const FarmRecordForm = (props) => {
 
   useEffect(() => {
     const fields = [];
-    Object.entries(props.fields).forEach(entry => {
-      fields.push({ name: entry[0], value: entry[1] });
-    });
-    setFields(fields);
+    if (props.type === "edit_farm") {
+      Object.entries(props.fields).forEach(entry => {
+        fields.push({ name: entry[0], value: entry[1] });
+      });
+      setFields(fields);
+    }
   }, [props]);
 
   return (
     <div style={{ margin: '15px' }}>
       <Tag icon={<SyncOutlined spin />} color="processing" style={{marginBottom: '10px'}}>
-        Editing: {props.fields.name}
+        Editing: {props.fields?.name}
       </Tag>
       <Form fields={fields} form={props.form} onFinish={props.onFinish} {...layout}>
         <Row>
@@ -35,7 +37,7 @@ const FarmRecordForm = (props) => {
             <Button type="primary" htmlType="submit">Save</Button>
           </Form.Item>
           <Col span={24}>
-            <Card title="Form Record" className="g-ant-card">
+            <Card title="Farm Record" className="g-ant-card">
             <Form.Item name="name" label="Name"
                 rules={[
                   {

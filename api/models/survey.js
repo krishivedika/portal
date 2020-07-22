@@ -7,7 +7,8 @@ module.exports = (sequelize, DataTypes) => {
     subdivision: DataTypes.STRING,
     extent: DataTypes.STRING,
     link: DataTypes.STRING,
-    comment: DataTypes.STRING
+    comment: DataTypes.STRING,
+    isActive: DataTypes.BOOLEAN,
   }, {
     sequelize,
     modelName: 'Survey',

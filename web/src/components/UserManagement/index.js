@@ -152,7 +152,7 @@ const UserManagement = () => {
         setShowDrawer(false);
         fetchAndUpdateUsers();
       }).catch(err => {
-        console.log(err);
+        console.log(err.response);
         message.error(`Failed to update User, ${err.response.data.message}`);
       });
     }

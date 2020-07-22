@@ -20,5 +20,4 @@ module.exports = (app) => {
 
   app.post("/farm/survey/update", [commonValidations.verifyToken, validation.updateSurvey], controller.updateSurveyRecord);
 
-
 };

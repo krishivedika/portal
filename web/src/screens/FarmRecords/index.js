@@ -25,7 +25,7 @@ const FarmRecords = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
-  const [action, setAction] = useState("Update");
+  const [action, setAction] = useState("add_farm");
 
   const columns = [
     { title: "Name", dataIndex: "name", key: "name" },
@@ -41,7 +41,7 @@ const FarmRecords = () => {
         <>
           <Button
             type="link"
-            onClick={(event) => review(item, event)}
+            onClick={(event) => review(item, 'add_survey')}
             style={{ padding: "0 5px" }}
           >
             Add Survey
@@ -49,8 +49,7 @@ const FarmRecords = () => {
           <Button
             type="link"
             onClick={(event) => {
-              // event.target.innerHTML = "Update";
-              review(item, event);
+              review(item, 'edit_farm');
             }}
             icon={<EditFilled />}
           />
@@ -104,8 +103,8 @@ const FarmRecords = () => {
     fetchAndUpdateRecords();
   }, []);
 
-  const review = (item, event) => {
-    setAction(event.target.innerHTML);
+  const review = (item, action) => {
+    setAction(action);
     setSelectedItem(item);
     setShowDrawer(true);
   };
@@ -147,9 +146,10 @@ const FarmRecords = () => {
 
   const onFinishSurvey = (values) => {
     let formValues = { ...values };
-    if (selectedItem.farmId) {
-      formValues.FarmId = selectedItem.farmId ? selectedItem.farmId : selectedItem.item.farmId;
-      formValues.id = selectedItem.id ? selectedItem.id : selectedItem.item.id;
+    console.log(selectedItem);
+    if (selectedItem.FarmId) {
+      formValues.FarmId = selectedItem.FarmId;
+      formValues.id = selectedItem.id;
       UserService.updateSurvey(formValues)
         .then(() => {
           message.success(`Survey Successfully Updated.`);
@@ -163,9 +163,7 @@ const FarmRecords = () => {
           );
         });
     } else {
-      formValues.FarmId = selectedItem.id
-        ? selectedItem.id
-        : selectedItem.item.id;
+      formValues.FarmId = selectedItem.id;
       UserService.addSurvey(formValues)
         .then(() => {
           message.success(`Survey Successfully Added.`);
@@ -180,7 +178,8 @@ const FarmRecords = () => {
   };
 
   const openNewForm = () => {
-    setSelectedItem({});
+    setAction("add_farm")
+    setSelectedItem(() => {});
     setShowDrawer(true);
   };
 
@@ -242,25 +241,23 @@ const FarmRecords = () => {
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
         onClose={() => setShowDrawer(false)}
       >
-        {action === "Update" && (
+        {(action === "edit_farm" || action === "add_farm") && (
           <FarmRecordForm
-            type="self"
+            type={action}
             fields={selectedItem}
             form={form}
             onFinish={onFinish}
           />
         )}
-        {action === "Add Survey" && (
+        {action === "add_survey" && (
           <SurveyForm
-            type="self"
             fields={selectedItem}
             form={form}
             onFinish={onFinishSurvey}
           />
         )}
-        {action === "Edit" && (
+        {action === "edit_survey" && (
           <SurveyForm
-            type="self"
             fields={selectedItem}
             form={form}
             onFinish={onFinishSurvey}
