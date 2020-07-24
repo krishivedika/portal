@@ -1,6 +1,10 @@
+const multer = require('multer');
+
 const commonValidations = require("../validations/common");
 const controller = require("../controllers/farm");
 const validation = require("../validations/farm");
+
+const files = multer();
 
 module.exports = (app) => {
 
@@ -20,4 +24,7 @@ module.exports = (app) => {
 
   app.post("/farm/survey/update", [commonValidations.verifyToken, validation.updateSurvey], controller.updateSurveyRecord);
 
+  app.post("/farm/survey/upload/delete", [commonValidations.verifyToken], controller.deleteUpload);
+
+  app.post("/farm/survey/upload", [files.single('file'), commonValidations.verifyToken], controller.fileUpload);
 };

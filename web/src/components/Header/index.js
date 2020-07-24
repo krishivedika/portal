@@ -127,7 +127,7 @@ const NavigationBar = (props) => {
                       </Menu>
                     } trigger={['click']}>
                       <Button type="link" className="ant-dropdown-link" onClick={e => e.preventDefault()}>
-                        Welcome, {state.user.firstName} ({state.user.roles}) <UserOutlined /> <DownOutlined />
+                        Welcome, {state.user.firstName} ({state.user.roles.includes("FARMER") ? "Member" : state.user.roles}) <UserOutlined /> <DownOutlined />
                       </Button>
                     </Dropdown>
                   </Menu.Item>

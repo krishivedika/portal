@@ -8,8 +8,6 @@ const config = require("../config");
 const Op = Sequelize.Op;
 const User = db.user;
 const Role = db.role;
-const Farm = db.farm;
-const Survey = db.survey;
 
 exports.user = (req, res) => {
   User.scope("withoutPassword")

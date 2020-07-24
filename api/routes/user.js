@@ -1,6 +1,5 @@
 const commonValidations = require("../validations/common");
 const controller = require("../controllers/user");
-const validation = require("../validations/user");
 
 module.exports = (app) => {
 

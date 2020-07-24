@@ -1,5 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
-import axios from 'axios';
+import React from "react";
 import { Form, Input, Button, Row, Col, Tabs, message } from "antd";
 import queryString from 'query-string'
 
@@ -7,7 +6,6 @@ import queryString from 'query-string'
 import AuthService from "../../services/auth.js";
 import Routes from "../../routes";
 import farmerImage from "../../images/banner.jpg";
-import { SharedContext } from "../../context";
 
 const { TabPane } = Tabs;
 

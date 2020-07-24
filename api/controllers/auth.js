@@ -54,7 +54,8 @@ exports.signin = (req, res) => {
       return res.status(404).send({ message: "Member onboarding is being processed" });
     }
 
-    if (user.Roles[0].name !== ROLES.FARMER.name) {
+    const userRole = user.Roles[0].name;
+    if (userRole !== ROLES.FARMER.name) {
       return res.status(400).send({
         message: "Staff should use Email to login",
         code: 1,
@@ -64,7 +65,7 @@ exports.signin = (req, res) => {
       if (response.data.type === "error") {
         return res.status(400).send({ message: response.data.message, code: 100 });
       }
-      const token = jwt.sign({ id: user.id }, config.SECRET_KEY, {
+      const token = jwt.sign({ id: user.id, role: userRole }, config.SECRET_KEY, {
         expiresIn: 1209600, // Fortnite
       });
 
@@ -116,7 +117,8 @@ exports.staffSignin = (req, res) => {
         });
       }
 
-      const token = jwt.sign({ id: user.id }, config.SECRET_KEY, {
+      const userRole = user.Roles[0].name;
+      const token = jwt.sign({ id: user.id, role: userRole }, config.SECRET_KEY, {
         expiresIn: 1209600, // Fortnite
       });
 
@@ -178,7 +180,7 @@ exports.forgotPassword = (req, res) => {
         return res.status(500).send({ message: 'Failed to send reset link' });
       });
     } else {
-      return res.status(500).send({ message: 'Email send with reset link, check your email' });
+      return res.send({ message: 'Email send with reset link, check your email' });
     }
   }).catch(err => {
     console.log(err);

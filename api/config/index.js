@@ -29,4 +29,8 @@ module.exports = {
   // Email SMTP
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+
+  // Azure Storage
+  STORAGE_ACCOUNT_SURVEYS: process.env.STORAGE_ACCOUNT_SURVEYS,
+  STORAGE_ACCOUNT_CONNECTION: process.env.STORAGE_ACCOUNT_CONNECTION,
 };

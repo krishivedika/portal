@@ -21,7 +21,7 @@ class UserService {
   // Farm Record end points
   getFarmRecords(data) {
     return axios.get(`/farms`, { params: data })
-  } 
+  }
 
   addFarmRecords(data) {
     return axios.post(`/farm/add`, data);
@@ -38,7 +38,7 @@ class UserService {
   // Survey End Points
   getSurveys(data) {
     return axios.get(`/farms/surveys/${data}`)
-  } 
+  }
 
   addSurvey(data) {
     return axios.post(`/farm/survey/add`, data);
@@ -50,6 +50,14 @@ class UserService {
 
   deleteSurvey(data) {
     return axios.delete(`/farm/survey/delete/${data}`)
+  }
+
+  uploadFile(data, config) {
+    return axios.post(`/farm/survey/upload`, data, config);
+  }
+
+  deleteFile(data) {
+    return axios.post(`/farm/survey/upload/delete`, data);
   }
 }
 

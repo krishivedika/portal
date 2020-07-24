@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, InputNumber, Button, Select, Radio, Tag, Row, Col, Card } from "antd";
+import { Form, Input, Button, Tag, Row, Col, Card } from "antd";
 import { SyncOutlined } from "@ant-design/icons";
-
-const { Option } = Select;
 
 const layout = {
   labelCol: { offset: 0, span: 3 },
   wrapperCol: { span: 12 },
 };
 const tailLayout = {
-  wrapperCol: { offset: 1, span: 20 },
+  wrapperCol: { offset: 0, span: 20 },
 };
 
 const FarmRecordForm = (props) => {
@@ -29,11 +27,11 @@ const FarmRecordForm = (props) => {
   return (
     <div style={{ margin: '15px' }}>
       <Tag icon={<SyncOutlined spin />} color="processing" style={{marginBottom: '10px'}}>
-        Editing: {props.fields?.name}
+        {props.type === "edit_farm" ? `Editing: ${props.fields?.name}` : "Creating New Farm Record"}
       </Tag>
       <Form fields={fields} form={props.form} onFinish={props.onFinish} {...layout}>
         <Row>
-          <Form.Item {...tailLayout}>
+          <Form.Item>
             <Button type="primary" htmlType="submit">Save</Button>
           </Form.Item>
           <Col span={24}>

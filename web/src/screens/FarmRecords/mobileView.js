@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Collapse, Row, Col, Button, List, Skeleton } from "antd";
 import { EditFilled, DeleteFilled } from "@ant-design/icons";
-import UserService from "../../services/user";
 
 const { Panel } = Collapse;
 
 const MobileView = (props) => {
-  const [expandIconPosition, setExpandIconPosition] = useState("left");
   const [farms, setFarms] = useState(props.farms);
   const [surveys, setSurveys] = useState([]);
 
-  const onPositionChange = (expandIconPosition) => {
-    setExpandIconPosition({ expandIconPosition });
-  };
   const callback = (key) => {
-    UserService.getSurveys(Number(key)).then((response) => {
-      const tempSurveys = [...response.data.surveys];
-      console.log(tempSurveys);
-      setSurveys(() => tempSurveys);
+    props.farms.forEach(farm => {
+      if (farm.id === Number(key)) {
+        setSurveys(() => [...farm.Surveys]);
+      }
     });
   };
 
@@ -32,7 +27,7 @@ const MobileView = (props) => {
           type="link"
           onClick={(event) => {
             event.stopPropagation();
-            props.review(item, event);
+            props.review(item.item, "add_survey");
           }}
           style={{ padding: "0 5px" }}
         >
@@ -42,8 +37,7 @@ const MobileView = (props) => {
           type="link"
           onClick={(event) => {
             event.stopPropagation();
-            event.target.innerHTML = "Update";
-            props.review(item, event);
+            props.review(item, "edit_farm");
           }}
           icon={<EditFilled />}
         />
@@ -66,9 +60,9 @@ const MobileView = (props) => {
           <Collapse
             accordion={true}
             onChange={callback}
-            expandIconPosition={expandIconPosition}
+            expandIconPosition={"left"}
           >
-            {props.farms.map((item, key) => {
+            {farms.map((item, key) => {
               return (
                 <Panel
                   header={item.name}
@@ -80,25 +74,21 @@ const MobileView = (props) => {
                     itemLayout="horizontal"
                     dataSource={surveys}
                     renderItem={(item) => (
-                      <List.Item
+                      <List.Item key={item.id}
                         actions={[
                           <a
                             onClick={(event) => {
                               event.stopPropagation();
-                              event.target.innerHTML = "Edit"
-                              props.review(item, event);
+                              props.review(item, "edit_survey");
                             }}
                             key="list-loadmore-edit"
                           >
                             Edit
                           </a>,
-                          <a key="list-loadmore-more">View</a>,
                         ]}
                       >
-                        <Skeleton title={false} loading={item.loading} active>
-                          <List.Item.Meta
-                            title={<a href="https://ant.design">{item.name}</a>}
-                          />
+                        <Skeleton active loading={false}>
+                          <List.Item.Meta title={item.name}></List.Item.Meta>
                         </Skeleton>
                       </List.Item>
                     )}

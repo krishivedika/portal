@@ -1,19 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-  Drawer,
-  Button,
-  Row,
-  Col,
-  Table,
-  Input,
-  Form,
-  message,
-  Carousel,
-} from "antd";
+import { Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
 import { EditFilled, DeleteFilled } from "@ant-design/icons";
 
 import UserService from "../../services/user";
-import AuthService from "../../services/auth";
 import FarmRecordForm from "../../components/FarmRecordForm";
 import SurveyForm from "../../components/SurveyForm";
 import SurveyTable from "./surveyTable";
@@ -24,11 +13,11 @@ const FarmRecords = () => {
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
-  const [selectedItem, setSelectedItem] = useState({});
+  const [selectedItem, setSelectedItem] = useState({id: 1});
   const [action, setAction] = useState("add_farm");
 
   const columns = [
-    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Farm Name", dataIndex: "name", key: "name" },
     { title: "Address", dataIndex: "streetAddress", key: "streetAddress" },
     { title: "State", dataIndex: "state", key: "state" },
     { title: "District", dataIndex: "district", key: "district" },
@@ -41,14 +30,13 @@ const FarmRecords = () => {
         <>
           <Button
             type="link"
-            onClick={(event) => review(item, 'add_survey')}
-            style={{ padding: "0 5px" }}
+            onClick={() => review(item, 'add_survey')}
           >
             Add Survey
           </Button>
           <Button
             type="link"
-            onClick={(event) => {
+            onClick={() => {
               review(item, 'edit_farm');
             }}
             icon={<EditFilled />}
@@ -86,7 +74,6 @@ const FarmRecords = () => {
     UserService.getFarmRecords({ search: values.search || "" }).then(
       (response) => {
         const tempFarms = [...response.data.farms];
-        console.log(tempFarms);
         setFarmRecord(() => tempFarms);
         setLoading(false);
       }
@@ -104,23 +91,24 @@ const FarmRecords = () => {
   }, []);
 
   const review = (item, action) => {
+    setLoading(true);
     setAction(action);
-    setSelectedItem(item);
+    setSelectedItem(() => item);
     setShowDrawer(true);
   };
 
   const [form] = Form.useForm();
   const onFinish = (values) => {
-    let currentUser = AuthService.getCurrentUser();
     let formValues = { ...values };
-    formValues.userId = currentUser.id;
     if (selectedItem.id) {
       formValues.id = selectedItem.id;
       UserService.updateFarmRecords(formValues)
         .then(() => {
           message.success(`Farm Record Successfully Added.`);
           setShowDrawer(false);
+          form.resetFields();
           fetchAndUpdateRecords();
+          setLoading(false);
         })
         .catch((err) => {
           console.log(err);
@@ -134,6 +122,7 @@ const FarmRecords = () => {
           message.success(`Farm Record Successfully Added.`);
           setShowDrawer(false);
           fetchAndUpdateRecords();
+          setLoading(false);
         })
         .catch((err) => {
           console.log(err);
@@ -144,9 +133,9 @@ const FarmRecords = () => {
     }
   };
 
+  const [surveyForm] = Form.useForm();
   const onFinishSurvey = (values) => {
     let formValues = { ...values };
-    console.log(selectedItem);
     if (selectedItem.FarmId) {
       formValues.FarmId = selectedItem.FarmId;
       formValues.id = selectedItem.id;
@@ -155,6 +144,7 @@ const FarmRecords = () => {
           message.success(`Survey Successfully Updated.`);
           setShowDrawer(false);
           fetchAndUpdateRecords();
+          setLoading(false);
         })
         .catch((err) => {
           console.log(err);
@@ -169,6 +159,7 @@ const FarmRecords = () => {
           message.success(`Survey Successfully Added.`);
           setShowDrawer(false);
           fetchAndUpdateRecords();
+          setLoading(false);
         })
         .catch((err) => {
           console.log(err);
@@ -179,12 +170,17 @@ const FarmRecords = () => {
 
   const openNewForm = () => {
     setAction("add_farm")
-    setSelectedItem(() => {});
+    setSelectedItem({});
     setShowDrawer(true);
   };
 
+  const onDrawerClose = () => {
+    setLoading(false);
+    setShowDrawer(false);
+  };
+
   const expandedRowRender = (item) => {
-    return <SurveyTable FarmId={item.id} review={review} />;
+    return <SurveyTable dataSource={farmRecord} farmId={item.id} review={review} />;
   };
 
   return (
@@ -225,7 +221,7 @@ const FarmRecords = () => {
               loading={loading}
               rowKey="id"
               bordered
-              expandable={{ expandedRowRender }}
+              expandable={{ expandedRowRender, expandRowByClick: true }}
             />
           </Col>
         </Row>
@@ -239,7 +235,7 @@ const FarmRecords = () => {
       <Drawer
         visible={showDrawer}
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
-        onClose={() => setShowDrawer(false)}
+        onClose={onDrawerClose}
       >
         {(action === "edit_farm" || action === "add_farm") && (
           <FarmRecordForm
@@ -249,17 +245,11 @@ const FarmRecords = () => {
             onFinish={onFinish}
           />
         )}
-        {action === "add_survey" && (
+        {(action === "add_survey" || action === "edit_survey") && (
           <SurveyForm
+            type={action}
             fields={selectedItem}
-            form={form}
-            onFinish={onFinishSurvey}
-          />
-        )}
-        {action === "edit_survey" && (
-          <SurveyForm
-            fields={selectedItem}
-            form={form}
+            form={surveyForm}
             onFinish={onFinishSurvey}
           />
         )}

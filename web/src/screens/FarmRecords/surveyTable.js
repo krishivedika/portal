@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Table } from "antd";
 
-import UserService from "../../services/user";
-
 const SurveyTable = (props) => {
   const [loading, setLoading] = useState(true);
   const [surveys, setSurveys] = useState([]);
@@ -24,18 +22,14 @@ const SurveyTable = (props) => {
     },
   ];
 
-  const fetchAndUpdateRecords = (props) => {
-    setLoading(true);
-    UserService.getSurveys(props.FarmId).then((response) => {
-      const tempSurveys = [...response.data.surveys];
-      setSurveys(() => tempSurveys);
-      setLoading(false);
-    });
-  };
-
   useEffect(() => {
-    fetchAndUpdateRecords(props);
-  }, []);
+    props.dataSource.forEach(farm => {
+      if (farm.id === props.farmId) {
+        setSurveys(() => farm.Surveys);
+      }
+    });
+    setLoading(false);
+  }, [props]);
 
   return (
     <Table
