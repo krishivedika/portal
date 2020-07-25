@@ -9,7 +9,6 @@ const SurveyTable = (props) => {
     { title: "Survey Name", dataIndex: "name", key: "name" },
     { title: "Subdivision", dataIndex: "subdivision", key: "subdivision" },
     { title: "Extent", dataIndex: "extent", key: "extent" },
-    { title: "Link", dataIndex: "link", key: "link" },
     {
       title: "Action",
       dataIndex: "",

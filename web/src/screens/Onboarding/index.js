@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Form, Input, Select, Button, message, Row, Col, Typography, Tabs } from "antd";
+import React, { useState, useEffect } from "react";
+import { Form, Input, Radio, InputNumber, Select, Button, message, Row, Col, Typography, Tabs } from "antd";
 
 import AuthService from "../../services/auth";
 import Routes from "../../routes";
@@ -17,7 +17,7 @@ const tailLayout = {
   wrapperCol: { offset: 6, span: 16 },
 };
 
-let retries = 0
+let retries = 0;
 
 const OnBoardingForm = ({ history }) => {
 
@@ -25,6 +25,7 @@ const OnBoardingForm = ({ history }) => {
   const [otpButton, setOtpButton] = useState(true);
   const [registerButton, setRegisterButton] = useState(true);
   const [resendOtpButton, setResendOtpButton] = useState(false);
+  const [timer, setTimer] = useState(60);
 
   const handleRegister = (values) => {
     if (values.otp && values.otp !== '') {
@@ -35,7 +36,7 @@ const OnBoardingForm = ({ history }) => {
         })
         .catch(err => {
           console.log(err);
-          if (err.response.data.code === 1) {
+          if (err.response.data.code === 100) {
             retries += 1;
             if (retries === 3) {
               localStorage.setItem("otp_retries_time", new Date());
@@ -47,6 +48,16 @@ const OnBoardingForm = ({ history }) => {
     }
   };
 
+  useEffect(() => {
+    let interval;
+    interval = setInterval(() => {
+      setTimer(state => state - 1);
+    }, 1000)
+    return () => {
+      clearInterval(interval);
+    };
+  }, [resendOtpButton]);
+
   const showOtpsentMessage = (success, msg) => {
     if (success) message.info('OTP sent to your phone.');
     else message.error(`Failed to send OTP, ${msg}.`);
@@ -54,6 +65,7 @@ const OnBoardingForm = ({ history }) => {
 
   const otpRetryError = 'Maximum retries reached, try after 1 Hour.';
   const requestOtp = async () => {
+    setTimer(60);
     const checkOtpRetries = new Date(localStorage.getItem("otp_retries_time"));
     if ((new Date() - checkOtpRetries) > (60 * 60 * 1000)) {
       let values;
@@ -65,7 +77,7 @@ const OnBoardingForm = ({ history }) => {
           setResendOtpButton(false);
           setTimeout(() => {
             setResendOtpButton(true);
-          }, 1000 * 120);
+          }, 1000 * 60);
         }).catch(err => {
           console.log(err.response.data);
           showOtpsentMessage(false, err.response.data.message);
@@ -95,7 +107,7 @@ const OnBoardingForm = ({ history }) => {
     <Row>
       <Col xs={0} md={0} lg={12}>
         <div>
-          <img style={{width: '90%', height: '90%'}} src={onboardingImage} alt="On Boarding" />
+          <img style={{ width: '90%', height: '90%' }} src={onboardingImage} alt="On Boarding" />
         </div>
       </Col>
       <Col xs={24} md={24} lg={10}>
@@ -128,7 +140,46 @@ const OnBoardingForm = ({ history }) => {
                   }}
                 />
               </Form.Item>
-
+              <Form.Item name="firstName" label="First Name"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input First Name",
+                  },
+                ]}>
+                <Input placeholder="Enter First Name" />
+              </Form.Item>
+              <Form.Item name="lastName" label="Last Name"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input Last Name",
+                  },
+                ]}>
+                <Input placeholder="Enter Last Name" />
+              </Form.Item>
+              <Form.Item name="gender" label="Gender"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input Gender",
+                  },
+                ]}>
+                <Radio.Group>
+                  <Radio value="male">Male</Radio>
+                  <Radio value="female">Female</Radio>
+                  <Radio value="other">Other</Radio>
+                </Radio.Group>
+              </Form.Item>
+              <Form.Item name="age" label="Age"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input Age",
+                  },
+                ]}>
+                <InputNumber placeholder="Enter Age" min={18} />
+              </Form.Item>
               <Form.Item name="aadhar" label="AADHAR"
                 rules={[
                   {
@@ -140,7 +191,7 @@ const OnBoardingForm = ({ history }) => {
                   { max: 12, message: 'AADHAR must be at least 12 characters' },
                 ]}
               >
-                <Input  placeholder="Enter AADHAR number" />
+                <Input placeholder="Enter AADHAR number" />
               </Form.Item>
               {!otpButton &&
                 <Form.Item name="otp" label="OTP"
@@ -169,7 +220,7 @@ const OnBoardingForm = ({ history }) => {
                       <Button type="link" onClick={requestOtp}>Resend OTP</Button>
                     }
                     {!resendOtpButton &&
-                      <Button type="link" onClick={requestOtp} disabled>Resend OTP</Button>
+                      <Button type="link" onClick={requestOtp} disabled>Resend OTP :{timer}</Button>
                     }
                   </Form.Item>
                 </>

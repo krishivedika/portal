@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     district: DataTypes.STRING,
     mandala: DataTypes.STRING,
     panchayat: DataTypes.STRING,
-    isActive: DataTypes.BOOLEAN
+    isActive: DataTypes.BOOLEAN,
   }, {
     sequelize,
     modelName: 'Farm',

@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const config = require("../config");
 const db = require("../models");
 const { sms, email } = require("../utils");
+const { common } = require("../helpers");
 const { ROLES } = require("../constants");
 
 const User = db.user;
@@ -16,11 +17,13 @@ exports.signup = (req, res) => {
     if (response.data.type === "error") {
       return res.status(400).send({ message: response.data.message, code: 100 });
     }
+
+    const age = common.convertAgeToDate(req.body.age);
     const userObj = {
-      prefix: req.body.prefix,
-      phone: req.body.phone,
+      ...req.body,
       isActive: true,
       isOnboarded: false,
+      age: age,
     }
 
     User.create(userObj)
@@ -34,7 +37,7 @@ exports.signup = (req, res) => {
       });
   }).catch(err => {
     console.log(err);
-    return res.status(400).send({ message: "Invalid OTP", code: 1 });
+    return res.status(400).send({ message: "Unknown Error", code: 1 });
   });
 }
 
@@ -54,8 +57,8 @@ exports.signin = (req, res) => {
       return res.status(404).send({ message: "Member onboarding is being processed" });
     }
 
-    const userRole = user.Roles[0].name;
-    if (userRole !== ROLES.FARMER.name) {
+    const userRole = user.Roles[0];
+    if (userRole.name !== ROLES.FARMER.name) {
       return res.status(400).send({
         message: "Staff should use Email to login",
         code: 1,
@@ -65,7 +68,7 @@ exports.signin = (req, res) => {
       if (response.data.type === "error") {
         return res.status(400).send({ message: response.data.message, code: 100 });
       }
-      const token = jwt.sign({ id: user.id, role: userRole }, config.SECRET_KEY, {
+      const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id }, config.SECRET_KEY, {
         expiresIn: 1209600, // Fortnite
       });
 
@@ -97,6 +100,9 @@ exports.staffSignin = (req, res) => {
       email: req.body.email,
       isActive: true,
     },
+    include: [{
+      model: Role,
+    }]
   })
     .then((user) => {
       if (!user) {
@@ -117,8 +123,8 @@ exports.staffSignin = (req, res) => {
         });
       }
 
-      const userRole = user.Roles[0].name;
-      const token = jwt.sign({ id: user.id, role: userRole }, config.SECRET_KEY, {
+      const userRole = user.Roles[0];
+      const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id }, config.SECRET_KEY, {
         expiresIn: 1209600, // Fortnite
       });
 

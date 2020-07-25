@@ -11,11 +11,11 @@ const { TabPane } = Tabs;
 const { Text } = Typography;
 
 const layout = {
-  labelCol: { span: 4 },
-  wrapperCol: { span: 16 },
+  labelCol: { xs: {span: 8}, md: {span: 4} },
+  wrapperCol: { xs: {span: 20}, md: {span: 16} },
 };
 const tailLayout = {
-  wrapperCol: { xs: { offset: 0, span: 16 }, md: { offset: 4, span: 16 } },
+  wrapperCol: { xs: { offset: 8, span: 16 }, md: { offset: 4, span: 16 } },
 };
 
 let retries = 0;
@@ -29,6 +29,7 @@ const Login = (props) => {
   const [otpButton, setOtpButton] = useState(true);
   const [loginButton, setLoginButton] = useState(true);
   const [resendOtpButton, setResendOtpButton] = useState(false);
+  const [timer, setTimer] = useState(60);
 
   const handleLogin = (values) => {
     if (tab === 'member') {
@@ -43,7 +44,7 @@ const Login = (props) => {
         }
       }).catch(err => {
         console.log(err);
-        if (err.response.data.code === 1) {
+        if (err.response.data.code === 100) {
           retries += 1;
           if (retries === 3) {
             localStorage.setItem("otp_retries_time", new Date());
@@ -69,8 +70,18 @@ const Login = (props) => {
     }
   };
 
+  useEffect(() => {
+    let interval;
+    interval = setInterval(() => {
+      setTimer(state => state - 1);
+    }, 1000)
+    return () => {
+      clearInterval(interval);
+    };
+  }, [resendOtpButton]);
+
   const redirectUser = (role) => {
-    if (role === 'FARMER') props.history.push(Routes.FARMRECORDS);
+    if (role === 'FARMER') props.history.push(Routes.PROFILE);
     else if (role === 'SADMIN') props.history.push(Routes.ADMIN);
     else props.history.push(Routes.USERMANAGEMENT);
   };
@@ -87,6 +98,7 @@ const Login = (props) => {
 
   const otpRetryError = 'Maximum retries reached, try after 1 Hour.';
   const requestOtp = async (type = '') => {
+    setTimer(60);
     const checkOtpRetries = new Date(localStorage.getItem("otp_retries_time"));
     if ((new Date() - checkOtpRetries) > (60 * 60 * 1000)) {
       let values;
@@ -98,7 +110,7 @@ const Login = (props) => {
           setResendOtpButton(false);
           setTimeout(() => {
             setResendOtpButton(true);
-          }, 1000 * 120);
+          }, 1000 * 60);
         };
         if (type === 'resend') {
           AuthService.resendOtp({ phone: values.phone }).then(() => {
@@ -148,8 +160,8 @@ const Login = (props) => {
       <div>
         <img style={{ width: '100%', minHeight: '100px' }} src={farmerImage} alt="FarmerFirst" />
       </div>
-      <Col xs={1} sm={4} md={4} lg={6} xl={8}></Col>
-      <Col xs={22} sm={16} md={16} lg={12} xl={8}>
+      <Col xs={0} sm={4} md={4} lg={6} xl={8}></Col>
+      <Col xs={24} sm={16} md={16} lg={12} xl={8}>
         <Tabs style={{ margin: '50px' }} onChange={(e) => setTab(e)}>
           <TabPane tab='Member Login' key='member'>
             <Form {...layout} initialValues={{ remember: true }}
@@ -193,7 +205,7 @@ const Login = (props) => {
                         <Button type="link" onClick={() => requestOtp('resend')}>Resend OTP</Button>
                       }
                       {!resendOtpButton &&
-                        <Button type="link" onClick={requestOtp} disabled>Resend OTP</Button>
+                        <Button type="link" onClick={requestOtp} disabled>Resend OTP :{timer}</Button>
                       }
                     </Form.Item>
                   }
@@ -242,7 +254,7 @@ const Login = (props) => {
           </TabPane>
         </Tabs>
       </Col>
-      <Col xs={1} sm={4} md={4} lg={6} xl={7}></Col>
+      <Col xs={0} sm={4} md={4} lg={6} xl={7}></Col>
       <Col xs={0} sm={0} md={0} lg={0} xl={1} style={{ marginBottom: '400px' }}>
       </Col>
       <Modal

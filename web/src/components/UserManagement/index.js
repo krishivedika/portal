@@ -20,6 +20,7 @@ import { MemberForm, StaffForm } from "../../components";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [csrs, setCSRs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -120,13 +121,17 @@ const UserManagement = () => {
       isOnboarded: values.onboarded || false,
     }).then((response) => {
       const tempUsers = [...response.data.users];
+      const tempCSRs = [];
       tempUsers.forEach((user) => {
+        if (user.roles[0].id === 3 || user.roles[0].id === 4) {
+          tempCSRs.push(user);
+        }
         if (user.age)
-          user.age =
-            new Date().getFullYear() - new Date(user.age).getFullYear();
+          user.age = new Date().getFullYear() - new Date(user.age).getFullYear();
         else user.age = undefined;
       });
       setUsers(() => tempUsers);
+      setCSRs(() => tempCSRs);
       setLoading(false);
     });
   };
@@ -153,6 +158,7 @@ const UserManagement = () => {
   const onFinish = (values) => {
     let formValues = { ...values };
     formValues.id = selectedItem.id;
+    console.log(formValues);
     if (!selectedItem.isOnboarded) {
       UserService.updateRole(formValues)
         .then(() => {
@@ -197,7 +203,7 @@ const UserManagement = () => {
           offset={1}
           style={{ textAlign: "end" }}
         >
-          <Form>
+          <Form form={formSearch}>
             <Form.Item name="onboarded" valuePropName="checked" style={{fontWeight: 'bold'}}>
               <Checkbox onChange={search}>PENDING ONLY</Checkbox>
             </Form.Item>
@@ -235,6 +241,7 @@ const UserManagement = () => {
               fields={selectedItem}
               form={form}
               onFinish={onFinish}
+              csrs={csrs}
             />
           )}
         {selectedItem.roles &&

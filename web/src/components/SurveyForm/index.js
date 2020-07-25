@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-<<<<<<< HEAD
 import { Form, Input, Row, Col, Card, Tag, Button, Upload, message } from "antd";
 import { SyncOutlined, PlusOutlined } from "@ant-design/icons";
 import Lightbox from 'react-image-lightbox';
@@ -8,26 +7,17 @@ import 'react-image-lightbox/style.css';
 import UserService from "../../services/user";
 
 const { TextArea } = Input;
-=======
-import { Form, Input, Row, Col, Card, Tag, Button } from "antd";
-import { SyncOutlined } from "@ant-design/icons";
->>>>>>> 1ec5e69... added responsiveness
 
 const layout = {
-  labelCol: { offset: 0, span: 3 },
+  labelCol: { xs: {span: 6}, md: {offset: 0, span: 3} },
   wrapperCol: { span: 12 },
 };
 const tailLayout = {
-<<<<<<< HEAD
   wrapperCol: { xs: {offset: 0, span: 24}, lg: {offset: 3, span: 21} },
-=======
-  wrapperCol: { offset: 1, span: 20 },
->>>>>>> 1ec5e69... added responsiveness
 };
 
 const SurveyForm = (props) => {
   const [fields, setFields] = useState([]);
-<<<<<<< HEAD
   const [isImagePreview, setIsImagePreview] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [fileList, setFilesList] = useState([]);
@@ -76,20 +66,10 @@ const SurveyForm = (props) => {
       tempSurveyFiles.forEach(file => file.uid = file.id);
       setFilesList(() => tempSurveyFiles);
     }
-=======
-
-  useEffect(() => {
-    const fields = [];
-    Object.entries(props.fields).forEach((entry) => {
-      fields.push({ name: entry[0], value: entry[1] });
-    });
-    setFields(fields);
->>>>>>> 1ec5e69... added responsiveness
   }, [props]);
 
   return (
     <div style={{ margin: "15px" }}>
-<<<<<<< HEAD
       {isImagePreview &&
         <Lightbox
           mainSrc={fileList[imageIndex].url}
@@ -104,18 +84,12 @@ const SurveyForm = (props) => {
           }
         />
       }
-=======
->>>>>>> 1ec5e69... added responsiveness
       <Tag
         icon={<SyncOutlined spin />}
         color="processing"
         style={{ marginBottom: "10px" }}
       >
-<<<<<<< HEAD
         {props.type === "edit_survey" ? `Editing: ${props.fields?.name}` : "Creating New Survey Record"}
-=======
-        Editing: {props.fields.name}
->>>>>>> 1ec5e69... added responsiveness
       </Tag>
       <Form
         fields={fields}
@@ -124,11 +98,7 @@ const SurveyForm = (props) => {
         {...layout}
       >
         <Row>
-<<<<<<< HEAD
           <Form.Item>
-=======
-          <Form.Item {...tailLayout}>
->>>>>>> 1ec5e69... added responsiveness
             <Button type="primary" htmlType="submit">
               Save
             </Button>
@@ -137,10 +107,6 @@ const SurveyForm = (props) => {
             <Card
               title="Survey"
               className="g-ant-card"
-<<<<<<< HEAD
-=======
-              style={{ marginTop: "20px" }}
->>>>>>> 1ec5e69... added responsiveness
             >
               <Form.Item
                 name="name"
@@ -176,7 +142,6 @@ const SurveyForm = (props) => {
                   },
                 ]}
               >
-<<<<<<< HEAD
                 <TextArea placeholder="Enter Extent" />
               </Form.Item>
               <Form.Item name="comment" label="Comments">
@@ -189,16 +154,6 @@ const SurveyForm = (props) => {
                   </Upload>
                 </Form.Item>
               }
-=======
-                <Input placeholder="Enter Extent" />
-              </Form.Item>
-              <Form.Item name="link" label="Media Upload">
-                <Input placeholder="Enter Mandala" />
-              </Form.Item>
-              <Form.Item name="comment" label="Comments">
-                <Input placeholder="Enter Comments" />
-              </Form.Item>
->>>>>>> 1ec5e69... added responsiveness
             </Card>
           </Col>
         </Row>

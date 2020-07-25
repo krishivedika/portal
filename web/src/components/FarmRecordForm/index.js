@@ -3,8 +3,8 @@ import { Form, Input, Button, Tag, Row, Col, Card } from "antd";
 import { SyncOutlined } from "@ant-design/icons";
 
 const layout = {
-  labelCol: { offset: 0, span: 3 },
-  wrapperCol: { span: 12 },
+  labelCol: { xs: {span: 6}, md: {offset: 0, span: 3} },
+  wrapperCol: { xs: {span: 16}, md: {span: 12} },
 };
 const tailLayout = {
   wrapperCol: { offset: 0, span: 20 },

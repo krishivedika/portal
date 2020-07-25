@@ -53,6 +53,21 @@ const MemberForm = (props) => {
                   </Select>
                 </Form.Item>
               }
+              {isAdmin &&
+              <Form.Item name="csr" label="CSR"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input User's CSR / Field Agent",
+                    }
+                  ]}>
+                  <Select placeholder="Select CSR / Field Agent">
+                    {props.csrs.map((user) => (
+                      <Option value={user.id} key={user.id}>{user.firstName} {user.lastName} ({user.phone})</Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              }
               <Form.Item name="firstName" label="First Name"
                 rules={[
                   {

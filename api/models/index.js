@@ -35,6 +35,13 @@ db.user.belongsToMany(db.role, {
   otherKey: "roleId",
 });
 
+db.user.belongsToMany(db.user, {
+  as: 'managedBy',
+  through: "UserAssociations",
+  foreignKey: "userId",
+  otherKey: "csrId",
+});
+
 db.user.hasMany(db.farm, {
   foreignKey: "userId"
 });

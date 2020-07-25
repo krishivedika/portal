@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const db = require("../models");
 const constants = require("../constants");
 const config = require("../config");
+const { common } = require("../helpers");
 
 const Op = Sequelize.Op;
 const User = db.user;
@@ -43,21 +44,23 @@ exports.users = (req, res) => {
     ],
   };
   if (req.query.isOnboarded === "true") {
-    where = {
-      [Op.or]: [
-        { email: { [Op.like]: `%${req.query.search}%` } },
-        { phone: { [Op.like]: `%${req.query.search}%` } },
-      ],
-      [Op.and]: [{ isOnboarded: false }],
-    };
+    where = {...where, [Op.and]: [{ isOnboarded: false }]};
   }
 
+  if ([3,4].includes(req.userRoleId)) {
+    where = {...where, '$managedBy.UserAssociations.csrId$': req.userId};
+  }
   User.scope("withoutPassword")
     .findAll({
       where: where,
       include: [
         {
           model: Role,
+          where: { id: { [Op.gte]: req.userRoleId } },
+        },
+        {
+          model: User, as: 'managedBy', through: 'UserAssociations',
+          required: false,
         },
       ],
     })
@@ -87,9 +90,10 @@ exports.users = (req, res) => {
           address: user.address,
           age: user.age,
           gender: user.gender,
+          managedBy: user.managedBy,
         });
       });
-      res.status(200).send({
+      return res.status(200).send({
         users: customisedUsers,
       });
     })
@@ -101,28 +105,35 @@ exports.users = (req, res) => {
 
 exports.onBoardMember = async (req, res) => {
   User.scope("withoutPassword")
-    .findByPk(req.body.id)
+    .findByPk(req.body.id, {
+      include: [
+        {
+          model: Role,
+          where: { id: { [Op.gte]: req.userRoleId } },
+        },
+        {
+          model: User, through: 'UserAssociations', as: 'managedBy'
+        },
+      ],
+    })
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: "No Users exist" });
       }
       let updatedValues = { ...req.body };
-      const dateNow = new Date();
-      dateNow.setFullYear(dateNow.getFullYear() - updatedValues.age);
-      dateNow.setMonth(0);
-      dateNow.setDate(1);
-      updatedValues.age = dateNow;
-
+      updatedValues.age = common.convertAgeToDate(updatedValues.age);
       User.findOne({
         where: req.userId,
       }).then((admin) => {
         updatedValues.updatedBy = admin.email;
         updatedValues.isOnboarded = true;
         user.update(updatedValues).then(() => {
-          user.setRoles([5]).then(() => {
-            return res.status(200).send({
-              user: user,
-            });
+          user.setManagedBy([req.body.csr]).then(() => {
+            user.setRoles([5]).then(() => {
+              return res.status(200).send({
+                user: user,
+              });
+            })
           });
         });
       });
@@ -150,11 +161,7 @@ exports.updateMember = (req, res) => {
         return res.status(404).send({ message: "User Not found" });
       }
       let updatedValues = { ...req.body };
-      const dateNow = new Date();
-      dateNow.setFullYear(dateNow.getFullYear() - updatedValues.age);
-      dateNow.setMonth(0);
-      dateNow.setDate(1);
-      updatedValues.age = dateNow;
+      updatedValues.age = common.convertAgeToDate(req.body.age);
 
       let roleId;
       Object.keys(constants.ROLES).forEach((key) => {
@@ -169,8 +176,10 @@ exports.updateMember = (req, res) => {
         );
       }
       user.update(updatedValues).then((user) => {
-        user.setRoles([roleId]).then(() => {
-          return res.send({ user: user });
+        user.setManagedBy([req.body.csr]).then(() => {
+          user.setRoles([roleId]).then(() => {
+            return res.send({ user: user });
+          });
         });
       });
     })
