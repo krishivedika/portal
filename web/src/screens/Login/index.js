@@ -11,7 +11,7 @@ const { TabPane } = Tabs;
 const { Text } = Typography;
 
 const layout = {
-  labelCol: { xs: {span: 8}, md: {span: 4} },
+  labelCol: { xs: {span: 8}, md: {span: 4}, xl:{span: 5} },
   wrapperCol: { xs: {span: 20}, md: {span: 16} },
 };
 const tailLayout = {

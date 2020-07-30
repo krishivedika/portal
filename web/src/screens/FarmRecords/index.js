@@ -11,9 +11,8 @@ import MobileView from "./mobileView";
 const FarmRecords = () => {
   const [farmRecord, setFarmRecord] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
-  const [selectedItem, setSelectedItem] = useState({id: 1});
+  const [selectedItem, setSelectedItem] = useState({ id: 1 });
   const [action, setAction] = useState("add_farm");
 
   const columns = [
@@ -28,16 +27,13 @@ const FarmRecords = () => {
       key: "action",
       render: (_, item) => (
         <>
-          <Button
-            type="link"
-            onClick={() => review(item, 'add_survey')}
-          >
+          <Button type="link" onClick={() => review(item, "add_survey")}>
             Add Survey
           </Button>
           <Button
             type="link"
             onClick={() => {
-              review(item, 'edit_farm');
+              review(item, "edit_farm");
             }}
             icon={<EditFilled />}
           />
@@ -80,13 +76,7 @@ const FarmRecords = () => {
     );
   };
 
-  const handleWindowResize = () => {
-    setIsMobile(window.innerWidth <= 768);
-  };
-
   useEffect(() => {
-    window.addEventListener("load", handleWindowResize);
-    window.addEventListener("resize", handleWindowResize);
     fetchAndUpdateRecords();
   }, []);
 
@@ -169,7 +159,7 @@ const FarmRecords = () => {
   };
 
   const openNewForm = () => {
-    setAction("add_farm")
+    setAction("add_farm");
     setSelectedItem({});
     setShowDrawer(true);
   };
@@ -180,7 +170,9 @@ const FarmRecords = () => {
   };
 
   const expandedRowRender = (item) => {
-    return <SurveyTable dataSource={farmRecord} farmId={item.id} review={review} />;
+    return (
+      <SurveyTable dataSource={farmRecord} farmId={item.id} review={review} />
+    );
   };
 
   return (
@@ -197,33 +189,43 @@ const FarmRecords = () => {
             </Form.Item>
           </Form>
         </Col>
-        <Col xs={10} md={10} lg={10} xl={10} offset={1} style={{ textAlign: "end" }}>
+        <Col
+          xs={10}
+          md={10}
+          lg={10}
+          xl={10}
+          offset={1}
+          style={{ textAlign: "end" }}
+        >
           <Button type="primary" onClick={openNewForm}>
             Add Farm Record
           </Button>
         </Col>
       </Row>
-      {!isMobile ? (
-        <Row style={{ padding: "10px" }}>
-          <Col xs={24} lg={20} xl={24}>
-            <Table
-              className="g-table-striped-rows g-ant-table-cell components-table-demo-nested"
-              dataSource={farmRecord}
-              columns={columns}
-              loading={loading}
-              rowKey="id"
-              bordered
-              expandable={{ expandedRowRender, expandRowByClick: true }}
-            />
-          </Col>
-        </Row>
-      ) : (
-        <MobileView
-          farms={farmRecord}
-          review={review}
-          deleteRecord={deleteRecord}
-        />
-      )}
+      <Row style={{ padding: "10px" }}>
+        <Col
+          xs={0}
+          sm={0}
+          md={window.innerWidth === 768 ? 0 : 24}
+          lg={24}
+          xl={24}
+        >
+          <Table
+            className="g-table-striped-rows g-ant-table-cell components-table-demo-nested"
+            dataSource={farmRecord}
+            columns={columns}
+            loading={loading}
+            rowKey="id"
+            bordered
+            expandable={{ expandedRowRender, expandRowByClick: true }}
+          />
+        </Col>
+      </Row>
+      <MobileView
+        farms={farmRecord}
+        review={review}
+        deleteRecord={deleteRecord}
+      />
       <Drawer
         visible={showDrawer}
         width={window.innerWidth > 768 ? 900 : window.innerWidth}

@@ -1,17 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Drawer,
-  Button,
-  Row,
-  Col,
-  Table,
-  Input,
-  Form,
-  message,
-  Tag,
-  Checkbox,
-  Tooltip,
-} from "antd";
+import { Drawer, Button, Row, Col, Table, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
 
 import "./index.less";
 import UserService from "../../services/user";
@@ -22,19 +10,10 @@ const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [csrs, setCSRs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
 
   const columns = [
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
-    },
-    {
-      title: "Phone",
-      dataIndex: "phone",
-      key: "phone",
-    },
+    { title: "Email", dataIndex: "email", key: "email" },
+    { title: "Phone", dataIndex: "phone", key: "phone" },
     {
       title: "Role",
       dataIndex: "roles",
@@ -82,11 +61,7 @@ const UserManagement = () => {
         </Tooltip>
       ),
     },
-    {
-      title: "Updated By",
-      dataIndex: "updatedBy",
-      key: "updatedBy",
-    },
+    { title: "Updated By", dataIndex: "updatedBy", key: "updatedBy" },
     {
       title: "Action",
       key: "action",
@@ -136,14 +111,8 @@ const UserManagement = () => {
     });
   };
 
-  const handleWindowResize = () => {
-    setIsMobile(window.innerWidth <= 768);
-  };
-
   useEffect(() => {
     fetchAndUpdateUsers();
-    window.addEventListener("load", handleWindowResize);
-    window.addEventListener("resize", handleWindowResize);
   }, []);
 
   const [showDrawer, setShowDrawer] = useState(false);
@@ -210,9 +179,8 @@ const UserManagement = () => {
           </Form>
         </Col>
       </Row>
-      { !isMobile ? (
         <Row style={{ padding: "0px 10px" }}>
-        <Col xs={24} sm={20} md={20} lg={20} xl={24}>
+        <Col xs={0} sm={0} md={window.innerWidth === 768 ? 0 : 24} lg={24} xl={24}>
           <Table
             className="g-table-striped-rows g-ant-table-cell"
             dataSource={users}
@@ -223,12 +191,11 @@ const UserManagement = () => {
           />
         </Col>
       </Row>
-      ) : (
         <MobileView
           users={users}
           review={review}
         />
-      )}
+
       <Drawer
         visible={showDrawer}
         width={window.innerWidth > 768 ? 900 : window.innerWidth}

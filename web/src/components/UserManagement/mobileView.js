@@ -11,7 +11,7 @@ const MobileView = (props) => {
   return (
     <>
       <Row style={{ padding: "10px" }}>
-        <Col xs={23} sm={23}>
+        <Col xs={23} sm={23} md={24} lg={0} xl={0}>
           <List
             className="demo-loadmore-list"
             itemLayout="horizontal"
