@@ -11,11 +11,11 @@ const { TabPane } = Tabs;
 const { Text } = Typography;
 
 const layout = {
-  labelCol: { xs: {span: 8}, md: {span: 4}, xl:{span: 5} },
+  labelCol: { xs: {span: 8}, md: {span: 6}, xl:{span: 6} },
   wrapperCol: { xs: {span: 20}, md: {span: 16} },
 };
 const tailLayout = {
-  wrapperCol: { xs: { offset: 8, span: 16 }, md: { offset: 4, span: 16 } },
+  wrapperCol: { xs: { span: 16 }, sm: { offset: 8, span: 16 }, md: { offset: 6, span: 16 } },
 };
 
 let retries = 0;

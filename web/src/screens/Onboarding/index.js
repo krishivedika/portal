@@ -14,7 +14,7 @@ const layout = {
   wrapperCol: { span: 12 },
 };
 const tailLayout = {
-  wrapperCol: { offset: 6, span: 16 },
+  wrapperCol: {xs: { span: 16 }, sm: {offset: 6, span: 16}},
 };
 
 let retries = 0;

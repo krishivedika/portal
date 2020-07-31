@@ -16,15 +16,10 @@ const NavigationBar = (props) => {
   const [state, setState] = useContext(SharedContext);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
   const [menu, setMenu] = useState('');
   const [currentTab, setCurrentTab] = useState('');
   const [menuItems, setMenuItem] = useState([]);
-
-  const handleWindowResize = () => {
-    setIsMobile(window.innerWidth <= 768);
-  };
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
@@ -69,7 +64,7 @@ const NavigationBar = (props) => {
 
   const renderMenuItems = (menuItems) => {
     let menu = menuItems.map(item => {
-      let formattedItem = item.replace(" ", "");
+      let formattedItem = item.replace(" ", "").toUpperCase();
       return (
         <Menu.Item key={formattedItem}>
           <Link to={`${Routes[formattedItem]}`}>{item}</Link>
@@ -83,8 +78,6 @@ const NavigationBar = (props) => {
     if (state.user.hasOwnProperty("roles")) setIsLoggedIn(true);
     filterMenuItems();
     renderMenuItems(menuItems)
-    window.addEventListener("load", handleWindowResize);
-    window.addEventListener("resize", handleWindowResize);
   }, [state.user, menuItems]);
 
   useEffect(() => {
@@ -97,32 +90,31 @@ const NavigationBar = (props) => {
   return (
     <Header style={{ position: "fixed", zIndex: 1, width: "100%" }}>
       <Row>
-        <Col xs={16} md={isMobile ? 18 : 4} lg={3} xl={4} offset={1}>
+        <Col xs={16} md={window.innerWidth === 768 ? 18 : 4} lg={3} xl={4} offset={1}>
           <img src={logoImage} alt="KrishiVedika" />
         </Col>
-        {!isMobile ? (
           <>
-            <Col md={10} lg={9} xl={9} offset={1}>
+            <Col xs={0} sm={0} md={window.innerWidth === 768 ? 0 : 10} lg={9} xl={9} offset={1}>
               <Menu mode="horizontal" selectedKeys={[currentTab]} onClick={(e) => setCurrentTab(e.key)}>
                 {!isLoggedIn &&
                   <Menu.Item key="LOGIN">
-                    <Link to="/">LOGIN</Link>
+                    <Link to="/">Login</Link>
                   </Menu.Item>
                 }
                 {menu}
               </Menu>
             </Col>
-            <Col md={5} lg={7} xl={7}>
+            <Col xs={0} sm={0} md={window.innerWidth === 768 ? 0 : 5} lg={8} xl={7} offset={2}>
               <Menu mode="horizontal" selectedKeys={[]} >
                 {isLoggedIn &&
                   <Menu.Item key="USER">
                     <Dropdown overlay={
                       <Menu >
                         <Menu.Item key="profile">
-                          <Link to={Routes.PROFILE}>PROFILE</Link>
+                          <Link to={Routes.PROFILE}>Profile</Link>
                         </Menu.Item>
                         <Menu.Item key="logout">
-                          <a href="/" onClick={logOut}>LOGOUT</a>
+                          <a href="/" onClick={logOut}>Logout</a>
                         </Menu.Item>
                       </Menu>
                     } trigger={['click']}>
@@ -135,8 +127,7 @@ const NavigationBar = (props) => {
               </Menu>
             </Col>
           </>
-        ) : (
-            <Col xs={2} md={3} offset={2}>
+            <Col xs={2} md={window.innerWidth === 768 ? 3 : 0} offset={2} lg={0} xl={0}>
               <Button
                 className="nav-button"
                 type="primary"
@@ -148,7 +139,6 @@ const NavigationBar = (props) => {
                 )}
               </Button>
             </Col>
-          )}
       </Row>
       <Menu
         defaultSelectedKeys={["1"]}
@@ -159,18 +149,18 @@ const NavigationBar = (props) => {
       >
         {!isLoggedIn &&
           <Menu.Item key="LOGIN">
-            <Link to="/">LOGIN</Link>
+            <Link to="/">Login</Link>
           </Menu.Item>
         }
         {menu}
         {isLoggedIn &&
           <Menu.Item key="profile">
-            <Link to={Routes.PROFILE}>PROFILE</Link>
+            <Link to={Routes.PROFILE}>Profile</Link>
           </Menu.Item>
         }
         {isLoggedIn &&
           <Menu.Item key="LOGOUT">
-            <a href="/" onClick={logOut}>LOGOUT</a>
+            <a href="/" onClick={logOut}>Logout</a>
           </Menu.Item>
         }
       </Menu>

@@ -1,8 +1,8 @@
 export default {
-  MAIN_MENU_ITEMS: ['ONBOARDING', 'SUPPORT'],
-  SYSTEM_ADMIN_MENU_ITEMS: ['ADMIN'],
-  ADMIN_MENU_ITEMS: ['USER MANAGEMENT'],
-  CSR_MENU_ITEMS: ['USER MANAGEMENT'],
-  FIELD_AGENT_MENU_ITEMS: ['USER MANAGEMENT'],
-  MEMBER_MENU_ITEMS: ['FARM RECORDS','ANALYTICS', 'SERVICES', 'HELP'],
+  MAIN_MENU_ITEMS: ['Onboarding', 'Support'],
+  SYSTEM_ADMIN_MENU_ITEMS: ['Admin'],
+  ADMIN_MENU_ITEMS: ['User Management'],
+  CSR_MENU_ITEMS: ['User Management'],
+  FIELD_AGENT_MENU_ITEMS: ['User Management'],
+  MEMBER_MENU_ITEMS: ['Farm Records','Analytics', 'Services', 'Help'],
 }

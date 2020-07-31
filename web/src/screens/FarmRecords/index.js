@@ -16,8 +16,8 @@ const FarmRecords = () => {
   const [action, setAction] = useState("add_farm");
 
   const columns = [
-    { title: "Farm Name", dataIndex: "name", key: "name" },
-    { title: "Address", dataIndex: "streetAddress", key: "streetAddress" },
+    { title: "Farm Name", dataIndex: "name", key: "name", ellipsis: true },
+    { title: "Address", dataIndex: "streetAddress", key: "streetAddress", ellipsis: true },
     { title: "State", dataIndex: "state", key: "state" },
     { title: "District", dataIndex: "district", key: "district" },
     { title: "Mandala", dataIndex: "mandala", key: "mandala" },
@@ -212,6 +212,8 @@ const FarmRecords = () => {
         >
           <Table
             className="g-table-striped-rows g-ant-table-cell components-table-demo-nested"
+            
+            ellipses={true}
             dataSource={farmRecord}
             columns={columns}
             loading={loading}
