@@ -16,6 +16,10 @@ module.exports = (app) => {
 
   app.post("/farm/update", [commonValidations.verifyToken, validation.updateFarmRecord], controller.updateFarmRecord);
 
+  app.post("/farm/restore", [commonValidations.verifyToken, validation.restoreFarmRecord], controller.restoreFarmRecord);
+
+  app.post("/farm/partition", [commonValidations.verifyToken, validation.partitionFarmRecord], controller.partitionFarmRecord);
+
   app.delete("/farm/delete/:id", [commonValidations.verifyToken], controller.deleteFarmRecord);
 
   app.delete("/farm/survey/delete/:id", [commonValidations.verifyToken], controller.deleteSurveyRecord);

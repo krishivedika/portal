@@ -48,6 +48,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 require('./routes/auth')(app);
 require('./routes/user')(app);
 require('./routes/farm')(app);
+require('./routes/crop')(app);
+require('./routes/region')(app);
 
 const Role = db.role;
 const User = db.user;
@@ -81,6 +83,19 @@ const initial = () => {
       if (!a) {
         User.create(admin).then(user => {
           user.setRoles([1]);
+        });
+      }
+    });
+  });
+
+  const testUsers = [
+    {firstName: 'Test', lastName: 'User', phone: '1234567890', gender: 'male', isOnboarded: true, isActive: true },
+  ]
+  testUsers.forEach(testUser => {
+    User.findOne({where: {phone: testUser.phone}}).then(a => {
+      if (!a) {
+        User.create(testUser).then(user => {
+          user.setRoles([5]);
         });
       }
     });

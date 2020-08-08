@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Row, Col, Card, Tag, Button, Upload, message } from "antd";
+import { Form, Input, Row, Col, Card, Tag, Button, Upload, message, InputNumber } from "antd";
 import { SyncOutlined, PlusOutlined } from "@ant-design/icons";
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
@@ -9,7 +9,7 @@ import UserService from "../../services/user";
 const { TextArea } = Input;
 
 const layout = {
-  labelCol: { xs: {span: 6}, md: {offset: 0, span: 3} },
+  labelCol: { xs: {span: 6}, md: {offset: 0, span: 5} },
   wrapperCol: { span: 12 },
 };
 const tailLayout = {
@@ -95,6 +95,7 @@ const SurveyForm = (props) => {
         fields={fields}
         form={props.form}
         onFinish={props.onFinish}
+        initialValues={{number: props.fields.khata}}
         {...layout}
       >
         <Row>
@@ -109,20 +110,15 @@ const SurveyForm = (props) => {
               className="g-ant-card"
             >
               <Form.Item
-                name="name"
-                label="Name"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input Survey Name",
-                  },
-                ]}
+                name="number"
+                label="Survey #"
+                value={props.fields.khata}
               >
-                <Input placeholder="Enter Name" />
+                <InputNumber disabled placeholder={props.fields.khata} />
               </Form.Item>
-              <Form.Item
+              <Form.Item {...layout}
                 name="subdivision"
-                label="Subdivision"
+                label="Subdivision #"
                 rules={[
                   {
                     required: true,
@@ -130,7 +126,7 @@ const SurveyForm = (props) => {
                   },
                 ]}
               >
-                <Input placeholder="Enter Subdivision" />
+                <InputNumber placeholder="#" />
               </Form.Item>
               <Form.Item
                 name="extent"
@@ -138,13 +134,25 @@ const SurveyForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Extent",
+                    message: "Please input Extent in Acres",
                   },
                 ]}
               >
-                <TextArea placeholder="Enter Extent" />
+                <InputNumber precision={4} placeholder="Acres" />
               </Form.Item>
-              <Form.Item name="comment" label="Comments">
+              <Form.Item
+                name="landType"
+                label="Land Type"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input Land Type",
+                  },
+                ]}
+              >
+                <Input placeholder="Enter Land Type" />
+              </Form.Item>
+              <Form.Item name="comment" label="Notes">
                 <TextArea placeholder="Enter Comments" />
               </Form.Item>
               {props.type === "edit_survey" &&

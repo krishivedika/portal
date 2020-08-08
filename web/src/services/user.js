@@ -14,8 +14,16 @@ class UserService {
     return axios.post(`/user/member/onboard`, data);
   }
 
+  createProfile(data) {
+    return axios.post(`/user/member/create`, data);
+  }
+
   updateProfile(data) {
     return axios.post(`/user/member/update`, data);
+  }
+
+  uploadMembers(data, config) {
+    return axios.post(`/user/member/bulk`, data, config);
   }
 
   // Farm Record end points
@@ -31,8 +39,16 @@ class UserService {
     return axios.post(`/farm/update`, data)
   }
 
+  restoreFarmRecords(data) {
+    return axios.post(`/farm/restore`, data)
+  }
+
   deleteFarmRecords(data) {
     return axios.delete(`/farm/delete/${data}`)
+  }
+
+  partitionFarmRecords(data) {
+    return axios.post(`/farm/partition`, data);
   }
 
   // Survey End Points

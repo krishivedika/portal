@@ -1,5 +1,8 @@
 const Sequelize = require("sequelize");
 const bcrypt = require("bcryptjs");
+const csv = require('csv-parser');
+const fs = require('fs');
+const { Readable } = require("stream");
 
 const db = require("../models");
 const constants = require("../constants");
@@ -44,11 +47,11 @@ exports.users = (req, res) => {
     ],
   };
   if (req.query.isOnboarded === "true") {
-    where = {...where, [Op.and]: [{ isOnboarded: false }]};
+    where = { ...where, [Op.and]: [{ isOnboarded: false }] };
   }
 
-  if ([3,4].includes(req.userRoleId)) {
-    where = {...where, '$managedBy.UserAssociations.csrId$': req.userId};
+  if ([3, 4].includes(req.userRoleId)) {
+    where = { ...where, '$managedBy.UserAssociations.csrId$': req.userId };
   }
   User.scope("withoutPassword")
     .findAll({
@@ -127,9 +130,22 @@ exports.onBoardMember = async (req, res) => {
       }).then((admin) => {
         updatedValues.updatedBy = admin.email;
         updatedValues.isOnboarded = true;
+
+        let roleId;
+        Object.keys(constants.ROLES).forEach((key) => {
+          if (constants.ROLES[key].name === req.body.role) {
+            roleId = constants.ROLES[key].id;
+          }
+        });
+        if (user.Roles[0].name === "farmer") {
+          updatedValues.password = bcrypt.hashSync(
+            config.DEFAULT_STAFF_PASSWORD,
+            8
+          );
+        }
         user.update(updatedValues).then(() => {
           user.setManagedBy([req.body.csr]).then(() => {
-            user.setRoles([5]).then(() => {
+            user.setRoles([roleId]).then(() => {
               return res.status(200).send({
                 user: user,
               });
@@ -142,6 +158,76 @@ exports.onBoardMember = async (req, res) => {
       console.log(err);
       return res.status(500).send({ message: err.message });
     });
+};
+
+exports.bulkOnboard = async (req, res) => {
+  try {
+    const buffer = new Buffer(req.file.buffer);
+    const readable = new Readable();
+    const entries = [];
+    readable._read = () => {};
+    readable.push(buffer)
+    readable.push(null)
+    readable.pipe(csv())
+    .on('data', (row) => {
+      console.log(row);
+      entries.push(row);
+    })
+    .on('end', () => {
+      entries.forEach(entry => {
+        entry.isActive = true;
+        entry.isOnboarded = true;
+        entry.Roles = [5];
+      });
+      User.bulkCreate(entries).then(() => {
+        return res.status(200).send({message: 'Successfully uploaded members.'});
+      }).catch(err => {
+        return res.status(404).send({ message: `Failed to upload, reason ${err}` });
+      })
+      console.log('CSV file successfully processed');
+    });
+  } catch(err) {
+    console.log(err);
+  }
+};
+
+exports.createMember = async (req, res) => {
+  let updatedValues = { ...req.body };
+  if (updatedValues.role !== "farmer" && !updatedValues.email) {
+    return res.status(404).send({ message: "Email is required to this role" });
+  }
+  updatedValues.age = common.convertAgeToDate(updatedValues.age);
+  User.findOne({
+    where: req.userId,
+  }).then((admin) => {
+    updatedValues.updatedBy = admin.email;
+    updatedValues.isOnboarded = true;
+    updatedValues.isActive = true;
+    User.create(updatedValues).then(user => {
+      let roleId;
+      Object.keys(constants.ROLES).forEach((key) => {
+        if (constants.ROLES[key].name === req.body.role) {
+          roleId = constants.ROLES[key].id;
+        }
+      });
+      updatedValues.password = bcrypt.hashSync(
+        config.DEFAULT_STAFF_PASSWORD,
+        8
+      );
+      user.update(updatedValues).then(() => {
+        user.setManagedBy([req.body.csr]).then(() => {
+          user.setRoles([roleId]).then(() => {
+            return res.status(200).send({
+              user: user,
+            });
+          })
+        });
+      });
+    })
+  }).catch((err) => {
+    console.log(err);
+    return res.status(500).send({ message: err.message });
+  });
 };
 
 exports.updateMember = (req, res) => {
@@ -169,7 +255,7 @@ exports.updateMember = (req, res) => {
           roleId = constants.ROLES[key].id;
         }
       });
-      if (user.Roles[0].name === "farmer" && user.Roles[0].id !== roleId) {
+      if (user.Roles[0].name === "farmer") {
         updatedValues.password = bcrypt.hashSync(
           config.DEFAULT_STAFF_PASSWORD,
           8

@@ -3,52 +3,84 @@ const Sequelize = require("sequelize");
 const db = require("../models");
 const { storage } = require("../utils");
 const config = require("../config");
+const { common } = require("../helpers");
 
 const Op = Sequelize.Op;
 const Farm = db.farm;
+const User = db.user;
 const Survey = db.survey;
 const SurveyFile = db.surveyFile;
 
 // Farm Record End Points
-exports.farmRecords = (req, res) => {
-  console.log(req);
+exports.farmRecords = async (req, res) => {
   let where = {
-    userId: req.userId,
-    isActive: true,
     [Op.or]: [
       { name: { [Op.like]: `%${req.query.search}%` } },
-      { streetAddress: { [Op.like]: `%${req.query.search}%` } },
     ],
   };
+  let include = [
+    {
+      model: Survey,
+      required: false,
+      where: { isActive: true },
+      include: [{ model: SurveyFile, where: { isActive: true }, required: false }],
+    },
+  ]
+  let csrUsers = [];
+  let users = [];
+  if (req.userRoleId === 5) {
+    where = { ...where, userId: req.userId }
+  }
+  else {
+    csrUsers = await User.scope("withoutPassword").findAll({
+      where: { '$managedBy.UserAssociations.csrId$': req.userId },
+      include: [
+        {
+          model: User, as: 'managedBy', through: 'UserAssociations',
+          required: false,
+        }
+      ]
+    });
+    csrUsers.forEach(csr => {
+      users.push(csr.id);
+    });
+    where = {...where, userId: { [Op.in]: users}};
+    include.push({model: User});
+  }
+
   Farm.findAll({
     where: where,
-    include: [
-      {
-        model: Survey,
-        required: false,
-        where: { isActive: true},
-        include: [{ model: SurveyFile, where: {isActive: true}, required: false}],
-      },
-    ]
+    include: include
   }).then((farms) => {
     if (!farms) {
       return res.status(404).send({ message: "No Farm Records exist" });
     }
-    return res.status(200).send({ farms: farms });
+    return res.status(200).send({ farms: farms, csrUsers: csrUsers });
   }).catch((err) => {
     console.log(err);
     return res.status(500).send({ message: err.message });
   });
+
 };
 
 exports.addFarmRecord = (req, res) => {
   let farmRecords = { ...req.body };
   farmRecords.isActive = true;
   farmRecords.userId = req.userId;
-  Farm.create(farmRecords).then(() => {
-    return res.status(200).send({
-      message: "Farm Record Created Successfully!",
-    });
+  if (farmRecords.user) {
+    farmRecords.userId = farmRecords.user;
+  }
+  farmRecords.ownerAge = common.convertAgeToDate(req.body.ownerAge);
+  farmRecords.partitions = JSON.stringify({ partitions: [{ item: 'Plot 1', area: 0 }] });
+  Farm.findOne({ where: { name: farmRecords.name, userId: req.userId } }).then(farm => {
+    if (farm) {
+      return res.status(404).send({ message: "Farm with same name already exists" });
+    }
+    Farm.create(farmRecords).then(() => {
+      return res.status(200).send({
+        message: "Farm Record Created Successfully!",
+      });
+    })
   }).catch(() => {
     return res.status(500).send({ message: "Unknown Error", code: 2 });
   });
@@ -56,6 +88,7 @@ exports.addFarmRecord = (req, res) => {
 
 exports.updateFarmRecord = (req, res) => {
   let farmRecords = { ...req.body };
+  farmRecords.ownerAge = common.convertAgeToDate(req.body.ownerAge);
   Farm.findOne({
     where: {
       id: req.body.id,
@@ -71,6 +104,45 @@ exports.updateFarmRecord = (req, res) => {
     return res.status(500).send({ message: "Unknown Error", code: 2 });
   });
 };
+
+exports.restoreFarmRecord = (req, res) => {
+  Farm.findOne({
+    where: {
+      id: req.body.id,
+    },
+  }).then((farm) => {
+    if (!farm) {
+      return res.status(404).send({ message: "Farm Record doesn't exist" });
+    }
+    farm.update({ isActive: true }).then((farm) => {
+      return res.send({ message: "Successfully restored farm" });
+    });
+  }).catch(() => {
+    return res.status(500).send({ message: "Unknown Error", code: 2 });
+  });
+};
+
+exports.partitionFarmRecord = (req, res) => {
+  let farmRecords = { ...req.body };
+  Farm.findOne({
+    where: {
+      id: req.body.id,
+    },
+  }).then((farm) => {
+    if (!farm) {
+      return res.status(404).send({ message: "Farm Record doesn't exist" });
+    }
+    let partitions = [];
+    Object.entries(farmRecords.partitions).forEach(entry => {
+      partitions.push({ item: entry[0], area: entry[1] });
+    });
+    farm.update({ partitions: JSON.stringify({ partitions: partitions }) }).then((farm) => {
+      return res.send({ farm: farm });
+    });
+  }).catch(() => {
+    return res.status(500).send({ message: "Unknown Error", code: 2 });
+  });
+}
 
 exports.deleteFarmRecord = (req, res) => {
   Farm.findOne({
@@ -93,9 +165,25 @@ exports.deleteFarmRecord = (req, res) => {
 exports.addSurveyRecord = (req, res) => {
   let surveyRecord = { ...req.body };
   surveyRecord.isActive = true;
-  Survey.create(surveyRecord).then(() => {
-    return res.status(200).send({
-      message: "Survey Created Successfully!",
+  Farm.findOne({ where: { id: surveyRecord.FarmId } }).then(farm => {
+    Farm.findAll({ where: { panchayat: farm.panchayat }, include: [{ model: Survey }] }).then(farms => {
+      let isSurvey = false;
+      farms.forEach(f => {
+        f.Surveys.forEach(s => {
+          if (s.number === surveyRecord.number && s.subdivision === surveyRecord.subdivision) {
+            isSurvey = true;
+          }
+        });
+      });
+      if (isSurvey) {
+        return res.status(404).send({ message: "Survey and Subdivision already exist in this village" });
+      } else {
+        Survey.create(surveyRecord).then(() => {
+          return res.status(200).send({
+            message: "Survey Created Successfully!",
+          });
+        })
+      }
     });
   }).catch(err => {
     console.log(err);
@@ -109,7 +197,7 @@ exports.surveys = (req, res) => {
       FarmId: req.params.FarmId,
       isActive: true,
     },
-    include: [{ model: SurveyFile, where: { isActive: true}}],
+    include: [{ model: SurveyFile, where: { isActive: true } }],
   }).then((surveys) => {
     if (!surveys) {
       return res.status(404).send({ message: "No Survey Records exist" });

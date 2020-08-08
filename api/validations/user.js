@@ -1,86 +1,23 @@
 const db = require("../models");
 const { validator } = require("../middlewares");
 
-const Farm = db.farm;
+const validationRule = {
+  role: "required|string",
+  csr: "required",
+  firstName: "required|string|min: 2",
+  lastName: "required|string|min: 2",
+  gender: "required|string|min: 2",
+  age: "required",
+  phone: "required|string|min: 10",
+  ration: "required|string",
+  address: "required|string",
+  district: "required|string",
+}
 
-const addFarmRecord = (req, res, next) => {
-  const validationRule = {
-    streetAddress: "required|string|min:10|max:50",
-    state: "required|string|min: 6",
-    district: "required|string|min: 6",
-    mandala: "required|string|min: 6",
-    panchayat: "required|string|min: 6",
-  };
+const createProfile = (req, res, next) => {
   validator(req.body, validationRule, {}, (err, status) => {
     if (!status) {
-      return res.status(412).send({
-        success: false,
-        message: "Validation failed",
-        data: err,
-      });
-    } else {
-      next();
-    }
-  });
-};
-
-const updateFarmRecord = (req, res, next) => {
-  const validationRule = {
-    id: "required",
-    name: "required|string",
-    streetAddress: "required|string|min:10|max:50",
-    state: "required|string|min: 6",
-    district: "required|string|min: 6",
-    mandala: "required|string|min: 6",
-    panchayat: "required|string|min: 6",
-  };
-  validator(req.body, validationRule, {}, (err, status) => {
-    if (!status) {
-      return res.status(412).send({
-        success: false,
-        message: "Validation failed",
-        data: err,
-      });
-    } else {
-      next();
-    }
-  });
-};
-
-const addSurvey = (req, res, next) => {
-  const validationRule = {
-    FarmId: "required",
-    name: "required|string|min:10|max:50",
-    subdivision: "required|string|min: 6",
-    extent: "required|string|min: 6",
-    link: "required|string|min: 6",
-    comment: "required|string|min: 6",
-  };
-  validator(req.body, validationRule, {}, (err, status) => {
-    if (!status) {
-      return res.status(412).send({
-        success: false,
-        message: "Validation failed",
-        data: err,
-      });
-    } else {
-      next();
-    }
-  });
-};
-
-const updateSurvey = (req, res, next) => {
-  const validationRule = {
-    id: "required",
-    FarmId: "required",
-    name: "required|string|min:10|max:50",
-    subdivision: "required|string|min: 6",
-    extent: "required|string|min: 6",
-    link: "required|string|min: 6",
-    comment: "required|string|min: 6",
-  };
-  validator(req.body, validationRule, {}, (err, status) => {
-    if (!status) {
+      console.log(err);
       return res.status(412).send({
         success: false,
         message: "Validation failed",
@@ -93,8 +30,5 @@ const updateSurvey = (req, res, next) => {
 };
 
 module.exports = {
-  addFarmRecord,
-  addSurvey,
-  updateFarmRecord,
-  updateSurvey
+  createProfile
 };

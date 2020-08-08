@@ -2,7 +2,6 @@ const azure = require('azure-storage');
 const { Readable } = require("stream")
 
 const config = require("../config");
-const { resolve } = require('path');
 
 const blobService = azure.createBlobService(config.STORAGE_ACCOUNT_CONNECTION);
 

@@ -37,16 +37,14 @@ const isAdmin = (req, res, next) => {
     }
 
     user.getRoles().then((roles) => {
-      for (let i = 0; i < roles.length; i++) {
-        if (roles[i].name === "sadmin") {
-          next();
-          return;
-        }
+      if (roles[0].name !== "farmer") {
+        next();
       }
-
-      return res.status(403).send({
-        message: "Require Admin Role",
-      });
+      else {
+        return res.status(403).send({
+          message: "Require Staff Role",
+        });
+      }
     });
   });
 };
@@ -71,8 +69,28 @@ const checkUpdateDuplicateUser = (req, res, next) => {
   });
 }
 
+const checkNewUserUpdateDuplicateUser = (req, res, next) => {
+  User.scope('withoutPassword').findOne({
+    where: {
+      [Op.or]: [
+        { email: req.body.email || ''},
+        { phone: req.body.phone || ''},
+      ]
+    },
+  }).then(user => {
+    if (user) {
+      return res.status(412).send({
+        message: "Phone / Email is already in use"
+      });
+    } else {
+      next();
+    }
+  });
+}
+
 module.exports = {
   verifyToken,
   isAdmin,
   checkUpdateDuplicateUser,
+  checkNewUserUpdateDuplicateUser,
 };

@@ -1,62 +1,122 @@
 import React, { useEffect, useState } from "react";
-import { Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
-import { EditFilled, DeleteFilled } from "@ant-design/icons";
+import { Tooltip, Checkbox, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
+import { AppstoreOutlined, EditFilled, DeleteFilled, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 
+import AuthService from "../../services/auth";
 import UserService from "../../services/user";
-import FarmRecordForm from "../../components/FarmRecordForm";
-import SurveyForm from "../../components/SurveyForm";
+import { FarmRecordForm, PartitionForm, SurveyForm } from "../../components";
 import SurveyTable from "./surveyTable";
 import MobileView from "./mobileView";
 
+const layout = {
+  labelCol: { offset: 0, span: 0 },
+  wrapperCol: { span: 12 },
+};
+
 const FarmRecords = () => {
   const [farmRecord, setFarmRecord] = useState([]);
+  const [csrUsers, setCsrUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDrawer, setShowDrawer] = useState(false);
-  const [selectedItem, setSelectedItem] = useState({ id: 1 });
+  const [showPartitionDrawer, setShowPartitionDrawer] = useState(false);
+  const [selectedItem, setSelectedItem] = useState({id: 0});
   const [action, setAction] = useState("add_farm");
 
   const columns = [
     { title: "Farm Name", dataIndex: "name", key: "name", ellipsis: true },
-    { title: "Address", dataIndex: "streetAddress", key: "streetAddress", ellipsis: true },
     { title: "State", dataIndex: "state", key: "state" },
     { title: "District", dataIndex: "district", key: "district" },
-    { title: "Mandala", dataIndex: "mandala", key: "mandala" },
-    { title: "Panchayat", dataIndex: "panchayat", key: "panchayat" },
+    { title: "Mandal", dataIndex: "mandala", key: "mandala" },
+    { title: "Village", dataIndex: "panchayat", key: "panchayat" },
     {
       title: "Action",
       key: "action",
       render: (_, item) => (
         <>
-          <Button type="link" onClick={() => review(item, "add_survey")}>
-            Add Survey
-          </Button>
-          <Button
-            type="link"
-            onClick={() => {
-              review(item, "edit_farm");
-            }}
-            icon={<EditFilled />}
-          />
-          <Button
-            type="link"
-            onClick={() => deleteRecord(item)}
-            icon={<DeleteFilled />}
-          />
+          {item.isActive &&
+            <>
+              <Tooltip placement="top" title='Add Survey #'>
+                <Button type="link" icon={<PlusOutlined />} onClick={() => review(item, "add_survey")} />
+              </Tooltip>
+              <Tooltip placement="top" title='Edit Farm'>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    review(item, "edit_farm");
+                  }}
+                  icon={<EditFilled />}
+                />
+              </Tooltip>
+              <Tooltip placement="top" title='Delete Farm'>
+                <Button
+                  type="link"
+                  onClick={() => deleteRecord(item)}
+                  icon={<DeleteFilled />}
+                />
+              </Tooltip>
+              <Tooltip placement="top" title='Plot Farm'>
+                <Button
+                  disabled={item.Surveys.length === 0}
+                  type="link"
+                  onClick={() => reviewPartition(item, "partition_farm")}
+                  icon={<AppstoreOutlined />}
+                />
+              </Tooltip>
+            </>
+          }
+          {!item.isActive &&
+            <Tooltip placement="top" title='Restore Farm'>
+              <Button
+                type="link"
+                onClick={() => restoreRecord(item)}
+                icon={<ReloadOutlined />}
+              />
+            </Tooltip>
+          }
         </>
       ),
     },
   ];
 
+  const [partitionForm] = Form.useForm();
+
+  const onPartitionDrawerClose = () => {
+    setLoading(false);
+    setShowPartitionDrawer(false);
+  };
+
+  const onFinishPartition = (values) => {
+    let total = 0;
+    Object.entries(values).forEach(entry => {
+      total += entry[1];
+    });
+    UserService.partitionFarmRecords({id: selectedItem.id, partitions: values}).then(response => {
+      message.info('Successfully partitioned');
+      fetchAndUpdateRecords();
+      setShowPartitionDrawer(false);
+    }).catch(err => {
+      console.log(err);
+      message.err(`Failed, ${err.response.data.message}`)
+    });
+  }
+
+  const reviewPartition = (item, action) => {
+    setLoading(true);
+    setAction(action);
+    setSelectedItem(() => item);
+    setShowPartitionDrawer(true)
+  };
+
+  const restoreRecord = (item) => {
+    UserService.restoreFarmRecords({id: item.id}).then(() => {
+      fetchAndUpdateRecords();
+    });
+  };
+
   const deleteRecord = (item) => {
-    if (item.id) {
-      UserService.deleteFarmRecords(item.id).then(() => {
-        fetchAndUpdateRecords();
-      });
-    } else {
-      UserService.deleteFarmRecords(item.item.id).then(() => {
-        fetchAndUpdateRecords();
-      });
-    }
+    UserService.deleteFarmRecords(item.id).then(() => {
+      fetchAndUpdateRecords();
+    });
   };
 
   const [formSearch] = Form.useForm();
@@ -65,12 +125,17 @@ const FarmRecords = () => {
     fetchAndUpdateRecords(values);
   };
 
-  const fetchAndUpdateRecords = (values = { search: "" }) => {
+  const fetchAndUpdateRecords = (values = { search: "", deleted: false }) => {
     setLoading(true);
-    UserService.getFarmRecords({ search: values.search || "" }).then(
+    UserService.getFarmRecords({ search: values.search || "",  deleted: values.deleted || false}).then(
       (response) => {
-        const tempFarms = [...response.data.farms];
+        const tempFarms = [];
+        response.data.farms.forEach(farm => {
+          farm.ownerAge = new Date().getFullYear() - new Date(farm.ownerAge).getFullYear();
+          tempFarms.push(farm);
+        });
         setFarmRecord(() => tempFarms);
+        setCsrUsers(() => response.data.csrUsers);
         setLoading(false);
       }
     );
@@ -103,7 +168,7 @@ const FarmRecords = () => {
         .catch((err) => {
           console.log(err);
           message.error(
-            `Failed to add Farm Record, ${err.response.data.message}`
+            `Failed to update Farm Record, ${err.response.data.message}`
           );
         });
     } else {
@@ -117,7 +182,7 @@ const FarmRecords = () => {
         .catch((err) => {
           console.log(err);
           message.error(
-            `Failed to update Farm Record, ${err.response.data.message}`
+            `Failed to add Farm Record, ${err.response.data.message}`
           );
         });
     }
@@ -128,6 +193,7 @@ const FarmRecords = () => {
     let formValues = { ...values };
     if (selectedItem.FarmId) {
       formValues.FarmId = selectedItem.FarmId;
+      formValues.khata = selectedItem.khata;
       formValues.id = selectedItem.id;
       UserService.updateSurvey(formValues)
         .then(() => {
@@ -158,10 +224,30 @@ const FarmRecords = () => {
     }
   };
 
+  const user = AuthService.getCurrentUser();
   const openNewForm = () => {
     setAction("add_farm");
-    setSelectedItem({});
-    setShowDrawer(true);
+    UserService.getUser({ id: user.id }).then(response => {
+      form.resetFields();
+      response.data.user.age = new Date().getFullYear() - new Date(response.data.user.age).getFullYear();
+      setSelectedItem({
+        isSelf: true,
+        ownerFirstName: response.data.user.firstName,
+        ownerLastName: response.data.user.lastName,
+        ownerAge: response.data.user.age,
+        ownerGender: response.data.user.gender,
+        role: response.data.user.Roles[0].id,
+        name: '',
+        streetAddress: '',
+        state: '',
+        district: '',
+        mandala: '',
+        panchayat: '',
+        khata: '',
+        relationship: '',
+      });
+      setShowDrawer(true);
+    });
   };
 
   const onDrawerClose = () => {
@@ -177,24 +263,25 @@ const FarmRecords = () => {
 
   return (
     <>
-      <Row style={{ padding: "15px", borderTop: "1px solid #90d150" }}>
-        <Col xs={12} md={12} lg={12} xl={12}>
-          <Form form={formSearch} layout="vertical">
+      <Row style={{ padding: "10px", borderTop: "1px solid #90d150" }}>
+        <Col xs={12} md={12} lg={14} xl={14}>
+          <Form form={formSearch} layout="inline">
             <Form.Item
               name="search"
-              onChange={search}
-              style={{ marginBottom: "0" }}
             >
-              <Input placeholder="Search with Name/Address" />
+              <Input onPressEnter={search} placeholder="Search with Name" />
+            </Form.Item>
+            <Form.Item name="deleted" valuePropName="checked" style={{fontWeight: 'bold'}}>
+              <Checkbox onChange={search}>Include Deleted</Checkbox>
             </Form.Item>
           </Form>
         </Col>
         <Col
           xs={10}
           md={10}
-          lg={10}
-          xl={10}
-          offset={1}
+          lg={8}
+          xl={8}
+          offset={2}
           style={{ textAlign: "end" }}
         >
           <Button type="primary" onClick={openNewForm}>
@@ -211,8 +298,8 @@ const FarmRecords = () => {
           xl={24}
         >
           <Table
-            className="g-table-striped-rows g-ant-table-cell components-table-demo-nested"
-            
+            className="g-table-striped-rows g-ant-table-cell"
+            rowClassName={(record, index) => record.isActive ? '' :  'g-table-striped-rows-danger'}
             ellipses={true}
             dataSource={farmRecord}
             columns={columns}
@@ -238,6 +325,7 @@ const FarmRecords = () => {
             type={action}
             fields={selectedItem}
             form={form}
+            csrUsers={csrUsers}
             onFinish={onFinish}
           />
         )}
@@ -249,6 +337,13 @@ const FarmRecords = () => {
             onFinish={onFinishSurvey}
           />
         )}
+      </Drawer>
+      <Drawer
+        visible={showPartitionDrawer}
+        width={window.innerWidth > 768 ? 900 : window.innerWidth}
+        onClose={onPartitionDrawerClose}
+      >
+        <PartitionForm form={partitionForm} onFinish={onFinishPartition} data={selectedItem}/>
       </Drawer>
     </>
   );

@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { Button, Table } from "antd";
+import { Tooltip, Button, Table } from "antd";
+import { EditFilled } from "@ant-design/icons";
 
 const SurveyTable = (props) => {
   const [loading, setLoading] = useState(true);
   const [surveys, setSurveys] = useState([]);
 
   const columns = [
-    { title: "Survey Name", dataIndex: "name", key: "name" },
+    { title: "Survey #", dataIndex: "number", key: "number" },
     { title: "Subdivision", dataIndex: "subdivision", key: "subdivision" },
     { title: "Extent", dataIndex: "extent", key: "extent" },
+    { title: "Land Type", dataIndex: "landType", key: "landType" },
     {
       title: "Action",
       dataIndex: "",
       key: "",
       render: (_, item) => (
-        <span className="table-operation">
-          <Button type="link" onClick={() => props.review(item, 'edit_survey')}>Edit</Button>
-        </span>
+        <Tooltip placement="top" title='Edit Survey'>
+        <Button
+          type="link"
+          onClick={() => {
+            props.review(item, "edit_survey");
+          }}
+          icon={<EditFilled />}
+        />
+      </Tooltip>
       ),
     },
   ];

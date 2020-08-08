@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Drawer, Button, Row, Col, Table, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
+import { Drawer, Button, Row, Col, Table, Upload, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 
 import "./index.less";
 import UserService from "../../services/user";
@@ -127,21 +128,20 @@ const UserManagement = () => {
   const onFinish = (values) => {
     let formValues = { ...values };
     formValues.id = selectedItem.id;
-    console.log(formValues);
     if (!selectedItem.isOnboarded) {
       UserService.updateRole(formValues)
         .then(() => {
-          message.success(`User successfully updated.`);
+          message.success(`Member successfully updated.`);
           setShowDrawer(false);
           fetchAndUpdateUsers();
         })
         .catch((err) => {
           console.log(err);
-          message.error(`Failed to update User, ${err.response.data.message}`);
+          message.error(`Failed to update Member, ${err.response.data.message}`);
         });
     } else {
       UserService.updateProfile(formValues).then(() => {
-        message.success(`User successfully updated.`);
+        message.success(`Member successfully updated.`);
         setShowDrawer(false);
         fetchAndUpdateUsers();
       }).catch(err => {
@@ -151,16 +151,53 @@ const UserManagement = () => {
     }
   };
 
+  const [showNewMemberDrawer, setShowNewMemberDrawer] = useState(false);
+  const [newForm] = Form.useForm();
+  const openNewMemberFinish = (values) => {
+    let formValues = { ...values };
+    UserService.createProfile(formValues).then(() => {
+      message.success(`Member successfully created.`);
+      setShowNewMemberDrawer(false);
+      fetchAndUpdateUsers();
+    }).catch(err => {
+      console.log(err.response);
+      message.error(`Failed to update Member, ${err.response.data.message}`);
+    });
+  }
+
+  const openNewForm = () => {
+    setShowNewMemberDrawer(true);
+  }
+
+  const uploadFile = (values) => {
+    const formData = new FormData();
+    formData.append('file', values.file)
+    const config = {
+      headers: {
+        'content-type': 'multipart/form-data'
+      }
+    }
+    UserService.uploadMembers(formData, config).then(response => {
+      message.info(response.data.message);
+      fetchAndUpdateUsers();
+    }).catch(err => {
+      message.error(err.response.data.message);
+    });
+  }
+
   return (
     <>
       <Row style={{ padding: "15px", borderTop: "1px solid #90d150"}}>
         <Col xs={12} md={12} lg={12} xl={12}>
-          <Form form={formSearch} layout="vertical">
+          <Form form={formSearch} layout="inline">
             <Form.Item name="search">
               <Input
-                placeholder="Search By Phone or Email"
+                placeholder="Phone or Email"
                 onPressEnter={search}
               />
+            </Form.Item>
+            <Form.Item name="onboarded" valuePropName="checked" style={{fontWeight: 'bold'}}>
+              <Checkbox onChange={search}>PENDING ONLY</Checkbox>
             </Form.Item>
           </Form>
         </Col>
@@ -172,11 +209,12 @@ const UserManagement = () => {
           offset={1}
           style={{ textAlign: "end" }}
         >
-          <Form form={formSearch}>
-            <Form.Item name="onboarded" valuePropName="checked" style={{fontWeight: 'bold'}}>
-              <Checkbox onChange={search}>PENDING ONLY</Checkbox>
-            </Form.Item>
-          </Form>
+          <Button style={{marginRight: '5px'}} type="primary" onClick={openNewForm}>Add New Member</Button>
+          <Upload multiple={false} accept={'.csv'} customRequest={uploadFile}>
+            <Button>
+              <PlusOutlined /> Upload File (CSV)
+            </Button>
+          </Upload>
         </Col>
       </Row>
         <Row style={{ padding: "0px 10px" }}>
@@ -204,7 +242,7 @@ const UserManagement = () => {
         {selectedItem.roles &&
           selectedItem.roles[0].name.toUpperCase() === "FARMER" && (
             <MemberForm
-              type="sadmin"
+              type="staff"
               fields={selectedItem}
               form={form}
               onFinish={onFinish}
@@ -214,12 +252,26 @@ const UserManagement = () => {
         {selectedItem.roles &&
           selectedItem.roles[0].name.toUpperCase() !== "FARMER" && (
             <StaffForm
-              type="sadmin"
+              type="staff"
               fields={selectedItem}
               form={form}
               onFinish={onFinish}
             />
           )}
+      </Drawer>
+      <Drawer
+        visible={showNewMemberDrawer}
+        width={window.innerWidth > 768 ? 900 : window.innerWidth}
+        onClose={() => setShowNewMemberDrawer(false)}
+      >
+        <MemberForm
+          type="staff"
+          new={true}
+          fields={{}}
+          form={newForm}
+          onFinish={openNewMemberFinish}
+          csrs={csrs}
+        />
       </Drawer>
     </>
   );

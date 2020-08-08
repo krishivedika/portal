@@ -14,7 +14,8 @@ const tailLayout = {
 
 const MemberForm = (props) => {
 
-  const isAdmin = props.type === 'sadmin';
+  const isStaff = props.type === 'staff';
+  const isNew = props.new || false;
 
   const [fields, setFields] = useState([]);
   useEffect(() => {
@@ -28,16 +29,21 @@ const MemberForm = (props) => {
   return (
     <div style={{ margin: '15px' }}>
       <Tag icon={<SyncOutlined spin />} color="processing" style={{marginBottom: '10px'}}>
-        Editing: {props.fields.phone || props.fields.email}
+        {isNew &&
+          <>Create New Member</>
+        }
+        {!isNew &&
+          <>Editing: {props.fields.phone || props.fields.email}</>
+        }
       </Tag>
-      <Form fields={fields} form={props.form} onFinish={props.onFinish} {...layout}>
+      <Form preserve={false} fields={fields} form={props.form} onFinish={props.onFinish} {...layout}>
         <Row>
           <Form.Item {...tailLayout}>
             <Button type="primary" htmlType="submit">Save</Button>
           </Form.Item>
           <Col span={24}>
             <Card title="Profile" className="g-ant-card">
-              {isAdmin &&
+              {isStaff &&
                 <Form.Item name="role" label="Role"
                   rules={[
                     {
@@ -53,7 +59,7 @@ const MemberForm = (props) => {
                   </Select>
                 </Form.Item>
               }
-              {isAdmin &&
+              {isStaff &&
               <Form.Item name="csr" label="CSR"
                   rules={[
                     {
@@ -119,7 +125,7 @@ const MemberForm = (props) => {
                     message: "Please input Phone Number",
                   },
                 ]}>
-                <Input placeholder="Enter Phone" disabled/>
+                <Input placeholder="Enter Phone" disabled={!isNew}/>
               </Form.Item>
               <Form.Item name="ration" label="Ration"
                 rules={[
@@ -152,10 +158,10 @@ const MemberForm = (props) => {
                 ]}>
                 <Input placeholder="Enter Disctrict" />
               </Form.Item>
-              <Form.Item name="mandala" label="Mandala">
+              <Form.Item name="mandala" label="Mandal">
                 <Input placeholder="Enter Mandala" />
               </Form.Item>
-              <Form.Item name="panchayat" label="Panchayat">
+              <Form.Item name="panchayat" label="Village">
                 <Input placeholder="Enter Panchayat" />
               </Form.Item>
               <Form.Item name="hamlet" label="Hamlet">

@@ -106,8 +106,8 @@ const UserProfile = () => {
                     {userProfile.roles && userProfile.roles[0].name.toUpperCase() === 'FARMER' &&
                       <>
                         <Descriptions.Item label="District">{userProfile.district}</Descriptions.Item>
-                        <Descriptions.Item label="Mandala">{userProfile.mandala}</Descriptions.Item>
-                        <Descriptions.Item label="Panchayat">{userProfile.panchayat}</Descriptions.Item>
+                        <Descriptions.Item label="Mandal">{userProfile.mandala}</Descriptions.Item>
+                        <Descriptions.Item label="Village">{userProfile.panchayat}</Descriptions.Item>
                         <Descriptions.Item label="Hamlet">{userProfile.hamlet}</Descriptions.Item>
                       </>
                     }

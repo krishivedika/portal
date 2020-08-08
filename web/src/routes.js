@@ -8,6 +8,7 @@ export default {
   FUNCTIONS: '/functions',
   HELP: '/help',
   FARMRECORDS: '/farmrecords',
+  CROPRECORDS: '/croprecords',
   ANALYTICS: '/analytics',
   LOGOUT: '/logout',
   USERMANAGEMENT: '/usermanagement',
