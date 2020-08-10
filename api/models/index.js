@@ -24,6 +24,11 @@ db.surveyFile = require("../models/surveyFile")(sequelize, Sequelize);
 db.reset = require("../models/reset")(sequelize, Sequelize);
 db.region = require("../models/region")(sequelize, Sequelize);
 db.cropType = require("../models/cropType")(sequelize, Sequelize);
+db.seed = require("../models/seed")(sequelize, Sequelize);
+db.irrigation = require("../models/irrigation")(sequelize, Sequelize);
+db.brand = require("../models/brand")(sequelize, Sequelize);
+db.userRole = require("../models/userRole")(sequelize, Sequelize);
+db.userAssociation = require("../models/userAssociation")(sequelize, Sequelize);
 
 // Associations
 db.role.belongsToMany(db.user, {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Tooltip, Checkbox, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
-import { AppstoreOutlined, EditFilled, DeleteFilled, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import { RightOutlined, AppstoreOutlined, EditFilled, DeleteFilled, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import UserService from "../../services/user";
@@ -22,8 +22,23 @@ const FarmRecords = () => {
   const [selectedItem, setSelectedItem] = useState({id: 0});
   const [action, setAction] = useState("add_farm");
 
-  const columns = [
+  useEffect(() => {
+    fetchAndUpdateRecords();
+  }, []);
+
+  const user = AuthService.getCurrentUser();
+
+  let columns = [];
+  if (user.roles[0] !== "FARMER") {
+    columns = [
+      { title: "Member", key: "member", ellipsis: true, render: (_, item) => (
+      <>{item.User.firstName} ({item.User.phone})</>
+      )},
+    ];
+  }
+  columns = [...columns,
     { title: "Farm Name", dataIndex: "name", key: "name", ellipsis: true },
+    { title: "Khata", dataIndex: "khata", key: "khata", ellipsis: true },
     { title: "State", dataIndex: "state", key: "state" },
     { title: "District", dataIndex: "district", key: "district" },
     { title: "Mandal", dataIndex: "mandala", key: "mandala" },
@@ -108,12 +123,16 @@ const FarmRecords = () => {
   };
 
   const restoreRecord = (item) => {
-    UserService.restoreFarmRecords({id: item.id}).then(() => {
+    UserService.restoreFarmRecords({id: item.id}).then(response => {
+      message.success(response.data.message);
       fetchAndUpdateRecords();
+    }).catch(err => {
+      message.error(err.response.data.message);
     });
   };
 
   const deleteRecord = (item) => {
+    console.log(item);
     UserService.deleteFarmRecords(item.id).then(() => {
       fetchAndUpdateRecords();
     });
@@ -141,10 +160,6 @@ const FarmRecords = () => {
     );
   };
 
-  useEffect(() => {
-    fetchAndUpdateRecords();
-  }, []);
-
   const review = (item, action) => {
     setLoading(true);
     setAction(action);
@@ -153,6 +168,17 @@ const FarmRecords = () => {
   };
 
   const [form] = Form.useForm();
+
+  const onAdd = async () => {
+    try {
+      const values = await form.validateFields();
+      values.add = true;
+      onFinish(values);
+    } catch(err) {
+      console.log(err);
+    }
+  }
+
   const onFinish = (values) => {
     let formValues = { ...values };
     if (selectedItem.id) {
@@ -176,8 +202,10 @@ const FarmRecords = () => {
         .then(() => {
           message.success(`Farm Record Successfully Added.`);
           setShowDrawer(false);
+          form.resetFields();
           fetchAndUpdateRecords();
           setLoading(false);
+          if (values?.add) setShowDrawer(true);
         })
         .catch((err) => {
           console.log(err);
@@ -189,6 +217,17 @@ const FarmRecords = () => {
   };
 
   const [surveyForm] = Form.useForm();
+
+  const onAddSurvey = async () => {
+    try {
+      const values = await surveyForm.validateFields();
+      values.add = true;
+      onFinishSurvey(values);
+    } catch(err) {
+      console.log(err);
+    }
+  }
+
   const onFinishSurvey = (values) => {
     let formValues = { ...values };
     if (selectedItem.FarmId) {
@@ -199,6 +238,7 @@ const FarmRecords = () => {
         .then(() => {
           message.success(`Survey Successfully Updated.`);
           setShowDrawer(false);
+          surveyForm.resetFields();
           fetchAndUpdateRecords();
           setLoading(false);
         })
@@ -214,8 +254,10 @@ const FarmRecords = () => {
         .then(() => {
           message.success(`Survey Successfully Added.`);
           setShowDrawer(false);
+          surveyForm.resetFields();
           fetchAndUpdateRecords();
           setLoading(false);
+          if (values?.add) setShowDrawer(true);
         })
         .catch((err) => {
           console.log(err);
@@ -224,7 +266,6 @@ const FarmRecords = () => {
     }
   };
 
-  const user = AuthService.getCurrentUser();
   const openNewForm = () => {
     setAction("add_farm");
     UserService.getUser({ id: user.id }).then(response => {
@@ -269,7 +310,7 @@ const FarmRecords = () => {
             <Form.Item
               name="search"
             >
-              <Input onPressEnter={search} placeholder="Search with Name" />
+              <Input onPressEnter={search} placeholder="Farm Name" />
             </Form.Item>
             <Form.Item name="deleted" valuePropName="checked" style={{fontWeight: 'bold'}}>
               <Checkbox onChange={search}>Include Deleted</Checkbox>
@@ -306,7 +347,7 @@ const FarmRecords = () => {
             loading={loading}
             rowKey="id"
             bordered
-            expandable={{ expandedRowRender, expandRowByClick: true }}
+            expandable={{ expandedRowRender, expandIcon: () => <RightOutlined/>, expandRowByClick: true }}
           />
         </Col>
       </Row>
@@ -314,6 +355,8 @@ const FarmRecords = () => {
         farms={farmRecord}
         review={review}
         deleteRecord={deleteRecord}
+        restoreRecord={restoreRecord}
+        reviewPartition={reviewPartition}
       />
       <Drawer
         visible={showDrawer}
@@ -327,6 +370,8 @@ const FarmRecords = () => {
             form={form}
             csrUsers={csrUsers}
             onFinish={onFinish}
+            onClose={onDrawerClose}
+            onAdd={onAdd}
           />
         )}
         {(action === "add_survey" || action === "edit_survey") && (
@@ -335,6 +380,8 @@ const FarmRecords = () => {
             fields={selectedItem}
             form={surveyForm}
             onFinish={onFinishSurvey}
+            onClose={onDrawerClose}
+            onAdd={onAddSurvey}
           />
         )}
       </Drawer>
@@ -343,7 +390,7 @@ const FarmRecords = () => {
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
         onClose={onPartitionDrawerClose}
       >
-        <PartitionForm form={partitionForm} onFinish={onFinishPartition} data={selectedItem}/>
+        <PartitionForm onClose={onPartitionDrawerClose} form={partitionForm} onFinish={onFinishPartition} data={selectedItem}/>
       </Drawer>
     </>
   );

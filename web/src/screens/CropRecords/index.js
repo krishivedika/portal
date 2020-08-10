@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
+import { Timeline, Modal, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
+import { CalendarFilled } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import CropService from "../../services/crop";
@@ -13,13 +14,20 @@ const CropRecords = () => {
   const [showDrawer, setShowDrawer] = useState(false);
   const [selectedItem, setSelectedItem] = useState({ id: 1 });
   const [action, setAction] = useState("add_farm");
+  const [timeline, setTimeline] = useState(false);
+
+  const showTimeLine = () => {
+    setTimeline(true);
+  };
 
   const columns = [
   { title: "Farm Name (# Khata)", key: "farmname", ellipsis: true, render: (_, item) => (<p>{item.Farm.name} (# {item.Farm.khata})</p>) },
-    { title: "Crop Name", dataIndex: "name", key: "name", ellipsis: true },
-    { title: "Layer One", dataIndex: "layerOne", key: "layerOne", ellipsis: true },
-    { title: "Layer Two", dataIndex: "layerTwo", key: "layerTwo", ellipsis: true },
-    { title: "Layer Three", dataIndex: "layerThree", key: "layerThree", ellipsis: true },
+    { title: "Plot", dataIndex: "name", key: "name", ellipsis: true },
+    { title: "Crop Layer One", dataIndex: "layerOne", key: "layerOne", ellipsis: true, render: (_, item) => (
+      <>{item.layerOne} <Button onClick={showTimeLine}><CalendarFilled /> </Button></>
+    )},
+    { title: "Crop Layer Two", dataIndex: "layerTwo", key: "layerTwo", ellipsis: true },
+    { title: "Crop Layer Three", dataIndex: "layerThree", key: "layerThree", ellipsis: true },
     // {
     //   title: "Action",
     //   key: "action",
@@ -105,6 +113,22 @@ const CropRecords = () => {
 
   return (
     <>
+      <Modal title='Mango POP' footer={null} visible={timeline} onCancel={() => setTimeline(false)}>
+        <Timeline mode='left'>
+          <Timeline.Item label="2015-09-01">Land Preparation <p>INM: 1. Well decomped FYM
+8 to 10 tons/acre
+inoculum T viridae & P floroscens 2 Kg/acre each
+AND/OR
+2. Vermicompost
+5 tons/acre
+inoculum T viridae & P floroscens 2 Kg/acre each</p></Timeline.Item>
+          <Timeline.Item label="2015-09-02">Soil Preparation</Timeline.Item>
+          <Timeline.Item label="2015-09-03">Fertigation</Timeline.Item>
+          <Timeline.Item color="red" label="2015-09-04">Seed Treatment</Timeline.Item>
+          <Timeline.Item color="gray" label="2015-09-05">Irrigation</Timeline.Item>
+          <Timeline.Item color="gray" label="2015-09-06">Sowing Okra Seed</Timeline.Item>
+        </Timeline>
+      </Modal>
       <Row style={{ padding: "10px", borderTop: "1px solid #90d150" }}>
         <Col xs={12} md={12} lg={12} xl={12}>
           <Form form={formSearch} layout="vertical">
@@ -113,7 +137,7 @@ const CropRecords = () => {
               onChange={search}
               style={{ marginBottom: "0" }}
             >
-              <Input placeholder="Search with Name/Address" />
+              <Input placeholder="Search with Name" />
             </Form.Item>
           </Form>
         </Col>

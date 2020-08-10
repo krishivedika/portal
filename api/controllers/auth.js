@@ -68,7 +68,7 @@ exports.signin = (req, res) => {
       if (response.data.type === "error" && req.body.phone !== '1234567890') {
         return res.status(400).send({ message: response.data.message, code: 100 });
       }
-      const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id }, config.SECRET_KEY, {
+      const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id, email: user.email }, config.SECRET_KEY, {
         expiresIn: 1209600, // Fortnite
       });
 
@@ -124,7 +124,7 @@ exports.staffSignin = (req, res) => {
       }
 
       const userRole = user.Roles[0];
-      const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id }, config.SECRET_KEY, {
+      const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id, email: user.email }, config.SECRET_KEY, {
         expiresIn: 1209600, // Fortnite
       });
 

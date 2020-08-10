@@ -210,7 +210,7 @@ const Login = (props) => {
                     </Form.Item>
                   }
                   {otpButton &&
-                    <Form.Item {...tailLayout}>
+                    <Form.Item name="sendotp" {...tailLayout}>
                       <Button type="primary" onClick={requestOtp}>Send OTP</Button>
                     </Form.Item>
                   }

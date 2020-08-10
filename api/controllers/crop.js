@@ -68,7 +68,6 @@ exports.cropRecords = async (req, res) => {
 exports.addCropRecord = (req, res) => {
   let farmRecords = { ...req.body };
   farmRecords.crops.forEach(c => {
-    c.isActive = true;
     c.FarmId = farmRecords.farmId;
   });
   Crop.findOne({where: {FarmId: farmRecords.farmId}}).then(crops => {

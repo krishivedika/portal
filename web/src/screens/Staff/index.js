@@ -7,7 +7,7 @@ const Staff = () => {
 
   return (
     <Row>
-      <Col xs={{ span: 22, offset: 2 }} xl={{ span: 24, offset: 0 }} >
+      <Col xs={{ span: 24, offset: 0 }} xl={{ span: 24, offset: 0 }} >
         <UserManagement />
       </Col>
     </Row>

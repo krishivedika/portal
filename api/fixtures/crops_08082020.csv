@@ -1,5 +1,205 @@
-section,category,subcategory,name
-Horticulture,Fruits,Tropical,Mango
-Horticulture,Vegetables,Fruit vegetables,Tomato
-Agriculture,Cereals,Cereals,Rice
-Agriculture,Cereals,Cereals,Wheat
+section,category,subcategory,name,scientific
+Horticulture,Fruits,Tropical,Mango,Mangifera indica
+Horticulture,Fruits,Tropical,Banana,Musa acuminata & Musa balbisiana
+Horticulture,Fruits,Tropical,Sapota,Manilkhara achras
+Horticulture,Fruits,Tropical,Papaya,Carica papaya
+Horticulture,Fruits,Tropical,Guava,Psidium guajava
+Horticulture,Fruits,Tropical,Acid Lime,Citrus aurantifolia
+Horticulture,Fruits,Tropical,Sweet Orange,Citrus sinensis
+Horticulture,Fruits,Tropical,Mandarin Orange,Citrus reticulata
+Horticulture,Fruits,Tropical,Grapes,Vitis vinifera
+Horticulture,Fruits,Tropical,Pineapple,Ananas sativus
+Horticulture,Fruits,Tropical,Pomegranate,Punica granatum
+Horticulture,Fruits,Tropical,Jack,Artocarpus heterophyllus
+Horticulture,Fruits,Tropical,Ber,Zizyphus mauritiana
+Horticulture,Fruits,Tropical,Amla,Phyllanthus emblica
+Horticulture,Fruits,Tropical,Jamun,Syzygium cumini
+Horticulture,Fruits,Tropical,Custard Apple,Annona reticulata & Annona squamosa & Annona cherimnoya
+Horticulture,Fruits,Tropical,Watermelon,Citrullus lanatus
+Horticulture,Fruits,Tropical,Muskmelon,Cucumis melo
+Horticulture,Fruits,Tropical,Lemon,Citrus limon
+Horticulture,Fruits,Tropical,Rambutan,Nephelium lappaceum
+Horticulture,Fruits,Temperate,Apple,Cucumis melo
+Horticulture,Fruits,Temperate,Pear,Pyrus communis
+Horticulture,Fruits,Temperate,Plum,Prunus salicina
+Horticulture,Fruits,Temperate,Peach,Prunus persica
+Horticulture,Fruits,Temperate,Fig,Ficus carica
+Horticulture,Fruits,Temperate,Kiwi,Actinidia delicious
+Horticulture,Fruits,Temperate,Apricot,Prunus americana
+Horticulture,Fruits,Others,Litchi,Litchi chinensis
+Horticulture,Fruits,Others,Avacado,Persea americana
+Horticulture,Fruits,Others,Mangosteen,Garcinia mangostana
+Horticulture,Fruits,Others,Straw berry,Fragaria vesca
+Horticulture,Fruits,Others,Passion fruit,Passiflora edulis
+Horticulture,Fruits,Others,Bilimbi,Averrhoa bilimbi
+Horticulture,Fruits,Others,Carambola,Averrhoa carambola
+Horticulture,Fruits,Others,Karonda,Carissa caranda
+Horticulture,Fruits,Others,Loquat,Eriobotrya japonica
+Horticulture,Fruits,Others,Phalsa,Grewia asiatica
+Horticulture,Fruits,Others,Mulberry,Morus nigra
+Horticulture,Fruits,Others,West Indian Cherry,Malphigia punicifolia
+Horticulture,Fruits,Others,Durian,Durio zebethinus
+Horticulture,Fruits,Others,Persimmon,Diospyros kaki
+Horticulture,Fruits,Others,Bread fruit,Artocarpus incise
+Horticulture,Vegetables,Fruit Vegetables,Tomato,Lycopersicon esculentum
+Horticulture,Vegetables,Fruit Vegetables,Brinjal,Solanum melongena
+Horticulture,Vegetables,Fruit Vegetables,Chilli,Capsicum annuum
+Horticulture,Vegetables,Fruit Vegetables,Capsicum,Capsicum annuum
+Horticulture,Vegetables,Fruit Vegetables,Paprika,Capsicum annum var longum
+Horticulture,Vegetables,Fruit Vegetables,Ridge Gourd,Luffa acutangula
+Horticulture,Vegetables,Fruit Vegetables,Bottle Gourd,Lagenaria siceraria
+Horticulture,Vegetables,Fruit Vegetables,Bitter Gourd,Momordica charantia
+Horticulture,Vegetables,Fruit Vegetables,Ivy Gourd,Coccinia indica
+Horticulture,Vegetables,Fruit Vegetables,Snake Gourd,Trichosanthes cucumerina
+Horticulture,Vegetables,Fruit Vegetables,Ash Gourd,Benincasa hispida
+Horticulture,Vegetables,Fruit Vegetables,Spiny Gourd,Momordica dioica
+Horticulture,Vegetables,Fruit Vegetables,Pumpkin,Cucurbita moschata
+Horticulture,Vegetables,Fruit Vegetables,Cucumber,Cucumis sativus
+Horticulture,Vegetables,Fruit Vegetables,Gherkins,Cucumis sativus var angaria
+Horticulture,Vegetables,Fruit Vegetables,Chow Chow,Sechium edule
+Horticulture,Vegetables,Fruit Vegetables,Potals,Citrullus vulgaris
+Horticulture,Vegetables,Fruit Vegetables,Cluster Beans,Cyamopsis tetragonoloba
+Horticulture,Vegetables,Fruit Vegetables,French Beans,Phaseolus vulgaris
+Horticulture,Vegetables,Fruit Vegetables,Broad Beans,Vicia faba
+Horticulture,Vegetables,Fruit Vegetables,Lab Lab,Lab lab purpureus
+Horticulture,Vegetables,Fruit Vegetables,Yard Long Beans,Vigna unguiculata
+Horticulture,Vegetables,Fruit Vegetables,Winged Bean,Psophocarpus tetragonalobus
+Horticulture,Vegetables,Fruit Vegetables,Peas,Pisum sativum
+Horticulture,Vegetables,Fruit Vegetables,Cowpea,Vigna unguiculata
+Horticulture,Vegetables,Fruit Vegetables,Okra,Abelmoschus esculentus
+Horticulture,Vegetables,Fruit Vegetables,Drumstic,Moringa oleifera
+Horticulture,Vegetables,Root & Tuber Vegetables,Carrot,Daucus carota
+Horticulture,Vegetables,Root & Tuber Vegetables,Beetroot,Beta vulgaris
+Horticulture,Vegetables,Root & Tuber Vegetables,Radish,Raphanus sativus
+Horticulture,Vegetables,Root & Tuber Vegetables,Colocasia,Colocasia esculenta
+Horticulture,Vegetables,Root & Tuber Vegetables,Dioscorea,Dioscorea alata & Dioscorea esculenta
+Horticulture,Vegetables,Root & Tuber Vegetables,Potato,Solanum tuberosum
+Horticulture,Vegetables,Root & Tuber Vegetables,Sweet Potato,Ipomoea batatas
+Horticulture,Vegetables,Root & Tuber Vegetables,Tapioca,Manihot esculenta
+Horticulture,Vegetables,Root & Tuber Vegetables,Elephant Foot Yam,Amorphophallus companulatus
+Horticulture,Vegetables,Root & Tuber Vegetables,Chinese potato,Coleus parviflorus
+Horticulture,Vegetables,Bulb Vegetables,Onion,Allium cepa
+Horticulture,Vegetables,Bulb Vegetables,Garlic,Allium sativum
+Horticulture,Vegetables,Bulb Vegetables,Knol-khol,Brassica caulorapa
+Horticulture,Vegetables,Bulb Vegetables,Turnip,Brassica rapa
+Horticulture,Vegetables,Cole Crops,Cabbage,Brassica oleracea var capitata
+Horticulture,Vegetables,Cole Crops,Cauliflower,Brassica oleracea var botrytis
+Horticulture,Vegetables,Cole Crops,Chinese cabbage,Brassica pekinensis
+Horticulture,Vegetables,Cole Crops,Bok Choy,Brassica rapa var chinensis
+Horticulture,Vegetables,Cole Crops,Red Cabbage,Brassica oleracea var capitata
+Horticulture,Vegetables,Cole Crops,Broccoli,Brassica oleracea var italica
+Horticulture,Vegetables,Leafy Greens & Herb,Amaranthus,Amaranthus sp
+Horticulture,Vegetables,Leafy Greens & Herb,Indian Red Sorrel,
+Horticulture,Vegetables,Leafy Greens & Herb,Fenugreek,
+Horticulture,Vegetables,Leafy Greens & Herb,Ceylong Spinach,Talinum triangulare
+Horticulture,Vegetables,Leafy Greens & Herb,Spinach,Beta vulgaris var Bengalensis
+Horticulture,Vegetables,Leafy Greens & Herb,Other Sorrels,
+Horticulture,Vegetables,Leafy Greens & Herb,Coriander,
+Horticulture,Vegetables,Leafy Greens & Herb,Curry Leaves,Murraya koenigii
+Horticulture,Vegetables,Leafy Greens & Herb,Rosemary,Rosmarinus officinalis
+Horticulture,Vegetables,Leafy Greens & Herb,Thymes,
+Horticulture,Vegetables,Leafy Greens & Herb,Chives,
+Horticulture,Vegetables,Leafy Greens & Herb,Parsley,
+Horticulture,Vegetables,Leafy Greens & Herb,Celery,Apium graveolens
+Horticulture,Vegetables,Leafy Greens & Herb,Mint,Mentha virides
+Horticulture,Vegetables,Leafy Greens & Herb,Lettuce,Lactuca sativa
+Horticulture,Vegetables,Others,Asparagus,Asparagus officinalis var altilis
+Horticulture,Vegetables,Others,Bread fruit,Artocarpus altilis
+Horticulture,Vegetables,Others,Brussels sprout,Brassica oleracea var Gemmifera
+Horticulture,Vegetables,Others,Butter bean,Phaseolus lunatus
+Horticulture,Vegetables,Others,Rhubarb,Rheum rhaponticum
+Horticulture,Flowers,Cut Flowers,Rose,Rosa hybrida
+Horticulture,Flowers,Cut Flowers,Chrysanthemum,Dendranthema grandiflora
+Horticulture,Flowers,Cut Flowers,Carnation,Dianthus Spp
+Horticulture,Flowers,Cut Flowers,Anthurium,Anthurium andreanum
+Horticulture,Flowers,Cut Flowers,Gerbera,Gerbera jamesonii
+Horticulture,Flowers,Cut Flowers,Dendrobium,Dendrobium aggregatum
+Horticulture,Flowers,Cut Flowers,Lilium,Lilium Spp
+Horticulture,Flowers,Cut Flowers,Gladiolus,Gladiolus spp
+Horticulture,Flowers,Cut Flowers,China Aster,Aster amellus
+Horticulture,Flowers,Cut Flowers,Golden Rod,Salidago Canadensis
+Horticulture,Flowers,Loose Flowers,Rose,Rosa sp
+Horticulture,Flowers,Loose Flowers,Chrysanthemum,Dendranthema grandiflora
+Horticulture,Flowers,Loose Flowers,Jasmine,Jasminum sambac
+Horticulture,Flowers,Loose Flowers,Crossandara,Crossandra infundibuliformis
+Horticulture,Flowers,Loose Flowers,Marigold,Tagetes erecta
+Horticulture,Flowers,Loose Flowers,Tuberose,Polianthes tuberosa
+Horticulture,Flowers,Loose Flowers,Nerium,Nerium indicum
+Horticulture,Spices,Major Spices,Ginger,Zingiber officinale
+Horticulture,Spices,Major Spices,Turmeric,Curcuma longa
+Horticulture,Spices,Major Spices,Cardamom,Elettaria cardamomum
+Horticulture,Spices,Major Spices,Black Pepper,Piper nigrum
+Horticulture,Spices,Seed Spices,Coriander,Coriandrum sativum
+Horticulture,Spices,Seed Spices,Fenugreek,Trigonella foenum graecum
+Horticulture,Spices,Seed Spices,Mustard,Brassica nigra
+Horticulture,Spices,Seed Spices,Fennel,Foeniculum vulgare
+Horticulture,Spices,Tree Spices,Clove,Syzigium aromaticum
+Horticulture,Spices,Tree Spices,Nutmeg,Myristica fragrans Hoult
+Horticulture,Spices,Tree Spices,Cinnamon,Cinnamomum zeylanicum
+Horticulture,Spices,Tree Spices,Tamarind,Tamarindus indicu
+Horticulture,Spices,Tree Spices,Allspice,Pimenta dioica
+Horticulture,Spices,Others,Vanilla,Vanilla planifolia
+Horticulture,Crops,Aromatic Crops,Vetiver,Vetiveria zizanoides
+Horticulture,Crops,Aromatic Crops,Lemongrass,Cymbopogon flexuosus
+Horticulture,Crops,Aromatic Crops,Citronella,Cymbopogon winterianus
+Horticulture,Crops,Aromatic Crops,Geranium,Pelargonium graveolens
+Horticulture,Crops,Aromatic Crops,Palmarosa,Cymbopogon martinii var motia
+Horticulture,Crops,Aromatic Crops,Patchouli,Pogostemon patchouli
+Horticulture,Crops,Medicinal Crops,Vallarai,Centella asiatica
+Horticulture,Crops,Medicinal Crops,Brahmi,Bacopa monnieri
+Horticulture,Crops,Medicinal Crops,Blacknight Shade,Solanum nigrum
+Horticulture,Crops,Medicinal Crops,Sappon Wood,Caesalpinia sappan
+Horticulture,Crops,Medicinal Crops,Gymnema,Gymneme sylvestre
+Horticulture,Crops,Medicinal Crops,Tulasi,Ocimum Sanctum
+Horticulture,Crops,Medicinal Crops,Noni,Morinda citrifolia
+Horticulture,Crops,Medicinal Crops,Pyrethrum,Chrysanthemum cinerariaefolium
+Horticulture,Crops,Medicinal Crops,Digitalis,Digitalis lanata
+Horticulture,Crops,Medicinal Crops,Aswagandha,Withania somnifera
+Horticulture,Crops,Medicinal Crops,Medicinal Dioscorea,Dioscorea floribunda
+Horticulture,Crops,Medicinal Crops,Medicinal Solanum,Solanum khasianum
+Horticulture,Crops,Medicinal Crops,Periwinkle,Catharanthus roseus
+Horticulture,Crops,Medicinal Crops,Aloe,Aloe vera
+Horticulture,Crops,Medicinal Crops,Stevia,Stevia rebaudiana
+Horticulture,Crops,Medicinal Crops,Indian Long Pepper,Piper longum
+Horticulture,Crops,Medicinal Crops,Senna,Cassia acutifolia
+Horticulture,Crops,Medicinal Crops,Medicinal Coleus,Coleus forskohlii
+Horticulture,Crops,Medicinal Crops,Phylanthus,Phyllanthus amarus
+Horticulture,Crops,Medicinal Crops,Glory Lily,Gloriosa superba
+Horticulture,Crops,Plantation Crops,Tea,Camellia sinensis
+Horticulture,Crops,Plantation Crops,Coffee,Coffea canephora / Coffea arabica
+Horticulture,Crops,Plantation Crops,Coconut,Cocos nucifera
+Horticulture,Crops,Plantation Crops,Arecanut,Areca catechu
+Horticulture,Crops,Plantation Crops,Rubber,Hevea brasiliensis
+Horticulture,Crops,Plantation Crops,Cashewnut,Anacardium occidentale
+Horticulture,Crops,Plantation Crops,Cocoa,Theobroma cacao
+Horticulture,Crops,Plantation Crops,Oil Palm,Elaeis guineensis
+Horticulture,Crops,Plantation Crops,Palmyrah,Borassus flabellifer
+Horticulture,Crops,Plantation Crops,Betelvine,Piper betel
+Agriculture,Cereals,Cereals,Rice,Oryza sativa
+Agriculture,Cereals,Cereals,Wheat,Triticum aestivum
+Agriculture,Millets,Millets,Sorghum,Sorghum bicolor
+Agriculture,Millets,Millets,Pearl millet,Pennisetum glaucum
+Agriculture,Millets,Millets,Finger millet,Eleusine coracana
+Agriculture,Millets,Millets,Barnyard millet,Echinochloa frumentacea
+Agriculture,Millets,Millets,Proso millet,Panicum miliaceum
+Agriculture,Millets,Millets,Foxtail millet,Setaria italica
+Agriculture,Millets,Millets,Kodo millet,Paspalum scrobiculatum
+Agriculture,Millets,Millets,Little millet,Panicum sumatrense
+Agriculture,Millets,Millets,Brown top millet,Brachiaria ramosa
+Agriculture,Pulses,Pulses,Blackgram,Vigna mungo
+Agriculture,Pulses,Pulses,Greengram,Vigna radiata
+Agriculture,Pulses,Pulses,Redgram,Cajanus cajan
+Agriculture,Pulses,Pulses,Horsegram,Macrotyloma uniflorum
+Agriculture,Pulses,Pulses,Bengalgram,Cicer arietinum
+Agriculture,Oil Seeds,Oil Seeds,Groundnut,Arachis hypogaea
+Agriculture,Oil Seeds,Oil Seeds,Sunflower,Helianthus annuus
+Agriculture,Oil Seeds,Oil Seeds,Gingelly,Sesamum indicum
+Agriculture,Oil Seeds,Oil Seeds,Castor,Ricinus communis
+Agriculture,Oil Seeds,Oil Seeds,Niger,Guizotia abyssinica
+Agriculture,Fibre Crops,Fibre Crops,Cotton,Gossypium hirsutum
+Agriculture,Fibre Crops,Fibre Crops,Jute,Corchorus olitorius & Corchorus capsularis
+Agriculture,Sugar Crops,Sugar Crops,Sugarcane,Saccharum officinarum
+Agriculture,Sugar Crops,Sugar Crops,Sweet Sorghum,Sorghum bicolor
+Agriculture,Sugar Crops,Sugar Crops,Sugar Beet,Beta vulgaris spp Vulgaris var altissima Doll
+Agriculture,Others,Others,Tobacco,Nicotiana tabacum
+Agriculture,Forage Crops,Forage Crops, Any,

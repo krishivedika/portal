@@ -1,24 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Tag, Form, InputNumber, Button, Input, Row, Col, message, Checkbox } from "antd";
-import { SyncOutlined } from "@ant-design/icons";
+import { Card, Form, InputNumber, Button, Input, Row, Col, message, Checkbox } from "antd";
 import { Chart } from "@antv/g2";
-
-const layout = {
-  labelCol: { offset: 0, span: 4 },
-  wrapperCol: { span: 20 },
-};
 
 const PartitionForm = (props) => {
 
   let chart;
   const [partitions, setPartitions] = useState([]);
   const [partitionExtents, setPartitionExtents] = useState({});
-
+  const [totalSize, setTotalSize] = useState(0);
   useEffect(() => {
     setPartitions(() => {
-      const data = [...JSON.parse(props.data.partitions).partitions]
+      let data = [...JSON.parse(props.data.partitions).partitions]
+      data.forEach(item => {
+        item.area = parseInt(item.area);
+      });
       return data;
     });
+    let tempSize = 0;
+    props.data.Surveys.forEach(s => {
+      tempSize += parseInt(s.extent);
+    });
+    setTotalSize(tempSize);
   }, [props]);
 
   useEffect(() => {
@@ -37,12 +39,14 @@ const PartitionForm = (props) => {
     .adjust('stack');
     chart.data(partitions);
     chart.render();
+    props.form.validateFields();
     return () => {
       chart.destroy();
     }
   }, [partitions, partitionExtents]);
 
   const onInputChange = (e, item) => {
+    props.form.validateFields();
     setPartitions((state) => {
       const newData = [...state];
       newData.forEach(p => {
@@ -59,7 +63,11 @@ const PartitionForm = (props) => {
       message.warning('Maximum partitions is reached');
     } else {
       setPartitions((state) => {
-        const newData = [...state, { item: `Plot ${partitions.length + 1}`, area: 1 }];
+        let tempSize = 0;
+        state.forEach(p => {
+          tempSize += parseInt(p.area);
+        });
+        const newData = [...state, { item: `Plot ${partitions.length + 1}`, area: totalSize - tempSize }];
         chart.data(newData);
         chart.render();
         return newData;
@@ -90,16 +98,23 @@ const PartitionForm = (props) => {
 
   return (
     <div style={{ margin: '15px' }}>
-      <Tag icon={<SyncOutlined spin />} color="processing" style={{ marginBottom: '10px' }}>
-        Plotting Farm: {props.data.name}
-      </Tag>
+      <Card title={`Plotting Farm: ${props.data.name}`}
+        className="g-ant-card"
+        extra={[
+          <Form key="save" form={props.form} layout="inline">
+            <Form.Item>
+              <Button type="primary" htmlType="submit" style={{ marginRight: '5px' }}>Save</Button>
+              <Button key="close" type="danger" onClick={props.onClose}>Cancel</Button>
+            </Form.Item>
+          </Form>
+        ]}>
       <Form form={props.form} onFinish={props.onFinish} layout="inline">
-        <Button type="primary" htmlType="submit">Save</Button>
-        <Row style={{ marginTop: '15px'}}>
+        <Row style={{ marginTop: '40px'}}>
           <Col>
             <Button onClick={addPartition}> + Add Plot</Button>
             <Button style={{ marginBottom: '15px', marginLeft: '5px' }} onClick={deletePartition}> - Remove Plot</Button>
             <div id="container" style={{ marginBottom: '15px' }}></div>
+            <div style={{marginTop: '10px', marginBottom: '10px', }}><b>Total Size (Acres): {totalSize}</b></div>
             {partitions.map((p, index) => (
               <div key={index}>
                 <Input.Group>
@@ -118,7 +133,7 @@ const PartitionForm = (props) => {
                   <Form.Item>
                     <Checkbox.Group>
                       {props.data.Surveys.map((s) => (
-                        <Checkbox onChange={(e) => addExtent(e, p.item, s.extent)} key={`${p.item}_${s.number}`} value={s.extent} style={{ lineHeight: '32px' }}>
+                        <Checkbox onChange={(e) => addExtent(e, p.item, s.extent)} key={`${p.item}_${s.id}`} value={`${p.item}_${s.id}_${s.extent}`} style={{ lineHeight: '32px' }}>
                           # {s.number} (Acres: {s.extent})
                         </Checkbox>
                       ))}
@@ -130,6 +145,7 @@ const PartitionForm = (props) => {
           </Col>
         </Row>
       </Form>
+      </Card>
     </div>
   );
 };

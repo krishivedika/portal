@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Collapse, Row, Col, Button, List, Skeleton } from "antd";
-import { EditFilled, DeleteFilled } from "@ant-design/icons";
+import { EditFilled, DeleteFilled, ReloadOutlined, AppstoreOutlined } from "@ant-design/icons";
 
 const { Panel } = Collapse;
 
@@ -23,32 +23,51 @@ const MobileView = (props) => {
   const RenderActions = (item) => {
     return (
       <>
-        <Button
-          type="link"
-          onClick={(event) => {
-            event.stopPropagation();
-            props.review(item.item, "add_survey");
-          }}
-          style={{ padding: "0 5px" }}
-        >
-          Add Survey
-        </Button>
-        <Button
-          type="link"
-          onClick={(event) => {
-            event.stopPropagation();
-            props.review(item, "edit_farm");
-          }}
-          icon={<EditFilled />}
-        />
-        <Button
-          type="link"
-          onClick={(event) => {
-            event.stopPropagation();
-            props.deleteRecord(item);
-          }}
-          icon={<DeleteFilled />}
-        />
+        {item.item.isActive &&
+          <>
+          <Button
+            type="primary"
+            onClick={(event) => {
+              event.stopPropagation();
+              props.review(item.item, "add_survey");
+            }}
+          >
+            + Survey
+          </Button>
+          <Button
+            type="secondary"
+            onClick={(event) => {
+              event.stopPropagation();
+              props.review(item.item, "edit_farm");
+            }}>
+            <EditFilled /> Farm
+          </Button>
+          <Button
+            type="secondary"
+            onClick={() => props.reviewPartition(item.item, "partition_farm")}
+            >
+              <AppstoreOutlined /> Farm
+            </Button>
+          <Button
+            type="danger"
+            onClick={(event) => {
+              event.stopPropagation();
+              props.deleteRecord(item.item);
+            }}>
+            <DeleteFilled /> Farm
+          </Button>
+        </>
+        }
+        {!item.item.isActive &&
+          <Button
+            type="danger"
+            onClick={(event) => {
+              event.stopPropagation();
+              props.restoreRecord(item.item);
+            }}>
+            <ReloadOutlined /> Farm
+          </Button>
+        }
       </>
     );
   };
@@ -56,7 +75,7 @@ const MobileView = (props) => {
   return (
     <>
       <Row style={{ padding: "10px" }}>
-        <Col xs={23} sm={23} md={window.innerWidth === 768 ? 23 : 0} lg={0} xl={0}>
+        <Col xs={24} lg={0} xl={0}>
           <Collapse
             accordion={true}
             onChange={callback}
@@ -65,30 +84,40 @@ const MobileView = (props) => {
             {farms.map((item, key) => {
               return (
                 <Panel
-                  header={item.name}
+                  header={`${item.name} (${item.khata})`}
                   key={item.id}
                   extra={<RenderActions item={item} />}
                 >
                   <List
-                    className="demo-loadmore-list"
+                    itemLayout="horizontal"
+                    dataSource={[{ number: 'Survey #', subdivision: 'Subdivision #', extent: 'Acres' }]}
+                    renderItem={(item) => (
+                      <List.Item key={item.id}
+                      >
+                        <Skeleton active loading={false}>
+                          <List.Item.Meta title={`${item.number} (${item.subdivision}) Extent: ${item.extent}`}></List.Item.Meta>
+                        </Skeleton>
+                      </List.Item>
+                    )}
+                  />
+                  <List
                     itemLayout="horizontal"
                     dataSource={surveys}
                     renderItem={(item) => (
                       <List.Item key={item.id}
                         actions={[
-                          <a
+                          <Button
                             onClick={(event) => {
                               event.stopPropagation();
                               props.review(item, "edit_survey");
                             }}
-                            key="list-loadmore-edit"
                           >
-                            Edit
-                          </a>,
+                            <EditFilled /> Survey
+                          </Button>,
                         ]}
                       >
                         <Skeleton active loading={false}>
-                          <List.Item.Meta title={item.name}></List.Item.Meta>
+                          <List.Item.Meta title={`${item.number} (${item.subdivision}) Extent: ${item.extent.toFixed(4)}`}></List.Item.Meta>
                         </Skeleton>
                       </List.Item>
                     )}

@@ -72,11 +72,10 @@ const initial = () => {
   });
 
   const systemAdmins = [
-    {firstName: 'Priyank', lastName: 'P', email: 'pulumati.priyank@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
-    {firstName: 'Kamia', lastName: 'U', email: 'kamia.uppal@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
-    {firstName: 'Hari', lastName: 'M', email: 'hmadanaraj@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
-    {firstName: 'Nagen', lastName: 'S', email: 'anagin@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
-    {firstName: 'Shiva', lastName: 'V', email: 'shiv@varmafoods.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true},
+    {firstName: 'Priyank', lastName: 'P', email: 'pulumati.priyank@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true, updatedBy: 'System'},
+    {firstName: 'Hari', lastName: 'M', email: 'hmadanaraj@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true, updatedBy: 'System'},
+    {firstName: 'Nagen', lastName: 'S', email: 'anagin@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true, updatedBy: 'System'},
+    {firstName: 'Shiva', lastName: 'V', email: 'shiv@varmafoods.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true, updatedBy: 'System'},
   ]
   systemAdmins.forEach(admin => {
     User.findOne({where: {email: admin.email}}).then(a => {
@@ -89,17 +88,19 @@ const initial = () => {
   });
 
   const testUsers = [
-    {firstName: 'Test', lastName: 'User', phone: '1234567890', gender: 'male', isOnboarded: true, isActive: true },
+    {firstName: 'Test', lastName: 'User', phone: '1234567890', gender: 'male', isOnboarded: true, isActive: true, updatedBy: 'System'},
   ]
-  testUsers.forEach(testUser => {
-    User.findOne({where: {phone: testUser.phone}}).then(a => {
-      if (!a) {
-        User.create(testUser).then(user => {
-          user.setRoles([5]);
-        });
-      }
+  if (!config.NODE_ENV.includes("prod")) {
+    testUsers.forEach(testUser => {
+      User.findOne({where: {phone: testUser.phone}}).then(a => {
+        if (!a) {
+          User.create(testUser).then(user => {
+            user.setRoles([5]);
+          });
+        }
+      });
     });
-  });
+  }
 }
 
 app.get("/", (_, res) => {

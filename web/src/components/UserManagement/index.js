@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Drawer, Button, Row, Col, Table, Upload, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { Modal, Drawer, Button, Row, Col, Table, Upload, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
+import { PlusOutlined, EditOutlined, LikeOutlined } from "@ant-design/icons";
 
 import "./index.less";
 import UserService from "../../services/user";
@@ -69,14 +69,22 @@ const UserManagement = () => {
       render: (_, item) => (
         <>
           {item.isOnboarded && (
-            <Button type="link" onClick={() => review(item)}>
-              Update
-            </Button>
+            <Tooltip placement="top" title='Update'>
+              <Button
+                type="link"
+                onClick={() => review(item)}
+                icon={<EditOutlined />}
+              />
+            </Tooltip>
           )}
           {!item.isOnboarded && (
-            <Button type="link" onClick={() => review(item)}>
-              Review
-            </Button>
+            <Tooltip placement="top" title='Review'>
+              <Button
+                type="link"
+                onClick={() => review(item)}
+                icon={<LikeOutlined />}
+              />
+            </Tooltip>
           )}
         </>
       ),
@@ -120,11 +128,15 @@ const UserManagement = () => {
   const [selectedItem, setSelectedItem] = useState({});
 
   const review = (item) => {
-    setSelectedItem(item);
+    setSelectedItem({
+      ...item, role: item.roles[0]?.name,
+      csr: item.managedBy[0]?.id,
+    });
     setShowDrawer(true);
   };
 
   const [form] = Form.useForm();
+  const [staffForm] = Form.useForm();
   const onFinish = (values) => {
     let formValues = { ...values };
     formValues.id = selectedItem.id;
@@ -169,6 +181,11 @@ const UserManagement = () => {
     setShowNewMemberDrawer(true);
   }
 
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [uploadedFormData, setUploadedFormData] = useState({});
+  const [downloadErrorData, setDownloadErrorData] = useState('');
+  const [rows, setRows] = useState(0);
+  const [badRows, setBadRows] = useState(0);
   const uploadFile = (values) => {
     const formData = new FormData();
     formData.append('file', values.file)
@@ -177,17 +194,80 @@ const UserManagement = () => {
         'content-type': 'multipart/form-data'
       }
     }
-    UserService.uploadMembers(formData, config).then(response => {
-      message.info(response.data.message);
+    setUploadedFormData(formData);
+    UserService.uploadMembersCheck(formData, config).then(response => {
+      setRows(response.data.entries);
+      setBadRows(response.data.badEntries);
+      setDownloadErrorData(response.data.csvData);
+      setShowBulkModal(true);
       fetchAndUpdateUsers();
     }).catch(err => {
       message.error(err.response.data.message);
     });
   }
 
+  const bulkUpload = () => {
+    if (rows - badRows === 0) {
+      message.info('No valid rows to upload');
+      return;
+    }
+    const config = {
+      headers: {
+        'content-type': 'multipart/form-data'
+      }
+    }
+    UserService.uploadMembers(uploadedFormData, config).then(response => {
+      setShowBulkModal(false);
+      message.success(response.data.message);
+      fetchAndUpdateUsers();
+    }).catch(err => {
+      message.error(err.response.data.message);
+    });
+  }
+
+  const hideBulkModal = () => {
+    setShowBulkModal(false);
+  }
+
+  const downloadErrors = () => {
+    if (badRows > 0) {
+      const rows = [
+        ['firstName', 'lastName', 'agent', 'gender', 'age', 'phone', 'ration', 'address', 'district', 'reason']
+      ];
+      downloadErrorData.forEach(r => {
+        rows.push(Object.values(r));
+      });
+      let csvContent = "data:text/csv;charset=utf-8,"
+        + rows.map(e => e.join(",")).join("\n");
+      let encodedUri = encodeURI(csvContent);
+      let link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "error_files.csv");
+      document.body.appendChild(link);
+      link.click();
+    } else {
+      message.info("No error rows to download");
+    }
+  }
+
   return (
     <>
-      <Row style={{ padding: "15px", borderTop: "1px solid #90d150"}}>
+      <Modal
+        title="Bulk Insert Confirm"
+        visible={showBulkModal}
+        footer={null}
+        onClose={hideBulkModal}
+        onCancel={hideBulkModal}
+      >
+        <Button type="primary" onClick={bulkUpload}>Proceed Inserting {rows - badRows} valid row(s) of {rows}</Button>
+        <br />
+        <br />
+        <Button type="danger" onClick={downloadErrors}>Download Error Rows as CSV, {badRows} row(s)</Button>
+        <br />
+        <br />
+        <Button type="secondary" onClick={hideBulkModal}>Cancel and Exit</Button>
+      </Modal>
+      <Row style={{ padding: "15px", borderTop: "1px solid #90d150" }}>
         <Col xs={12} md={12} lg={12} xl={12}>
           <Form form={formSearch} layout="inline">
             <Form.Item name="search">
@@ -196,8 +276,8 @@ const UserManagement = () => {
                 onPressEnter={search}
               />
             </Form.Item>
-            <Form.Item name="onboarded" valuePropName="checked" style={{fontWeight: 'bold'}}>
-              <Checkbox onChange={search}>PENDING ONLY</Checkbox>
+            <Form.Item name="onboarded" valuePropName="checked" style={{ fontWeight: 'bold' }}>
+              <Checkbox onChange={search}>Pending Only</Checkbox>
             </Form.Item>
           </Form>
         </Col>
@@ -206,19 +286,19 @@ const UserManagement = () => {
           md={10}
           lg={10}
           xl={10}
-          offset={1}
+          offset={2}
           style={{ textAlign: "end" }}
         >
-          <Button style={{marginRight: '5px'}} type="primary" onClick={openNewForm}>Add New Member</Button>
-          <Upload multiple={false} accept={'.csv'} customRequest={uploadFile}>
+          <Button style={{ marginRight: '5px', marginBottom: '10px' }} type="primary" onClick={openNewForm}>Add New Member</Button>
+          <Upload showUploadList={false} multiple={false} accept={'.csv'} customRequest={uploadFile}>
             <Button>
-              <PlusOutlined /> Upload File (CSV)
+              <PlusOutlined /> Bulk Insert (CSV)
             </Button>
           </Upload>
         </Col>
       </Row>
-        <Row style={{ padding: "0px 10px" }}>
-        <Col xs={0} sm={0} md={window.innerWidth === 768 ? 0 : 24} lg={24} xl={24}>
+      <Row style={{ padding: "0px 10px" }}>
+        <Col xs={0} sm={0} md={0} lg={24} xl={24}>
           <Table
             className="g-table-striped-rows g-ant-table-cell"
             dataSource={users}
@@ -229,10 +309,10 @@ const UserManagement = () => {
           />
         </Col>
       </Row>
-        <MobileView
-          users={users}
-          review={review}
-        />
+      <MobileView
+        users={users}
+        review={review}
+      />
 
       <Drawer
         visible={showDrawer}
@@ -247,6 +327,7 @@ const UserManagement = () => {
               form={form}
               onFinish={onFinish}
               csrs={csrs}
+              onClose={() => setShowDrawer(false)}
             />
           )}
         {selectedItem.roles &&
@@ -254,8 +335,9 @@ const UserManagement = () => {
             <StaffForm
               type="staff"
               fields={selectedItem}
-              form={form}
+              form={staffForm}
               onFinish={onFinish}
+              onClose={() => setShowDrawer(false)}
             />
           )}
       </Drawer>
@@ -271,6 +353,7 @@ const UserManagement = () => {
           form={newForm}
           onFinish={openNewMemberFinish}
           csrs={csrs}
+          onClose={() => setShowNewMemberDrawer(false)}
         />
       </Drawer>
     </>

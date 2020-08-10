@@ -18,6 +18,11 @@ exports.farmRecords = async (req, res) => {
       { name: { [Op.like]: `%${req.query.search}%` } },
     ],
   };
+
+  if (req.query.deleted !== 'true') {
+    where = {...where, isActive: true};
+  }
+
   let include = [
     {
       model: Survey,
@@ -50,7 +55,8 @@ exports.farmRecords = async (req, res) => {
 
   Farm.findAll({
     where: where,
-    include: include
+    include: include,
+    order: [['id', 'DESC']],
   }).then((farms) => {
     if (!farms) {
       return res.status(404).send({ message: "No Farm Records exist" });
@@ -67,12 +73,13 @@ exports.addFarmRecord = (req, res) => {
   let farmRecords = { ...req.body };
   farmRecords.isActive = true;
   farmRecords.userId = req.userId;
-  if (farmRecords.user) {
-    farmRecords.userId = farmRecords.user;
-  }
   farmRecords.ownerAge = common.convertAgeToDate(req.body.ownerAge);
   farmRecords.partitions = JSON.stringify({ partitions: [{ item: 'Plot 1', area: 0 }] });
-  Farm.findOne({ where: { name: farmRecords.name, userId: req.userId } }).then(farm => {
+  let userId = 0;
+  if (req.userRoleId === 5) userId = req.userId;
+  else userId = req.body.member;
+  farmRecords.userId = userId;
+  Farm.findOne({ where: { name: farmRecords.name, userId: userId } }).then(farm => {
     if (farm) {
       return res.status(404).send({ message: "Farm with same name already exists" });
     }
@@ -114,9 +121,15 @@ exports.restoreFarmRecord = (req, res) => {
     if (!farm) {
       return res.status(404).send({ message: "Farm Record doesn't exist" });
     }
-    farm.update({ isActive: true }).then((farm) => {
-      return res.send({ message: "Successfully restored farm" });
-    });
+    Farm.findAll({where: {name: farm.name, userId: farm.userId, isActive: true}}).then(farms => {
+      if (farms.length > 0) {
+        return res.status(404).send({ message: "Farm with same name already exists" });
+      } else {
+        farm.update({ isActive: true }).then((farm) => {
+          return res.send({ message: "Successfully restored farm" });
+        });
+      }
+    })
   }).catch(() => {
     return res.status(500).send({ message: "Unknown Error", code: 2 });
   });
@@ -134,7 +147,7 @@ exports.partitionFarmRecord = (req, res) => {
     }
     let partitions = [];
     Object.entries(farmRecords.partitions).forEach(entry => {
-      partitions.push({ item: entry[0], area: entry[1] });
+      partitions.push({ item: entry[0], area: entry[1].toFixed(4) });
     });
     farm.update({ partitions: JSON.stringify({ partitions: partitions }) }).then((farm) => {
       return res.send({ farm: farm });
@@ -162,9 +175,32 @@ exports.deleteFarmRecord = (req, res) => {
 };
 
 // Survey Endpoints
+
+exports.surveys = (req, res) => {
+  Survey.findAll({
+    where: {
+      FarmId: req.params.FarmId,
+      isActive: true,
+    },
+    include: [{ model: SurveyFile, where: { isActive: true } }],
+    order: [['id', 'DESC']]
+  }).then((surveys) => {
+    if (!surveys) {
+      return res.status(404).send({ message: "No Survey Records exist" });
+    }
+    return res.status(200).send({
+      surveys: surveys,
+    });
+  }).catch((err) => {
+    console.log(err);
+    return res.status(500).send({ message: err.message });
+  });
+};
+
 exports.addSurveyRecord = (req, res) => {
   let surveyRecord = { ...req.body };
   surveyRecord.isActive = true;
+  surveyRecord.extent = surveyRecord.extent.toFixed(4);
   Farm.findOne({ where: { id: surveyRecord.FarmId } }).then(farm => {
     Farm.findAll({ where: { panchayat: farm.panchayat }, include: [{ model: Survey }] }).then(farms => {
       let isSurvey = false;
@@ -191,42 +227,42 @@ exports.addSurveyRecord = (req, res) => {
   });
 };
 
-exports.surveys = (req, res) => {
-  Survey.findAll({
-    where: {
-      FarmId: req.params.FarmId,
-      isActive: true,
-    },
-    include: [{ model: SurveyFile, where: { isActive: true } }],
-  }).then((surveys) => {
-    if (!surveys) {
-      return res.status(404).send({ message: "No Survey Records exist" });
-    }
-    return res.status(200).send({
-      surveys: surveys,
-    });
-  }).catch((err) => {
-    console.log(err);
-    return res.status(500).send({ message: err.message });
-  });
-};
-
 exports.updateSurveyRecord = (req, res) => {
   let surveyRecord = { ...req.body };
-  Survey.findOne({
-    where: {
-      id: req.body.id,
-    },
-  }).then((survey) => {
-    if (!survey) {
-      return res.status(404).send({ message: "Survey Record not found" });
-    }
-    survey.update(surveyRecord).then(() => {
-      return res.status(200).send({ message: "Survey Updated Successfully" });
-    }).catch(err => {
-      console.log(err);
-      return res.status(500).send({ message: "Unknown Error", code: 2 });
+  surveyRecord.extent = surveyRecord.extent.toFixed(4);
+  Farm.findOne({ where: { id: surveyRecord.FarmId } }).then(farm => {
+    Farm.findAll({ where: { panchayat: farm.panchayat }, include: [{ model: Survey }] }).then(farms => {
+      let isSurvey = false;
+      farms.forEach(f => {
+        f.Surveys.forEach(s => {
+          if (s.number === surveyRecord.number && s.subdivision === surveyRecord.subdivision) {
+            isSurvey = true;
+          }
+        });
+      });
+      if (isSurvey) {
+        return res.status(404).send({ message: "Survey and Subdivision already exist in this village" });
+      } else {
+        Survey.findOne({
+          where: {
+            id: req.body.id,
+          },
+        }).then((survey) => {
+          if (!survey) {
+            return res.status(404).send({ message: "Survey Record not found" });
+          }
+          survey.update(surveyRecord).then(() => {
+            return res.status(200).send({ message: "Survey Updated Successfully" });
+          }).catch(err => {
+            console.log(err);
+            return res.status(500).send({ message: "Unknown Error", code: 2 });
+          });;
+        })
+      }
     });
+  }).catch(err => {
+    console.log(err);
+    return res.status(500).send({ message: "Unknown Error", code: 2 });
   });
 };
 

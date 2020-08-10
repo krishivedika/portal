@@ -60,7 +60,7 @@ const UserProfile = () => {
       </Col>
       <Col xs={24} xl={12}>
         <Row>
-          <Col xs={{ span: 22, offset: 1 }} xl={{ span: 22 }}>
+          <Col xs={{ span: 22, offset: 1 }} xl={{ span: 22 }} flex={'end'}>
             {loading &&
               <>
                 <Skeleton active />
@@ -69,7 +69,11 @@ const UserProfile = () => {
                 <Skeleton active />
               </>
             }
-                <Button type="primary" onClick={() => setShowDrawer(true)}>Update Profile</Button>
+                <Row>
+                  <Col xs={4} offset={20}>
+                    <Button type="primary" onClick={() => setShowDrawer(true)}>Update Profile</Button>
+                  </Col>
+                </Row>
                 <Card title="Profile" className="g-ant-card" style={{ marginTop: '20px' }}>
                   <Descriptions loading={loading} column={1} bordered>
                     <Descriptions.Item label="First Name">{userProfile.firstName} </Descriptions.Item>

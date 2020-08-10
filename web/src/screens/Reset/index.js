@@ -43,7 +43,7 @@ const Reset = (props) => {
           <TabPane tab='Reset Password' key='reset'>
             <Form {...layout}
               form={form}
-              onFinish={''}>
+              onFinish={resetPassword}>
               <Form.Item name="password" label="Password"
                 rules={[
                   {
@@ -68,7 +68,7 @@ const Reset = (props) => {
                 <Input.Password placeholder="Enter your Password" />
               </Form.Item>
               <Form.Item {...tailLayout}>
-                <Button type="primary" onClick={resetPassword}>Reset Password</Button>
+                <Button type="primary" htmlType="submit">Reset Password</Button>
               </Form.Item>
             </Form>
           </TabPane>

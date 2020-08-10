@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, List, Skeleton } from "antd";
+import { Row, Col, List, Skeleton, Button } from "antd";
 
 const MobileView = (props) => {
   const [users, setUsers] = useState(props.users);
@@ -10,8 +10,8 @@ const MobileView = (props) => {
 
   return (
     <>
-      <Row style={{ padding: "10px" }}>
-        <Col xs={23} sm={23} md={24} lg={0} xl={0}>
+      <Row>
+        <Col xs={24} md={24} lg={0} xl={0}>
           <List
             className="demo-loadmore-list"
             itemLayout="horizontal"
@@ -20,7 +20,7 @@ const MobileView = (props) => {
             renderItem={(item) => (
               <List.Item
                 actions={[
-                  <a
+                  <Button type="link"
                     onClick={(event) => {
                       event.stopPropagation();
                       props.review(item, event);
@@ -28,13 +28,13 @@ const MobileView = (props) => {
                     key="list-loadmore-edit"
                   >
                     {item.isOnboarded ? "Update" : "Review"}
-                  </a>
+                  </Button>
                 ]}
               >
                 <Skeleton title={false} loading={item.loading} active>
                   <List.Item.Meta
                     title={item.firstName}
-                    description={item.email}
+                    description={item.email || item.phone}
                   />
                 </Skeleton>
               </List.Item>

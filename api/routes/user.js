@@ -14,6 +14,8 @@ module.exports = (app) => {
 
   app.post("/user/member/onboard", [commonValidations.verifyToken, commonValidations.isAdmin, commonValidations.checkUpdateDuplicateUser], controller.onBoardMember);
 
+  app.post("/user/member/bulk/check", [files.single('file'), commonValidations.verifyToken, commonValidations.isAdmin], controller.bulkOnboardPrep);
+
   app.post("/user/member/bulk", [files.single('file'), commonValidations.verifyToken, commonValidations.isAdmin], controller.bulkOnboard);
 
   app.post("/user/member/create", [commonValidations.verifyToken, commonValidations.checkNewUserUpdateDuplicateUser, validation.createProfile], controller.createMember);

@@ -7,7 +7,10 @@ module.exports = (sequelize, DataTypes) => {
     layerOne: DataTypes.STRING,
     layerTwo: DataTypes.STRING,
     layerThree: DataTypes.STRING,
-    isActive: DataTypes.BOOLEAN,
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: () => true,
+    },
   }, {
     sequelize,
     modelName: 'Crop',

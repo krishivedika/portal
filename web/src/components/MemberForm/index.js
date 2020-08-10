@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, InputNumber, Button, Select, Radio, Tag, Row, Col, Card } from "antd";
-import { SyncOutlined } from "@ant-design/icons";
+import { Form, Input, InputNumber, Button, Select, Radio, Row, Col, Card } from "antd";
 
 const { Option } = Select;
 
 const layout = {
   labelCol: { offset: 0, span: 3 },
   wrapperCol: { span: 12 },
-};
-const tailLayout = {
-  wrapperCol: { offset: 1, span: 16 },
 };
 
 const MemberForm = (props) => {
@@ -28,19 +24,18 @@ const MemberForm = (props) => {
 
   return (
     <div style={{ margin: '15px' }}>
-      <Tag icon={<SyncOutlined spin />} color="processing" style={{marginBottom: '10px'}}>
-        {isNew &&
-          <>Create New Member</>
-        }
-        {!isNew &&
-          <>Editing: {props.fields.phone || props.fields.email}</>
-        }
-      </Tag>
+      <Card title={isNew ? `Creating New Member` : `Editing: ${props.fields.phone || props.fields.email}`}
+        className="g-ant-card"
+        extra={[
+          <Form key="save" form={props.form} layout="inline">
+            <Form.Item>
+              <Button type="primary" htmlType="submit" style={{ marginRight: '5px' }}>Save</Button>
+              <Button key="close" type="danger" onClick={props.onClose}>Cancel</Button>
+            </Form.Item>
+          </Form>
+        ]}>
       <Form preserve={false} fields={fields} form={props.form} onFinish={props.onFinish} {...layout}>
         <Row>
-          <Form.Item {...tailLayout}>
-            <Button type="primary" htmlType="submit">Save</Button>
-          </Form.Item>
           <Col span={24}>
             <Card title="Profile" className="g-ant-card">
               {isStaff &&
@@ -111,7 +106,7 @@ const MemberForm = (props) => {
                     required: true,
                     message: "Please input Age",
                   },
-                ]}>
+              ]}>
                 <InputNumber placeholder="Enter Age" min={18} />
               </Form.Item>
               <Form.Item name="email" label="Email"
@@ -171,6 +166,7 @@ const MemberForm = (props) => {
           </Col>
         </Row>
       </Form>
+      </Card>
     </div>
   );
 };

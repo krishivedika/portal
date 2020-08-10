@@ -84,26 +84,31 @@ const SurveyForm = (props) => {
           }
         />
       }
-      <Tag
-        icon={<SyncOutlined spin />}
-        color="processing"
-        style={{ marginBottom: "10px" }}
-      >
-        {props.type === "edit_survey" ? `Editing: ${props.fields?.name}` : "Creating New Survey Record"}
-      </Tag>
+      <Card
+        title={props.type === "edit_survey" ? `Editing: ${props.fields?.name}` : "Creating New Survey Record"}
+        className="g-ant-card"
+        extra={[
+          <Form key="save" form={props.form} layout="inline">
+            <Form.Item>
+              <Button type="primary" htmlType="submit">Save</Button>
+            </Form.Item>
+            {props.type === 'add_survey' &&
+              <Form.Item>
+                <Button htmlType="button" onClick={props.onAdd}>Save And Add</Button>
+              </Form.Item>
+            }
+            <Form.Item>
+              <Button type="danger" onClick={props.onClose}>Cancel</Button>
+            </Form.Item>
+          </Form>
+        ]}>
       <Form
         fields={fields}
         form={props.form}
         onFinish={props.onFinish}
-        initialValues={{number: props.fields.khata}}
         {...layout}
       >
         <Row>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Save
-            </Button>
-          </Form.Item>
           <Col span={24}>
             <Card
               title="Survey"
@@ -112,9 +117,8 @@ const SurveyForm = (props) => {
               <Form.Item
                 name="number"
                 label="Survey #"
-                value={props.fields.khata}
               >
-                <InputNumber disabled placeholder={props.fields.khata} />
+                <InputNumber placeholder={props.fields.number} />
               </Form.Item>
               <Form.Item {...layout}
                 name="subdivision"
@@ -165,8 +169,9 @@ const SurveyForm = (props) => {
             </Card>
           </Col>
         </Row>
-      </Form>
-    </div>
+    </Form>
+    </Card>
+  </div>
   );
 };
 

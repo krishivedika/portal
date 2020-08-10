@@ -1,17 +1,18 @@
 const Sequelize = require("sequelize");
 const bcrypt = require("bcryptjs");
 const csv = require('csv-parser');
-const fs = require('fs');
 const { Readable } = require("stream");
 
 const db = require("../models");
 const constants = require("../constants");
 const config = require("../config");
-const { common } = require("../helpers");
+const { common, user } = require("../helpers");
 
 const Op = Sequelize.Op;
 const User = db.user;
 const Role = db.role;
+const UserRole = db.userRole;
+const UserAssociation = db.userAssociation;
 
 exports.user = (req, res) => {
   User.scope("withoutPassword")
@@ -51,7 +52,11 @@ exports.users = (req, res) => {
   }
 
   if ([3, 4].includes(req.userRoleId)) {
-    where = { ...where, '$managedBy.UserAssociations.csrId$': req.userId };
+    where = { ...where,
+      [Op.or]: [
+        {'$managedBy.UserAssociations.csrId$': req.userId },
+        {id: req.userId},
+      ]};
   }
   User.scope("withoutPassword")
     .findAll({
@@ -137,7 +142,7 @@ exports.onBoardMember = async (req, res) => {
             roleId = constants.ROLES[key].id;
           }
         });
-        if (user.Roles[0].name === "farmer") {
+        if (roleId !== 5) {
           updatedValues.password = bcrypt.hashSync(
             config.DEFAULT_STAFF_PASSWORD,
             8
@@ -160,31 +165,79 @@ exports.onBoardMember = async (req, res) => {
     });
 };
 
-exports.bulkOnboard = async (req, res) => {
+exports.bulkOnboardPrep = async (req, res) => {
   try {
     const buffer = new Buffer(req.file.buffer);
     const readable = new Readable();
     const entries = [];
+    let badEntries = [];
     readable._read = () => {};
     readable.push(buffer)
     readable.push(null)
     readable.pipe(csv())
     .on('data', (row) => {
-      console.log(row);
       entries.push(row);
     })
-    .on('end', () => {
+    .on('end', async () => {
+      const tempUsers = await user.findInvalidRows(entries);
+      badEntries = [...tempUsers.badEntries];
+      return res.status(200).send({entries: entries.length, badEntries: badEntries.length, csvData: badEntries});
+    });
+  } catch(err) {
+    console.log(err);
+    return res.status(200).send({message: 'Unknown error occured'});
+  }
+};
+
+exports.bulkOnboard = async (req, res) => {
+  try {
+    const buffer = new Buffer(req.file.buffer);
+    const readable = new Readable();
+    const entries = [];
+    const entriesByPhone = {};
+    let goodEntries = [];
+    const agents = [];
+    readable._read = () => {};
+    readable.push(buffer)
+    readable.push(null)
+    readable.pipe(csv())
+    .on('data', (row) => {
+      entries.push(row);
+    })
+    .on('end', async () => {
       entries.forEach(entry => {
+        agents.push(entry.agent);
+        entriesByPhone[entry.phone] = entry.agent;
         entry.isActive = true;
         entry.isOnboarded = true;
-        entry.Roles = [5];
+        entry.UserRoles = {roleId: 5};
+        entry.updatedBy = req.userEmail;
       });
-      User.bulkCreate(entries).then(() => {
+      const tempUsers = await user.findInvalidRows(entries);
+      goodEntries = [...tempUsers.goodEntries];
+      const t = await db.sequelize.transaction();
+      try {
+        const users = await User.bulkCreate(goodEntries, {include: [{model: Role, through: 'UserRoles'}]});
+        let userIds = users.map(u => ({userId: u.id, roleId: 5}));
+        await UserRole.bulkCreate(userIds, {fields: ['roleId', 'userId']});
+        const agentUsers = await User.findAll({where: {email: {[Op.in]: agents}}, include: [{model: Role, through: 'UserRoles', required: false}]});
+        const agentObj = {};
+        agentUsers.forEach(agent => {
+          agentObj[agent.email] = agent.id;
+        });
+        const userAssociations = [];
+        users.forEach(user => {
+          userAssociations.push({userId: user.id, csrId: agentObj[entriesByPhone[user.phone]]});
+        });
+        await UserAssociation.bulkCreate(userAssociations, {fields: ['csrId', 'userId']});
+        await t.commit();
+        console.log('CSV file successfully processed');
         return res.status(200).send({message: 'Successfully uploaded members.'});
-      }).catch(err => {
+      } catch(err) {
+        console.log(err);
+        await t.rollback();
         return res.status(404).send({ message: `Failed to upload, reason ${err}` });
-      })
-      console.log('CSV file successfully processed');
+      }
     });
   } catch(err) {
     console.log(err);
@@ -210,10 +263,12 @@ exports.createMember = async (req, res) => {
           roleId = constants.ROLES[key].id;
         }
       });
-      updatedValues.password = bcrypt.hashSync(
-        config.DEFAULT_STAFF_PASSWORD,
-        8
-      );
+      if (roleId !== 5) {
+        updatedValues.password = bcrypt.hashSync(
+          config.DEFAULT_STAFF_PASSWORD,
+          8
+        );
+      }
       user.update(updatedValues).then(() => {
         user.setManagedBy([req.body.csr]).then(() => {
           user.setRoles([roleId]).then(() => {
@@ -262,7 +317,7 @@ exports.updateMember = (req, res) => {
         );
       }
       user.update(updatedValues).then((user) => {
-        user.setManagedBy([req.body.csr]).then(() => {
+        user.setManagedBy([req.body.csr || req.userRoleId]).then(() => {
           user.setRoles([roleId]).then(() => {
             return res.send({ user: user });
           });

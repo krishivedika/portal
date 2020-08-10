@@ -90,11 +90,11 @@ const NavigationBar = (props) => {
   return (
     <Header style={{ position: "fixed", zIndex: 1, width: "100%" }}>
       <Row>
-        <Col xs={16} md={window.innerWidth === 768 ? 18 : 4} lg={3} xl={4} offset={1}>
+        <Col xs={16} md={16} lg={3} xl={3} offset={0}>
           <img src={logoImage} alt="KrishiVedika" />
         </Col>
           <>
-            <Col xs={0} sm={0} md={window.innerWidth === 768 ? 0 : 10} lg={9} xl={9} offset={1}>
+            <Col xs={0} sm={0} md={9} lg={9} xl={9} offset={1}>
               <Menu mode="horizontal" selectedKeys={[currentTab]} onClick={(e) => setCurrentTab(e.key)}>
                 {!isLoggedIn &&
                   <Menu.Item key="LOGIN">
@@ -104,7 +104,7 @@ const NavigationBar = (props) => {
                 {menu}
               </Menu>
             </Col>
-            <Col xs={0} sm={0} md={window.innerWidth === 768 ? 0 : 5} lg={8} xl={7} offset={2}>
+            <Col xs={0} sm={0} md={0} lg={11} xl={11} push={7}>
               <Menu mode="horizontal" selectedKeys={[]} >
                 {isLoggedIn &&
                   <Menu.Item key="USER">
@@ -127,7 +127,7 @@ const NavigationBar = (props) => {
               </Menu>
             </Col>
           </>
-            <Col xs={2} md={window.innerWidth === 768 ? 3 : 0} offset={2} lg={0} xl={0}>
+            <Col xs={2} md={2} offset={4} lg={0} xl={0}>
               <Button
                 className="nav-button"
                 type="primary"

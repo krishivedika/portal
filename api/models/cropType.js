@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     section: DataTypes.STRING,
     category: DataTypes.STRING,
     subcategory: DataTypes.STRING,
+    scientific: DataTypes.STRING,
     name: DataTypes.STRING,
   }, {
     sequelize,
