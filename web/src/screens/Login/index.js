@@ -1,6 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import axios from 'axios';
-import { Form, Input, Button, Row, Col, Tabs, Modal, Typography, message } from "antd";
+import { Spin, Form, Input, Button, Row, Col, Tabs, Modal, Typography, message } from "antd";
 
 import AuthService from "../../services/auth.js";
 import Routes from "../../routes";
@@ -22,7 +21,7 @@ let retries = 0;
 
 const Login = (props) => {
 
-  const [_, setState] = useContext(SharedContext);
+  const [state, setState] = useContext(SharedContext);
   const [tab, setTab] = useState('member');
 
   const [form] = Form.useForm();
@@ -35,15 +34,11 @@ const Login = (props) => {
     if (tab === 'member') {
       AuthService.login({ phone: values.phone, otp: values.otp }).then(response => {
         let currentUser;
-        if (response.data.accessToken) {
-          localStorage.setItem("user", JSON.stringify(response.data));
-          axios.defaults.headers.common['x-access-token'] = response.data.accessToken;
-          currentUser = AuthService.getCurrentUser();
-          setState(state => ({ ...state, user: currentUser }));
-          redirectUser(currentUser.roles[0])
-        }
+        localStorage.setItem("user", JSON.stringify(response.data));
+        currentUser = AuthService.getCurrentUser();
+        setState(state => ({ ...state, user: currentUser }));
+        redirectUser(currentUser.roles[0])
       }).catch(err => {
-        console.log(err);
         if (err.response.data.code === 100) {
           retries += 1;
           if (retries === 3) {
@@ -51,21 +46,18 @@ const Login = (props) => {
             setLoginButton(false);
           }
         }
-        message.error(`Login Failed, ${err.response.data.message}`);
+        message.error(`Sign In Failed, ${err.response.data.message}`);
       });
     } else if (tab === 'staff') {
       AuthService.staffLogin({ email: values.email, password: values.password }).then(response => {
         let currentUser;
-        if (response.data.accessToken) {
-          localStorage.setItem("user", JSON.stringify(response.data));
-          axios.defaults.headers.common['x-access-token'] = response.data.accessToken;
-          currentUser = AuthService.getCurrentUser();
-          setState(state => ({ ...state, user: currentUser }));
-          redirectUser(currentUser.roles[0]);
-        }
+        localStorage.setItem("user", JSON.stringify(response.data));
+        currentUser = AuthService.getCurrentUser();
+        setState(state => ({ ...state, user: currentUser }));
+        redirectUser(currentUser.roles[0]);
       }).catch((err) => {
         console.log(err);
-        message.error(`Login Failed, ${err.response.data.message}`);
+        message.error(`Sign In Failed, ${err.response.data.message}`);
       });
     }
   };
@@ -140,30 +132,37 @@ const Login = (props) => {
   const [visibleForgot, setVisibleForgot] = useState(false);
 
   const handleForgotCancel = () => {
+    formForgot.resetFields();
     setVisibleForgot(false);
   }
 
   const handleForgot = async () => {
-    const values = await formForgot.validateFields();
-    console.log(values);
-    AuthService.forgotPassword(values).then(response => {
-      message.info(response.data.message);
-      setVisibleForgot(false);
-    }).catch(err => {
+    try {
+      const values = await formForgot.validateFields();
+      AuthService.forgotPassword(values).then(response => {
+        message.info(response.data.message);
+        setVisibleForgot(false);
+      }).catch(err => {
+        console.log(err);
+        message.error(err.response.data.message);
+      });
+    } catch(err) {
       console.log(err);
-      message.error(err.response.data.message);
-    });
+    }
   };
 
   return (
     <Row>
       <div>
-        <img style={{ width: '100%', minHeight: '100px' }} src={farmerImage} alt="FarmerFirst" />
+        <img style={{ marginBottom: '40px', width: '100vw', minHeight: '100px' }} src={farmerImage} alt="FarmerFirst" />
       </div>
       <Col xs={0} sm={4} md={4} lg={6} xl={8}></Col>
       <Col xs={24} sm={16} md={16} lg={12} xl={8}>
-        <Tabs style={{ margin: '50px' }} onChange={(e) => setTab(e)}>
-          <TabPane tab='Member Login' key='member'>
+        <div style={{textAlign: 'center'}}>
+          <Text type="secondary">We put farmers first</Text>
+        </div>
+        <Tabs style={{ marginTop: '10px' }} onChange={(e) => setTab(e)}>
+          <TabPane tab='Member Sign In' key='member'>
             <Form {...layout} initialValues={{ remember: true }}
               form={form}
               onFinish={handleLogin}>
@@ -173,30 +172,30 @@ const Login = (props) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please input your Phone Number",
+                        message: "Please enter Phone Number",
                       },
                       { min: 10, message: 'Phone numbers should be 10 digits long.' },
                       { max: 10, message: 'Phone numbers should be 10 digits long.' },
                     ]}>
-                    <Input placeholder="Enter your Phone Number" />
+                    <Input placeholder="Enter Phone Number" />
                   </Form.Item>
                   {!otpButton &&
                     <Form.Item name="otp" label="OTP"
                       rules={[
                         {
                           required: true,
-                          message: "Please input OTP.",
+                          message: "Please enter OTP.",
                         },
                         { min: 4, message: 'OTP must be 4 digits long.' },
                         { max: 4, message: 'OTP must be 4 digits long.' },
                       ]}>
-                      <Input placeholder="Enter your OTP" />
+                      <Input placeholder="Enter OTP" />
                     </Form.Item>
                   }
                   {!otpButton &&
                     <Form.Item {...tailLayout}>
                       {loginButton &&
-                        <Button type="primary" htmlType="submit">Log in</Button>
+                        <Button type="primary" htmlType="submit">Sign In</Button>
                       }
                       {!loginButton &&
                         <Text type="danger">{otpRetryError}</Text>
@@ -218,7 +217,7 @@ const Login = (props) => {
               }
             </Form>
           </TabPane>
-          <TabPane tab='Staff Login' key='staff'>
+          <TabPane tab='Staff Sign In' key='staff'>
             <Form {...layout} initialValues={{ remember: true }}
               form={form}
               onFinish={handleLogin}>
@@ -228,24 +227,24 @@ const Login = (props) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please input Email.",
+                        message: "Please enter Email.",
                       },
                       { type: 'email' },
                     ]}>
-                    <Input placeholder="Enter your Email" />
+                    <Input placeholder="Enter Email" />
                   </Form.Item>
                   <Form.Item name="password" label="Password"
                     rules={[
                       {
                         required: true,
-                        message: "Please input Password.",
+                        message: "Please enter Password.",
                       },
                       { min: 6, message: 'Password must be atleast 6 characters long.' },
                     ]}>
-                    <Input.Password placeholder="Enter your Password" />
+                    <Input.Password placeholder="Enter Password" />
                   </Form.Item>
                   <Form.Item {...tailLayout}>
-                    <Button type="primary" htmlType="submit">Log in</Button>
+                    <Button type="primary" htmlType="submit">Sign In</Button>
                     <Button type="link" onClick={() => setVisibleForgot(true)}>Forgot Password</Button>
                   </Form.Item>
                 </>
@@ -254,8 +253,8 @@ const Login = (props) => {
           </TabPane>
         </Tabs>
       </Col>
-      <Col xs={0} sm={4} md={4} lg={6} xl={7}></Col>
-      <Col xs={0} sm={0} md={0} lg={0} xl={1} style={{ marginBottom: '400px' }}>
+      <Col xs={0} sm={4} md={4} lg={6} xl={6}></Col>
+      <Col xs={0} sm={0} md={0} lg={0} xl={0} style={{ marginBottom: '400px' }}>
       </Col>
       <Modal
         title="Forgot Password"
@@ -263,18 +262,20 @@ const Login = (props) => {
         onOk={handleForgot}
         onCancel={handleForgotCancel}
       >
-        <Form form={formForgot} >
-          <Form.Item name="email" label="Email"
-            rules={[
-              {
-                required: true,
-                message: "Please input Email.",
-              },
-              { type: 'email' },
-            ]}>
-            <Input placeholder="Enter your Email" />
-          </Form.Item>
-        </Form>
+        <Spin spinning={state.spinning} size="large">
+          <Form form={formForgot} >
+            <Form.Item name="email" label="Email"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter Email.",
+                },
+                { type: 'email' },
+              ]}>
+              <Input placeholder="Enter Email" />
+            </Form.Item>
+          </Form>
+        </Spin>
       </Modal>
     </Row>
   );

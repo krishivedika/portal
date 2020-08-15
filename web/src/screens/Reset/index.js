@@ -35,7 +35,7 @@ const Reset = (props) => {
   return (
     <Row>
       <div>
-        <img style={{ width: '100%', minHeight: '100px' }} src={farmerImage} alt="FarmerFirst" />
+        <img style={{ width: '100vw', minHeight: '100px' }} src={farmerImage} alt="FarmerFirst" />
       </div>
       <Col xs={1} sm={4} md={4} lg={6} xl={8}></Col>
       <Col xs={22} sm={16} md={16} lg={12} xl={8}>
@@ -74,8 +74,8 @@ const Reset = (props) => {
           </TabPane>
         </Tabs>
       </Col>
-      <Col xs={1} sm={4} md={4} lg={6} xl={7}></Col>
-      <Col xs={0} sm={0} md={0} lg={0} xl={1} style={{ marginBottom: '400px' }}>
+      <Col xs={1} sm={4} md={4} lg={6} xl={6}></Col>
+      <Col xs={0} sm={0} md={0} lg={0} xl={0} style={{ marginBottom: '400px' }}>
       </Col>
     </Row >
   );

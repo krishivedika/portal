@@ -77,13 +77,14 @@ exports.signin = (req, res) => {
         for (let i = 0; i < roles.length; i++) {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
+        res.cookie('token', token, {secure: config.NODE_ENV === "development" ? false : true, sameSite: 'None', httpOnly: true, expiresIn: 1209590});
+        res.append("Set-Cookie", `token=${token};`);
         return res.status(200).send({
           id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           phone: user.phone,
           roles: authorities,
-          accessToken: token,
         });
       });
     })
@@ -111,6 +112,14 @@ exports.staffSignin = (req, res) => {
         return res.status(404).send({ message: "Staff onboarding is being processed" });
       }
 
+      const userRole = user.Roles[0];
+      if (userRole.name === ROLES.FARMER.name) {
+        return res.status(400).send({
+          message: "Member should use Phone to login",
+          code: 1,
+        });
+      }
+
       const passwordIsValid = bcrypt.compareSync(
         req.body.password,
         user.password
@@ -123,7 +132,6 @@ exports.staffSignin = (req, res) => {
         });
       }
 
-      const userRole = user.Roles[0];
       const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id, email: user.email }, config.SECRET_KEY, {
         expiresIn: 1209600, // Fortnite
       });
@@ -133,6 +141,8 @@ exports.staffSignin = (req, res) => {
         for (let i = 0; i < roles.length; i++) {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
+        res.cookie('token', token, {secure: config.NODE_ENV === "development" ? false : true, sameSite: 'None', httpOnly: true, expiresIn: 1209590});
+        res.append("Set-Cookie", `token=${token};`);
         return res.status(200).send({
           id: user.id,
           firstName: user.firstName,
@@ -140,7 +150,6 @@ exports.staffSignin = (req, res) => {
           email: user.email,
           phone: user.phone,
           roles: authorities,
-          accessToken: token,
         });
       });
     })
@@ -150,7 +159,13 @@ exports.staffSignin = (req, res) => {
     });
 };
 
+exports.logout = (req, res) => {
+  res.clearCookie('token');
+  return res.status(403).send({message: 'Logged out'});
+};
+
 exports.forgotPassword = (req, res) => {
+  res.send({ message: 'Email send with reset link, check your email' });
   User.findOne({
     where: {
       email: req.body.email,
@@ -175,23 +190,11 @@ exports.forgotPassword = (req, res) => {
         Thanks,
         KVP Admin.
         `
-        email.sendEmail(req.body.email, 'KVP: Forgot Password', emailBody).then(response => {
-          return res.send({ message: 'Email sent with reset link, check your email' });
-        }).catch(err => {
-          console.log(err);
-          return res.status(500).send({ message: 'Failed to send reset link' });
-        });
-      }).catch(err => {
-        console.log(err);
-        return res.status(500).send({ message: 'Failed to send reset link' });
+        email.sendEmail(req.body.email, 'KVP: Forgot Password', emailBody);
       });
-    } else {
-      return res.send({ message: 'Email send with reset link, check your email' });
     }
-  }).catch(err => {
-    console.log(err);
-    return res.status(500).send({ message: 'Failed to send reset link' });
   });
+    return;
 };
 
 exports.resetPassword = (req, res) => {

@@ -112,7 +112,7 @@ const OnBoardingForm = ({ history }) => {
       </Col>
       <Col xs={24} md={24} lg={10}>
         <Tabs style={{ margin: '50px' }}>
-          <TabPane tab='Onboarding' key='onboarding'>
+          <TabPane tab='Sign Up' key='onboarding'>
             <Form
               {...layout}
               form={form}
@@ -126,14 +126,14 @@ const OnBoardingForm = ({ history }) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Phone Number",
+                    message: "Please enter Phone Number",
                   },
                   { min: 10, message: 'Phone Number must be at least 10 characters' },
                   { max: 10, message: 'Phone Number must be at least 10 characters' },
                 ]}
               >
                 <Input
-                  placeholder="Enter your Phone Number"
+                  placeholder="Enter Phone Number"
                   addonBefore={prefixSelector}
                   style={{
                     width: "100%",
@@ -144,8 +144,9 @@ const OnBoardingForm = ({ history }) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input First Name",
+                    message: "Please enter First Name",
                   },
+                  { min: 2, message: 'First Name must be at least 2 characters' },
                 ]}>
                 <Input placeholder="Enter First Name" />
               </Form.Item>
@@ -153,7 +154,7 @@ const OnBoardingForm = ({ history }) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Last Name",
+                    message: "Please enter Last Name",
                   },
                 ]}>
                 <Input placeholder="Enter Last Name" />
@@ -162,7 +163,7 @@ const OnBoardingForm = ({ history }) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Gender",
+                    message: "Please select Gender",
                   },
                 ]}>
                 <Radio.Group>
@@ -175,7 +176,7 @@ const OnBoardingForm = ({ history }) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Age",
+                    message: "Please enter Age",
                   },
                 ]}>
                 <InputNumber placeholder="Enter Age" min={18} />
@@ -184,7 +185,7 @@ const OnBoardingForm = ({ history }) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input AADHAR number!",
+                    message: "Please enter AADHAR number!",
                     whitespace: true,
                   },
                   { min: 12, message: 'AADHAR must be at least 12 characters' },
@@ -198,20 +199,20 @@ const OnBoardingForm = ({ history }) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input OTP",
+                      message: "Please enter OTP",
                     },
                     { min: 4, message: 'OTP must be at least 4 digits' },
                     { max: 4, message: 'OTP must be at least 4 digits' },
                   ]}
                 >
-                  <Input placeholder="Enter your OTP" />
+                  <Input placeholder="Enter OTP" />
                 </Form.Item>
               }
               {!otpButton &&
                 <>
                   <Form.Item {...tailLayout}>
                     {registerButton &&
-                      <Button type="primary" htmlType="submit">Register</Button>
+                      <Button type="primary" htmlType="submit">Sing Up</Button>
                     }
                     {!registerButton &&
                       <Text type="danger">{otpRetryError}</Text>

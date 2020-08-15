@@ -3,7 +3,7 @@ export default {
   ADMIN: '/admin',
   PROFILE: '/profile',
   LOGIN: '/',
-  ONBOARDING: '/onboarding',
+  SIGNUP: '/signup',
   SUPPORT: '/support',
   FUNCTIONS: '/functions',
   HELP: '/help',

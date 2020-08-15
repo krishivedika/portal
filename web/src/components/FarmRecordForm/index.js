@@ -38,7 +38,7 @@ const FarmRecordForm = (props) => {
     setOwnerType(props.fields.isSelf);
     setCsrUsers(() => props.csrUsers);
     setShowUsers(() => {
-      if (props.fields.role < 5) {
+      if ([1,2,3,4].includes(props.fields.role)) {
         setOwnerType(false);
         return true;
       }

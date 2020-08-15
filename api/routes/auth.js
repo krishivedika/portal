@@ -5,6 +5,8 @@ module.exports = (app) => {
 
   app.post("/otp/resend", [validation.newOtp], controller.resendOtp);
 
+  app.post("/logout", controller.logout);
+
   app.post(
     "/otp/new",
     [validation.checkDuplicateUser, validation.newOtp],

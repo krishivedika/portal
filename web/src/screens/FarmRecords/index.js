@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Tooltip, Checkbox, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
-import { RightOutlined, AppstoreOutlined, EditFilled, DeleteFilled, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import React, { useEffect, useState, useContext } from "react";
+import { Spin, Tooltip, Checkbox, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
+import { AppstoreOutlined, EditFilled, DeleteFilled, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import UserService from "../../services/user";
 import { FarmRecordForm, PartitionForm, SurveyForm } from "../../components";
 import SurveyTable from "./surveyTable";
 import MobileView from "./mobileView";
+import { SharedContext } from "../../context";
 
 const layout = {
   labelCol: { offset: 0, span: 0 },
@@ -21,6 +22,7 @@ const FarmRecords = () => {
   const [showPartitionDrawer, setShowPartitionDrawer] = useState(false);
   const [selectedItem, setSelectedItem] = useState({id: 0});
   const [action, setAction] = useState("add_farm");
+  const [state, setState] = useContext(SharedContext);
 
   useEffect(() => {
     fetchAndUpdateRecords();
@@ -132,9 +134,11 @@ const FarmRecords = () => {
   };
 
   const deleteRecord = (item) => {
-    console.log(item);
-    UserService.deleteFarmRecords(item.id).then(() => {
+    UserService.deleteFarmRecords(item.id).then(response => {
+      message.success(response.data.message);
       fetchAndUpdateRecords();
+    }).catch(err => {
+      message.error(err.response.data.message);
     });
   };
 
@@ -347,7 +351,7 @@ const FarmRecords = () => {
             loading={loading}
             rowKey="id"
             bordered
-            expandable={{ expandedRowRender, expandIcon: () => <RightOutlined/>, expandRowByClick: true }}
+            expandable={{ expandedRowRender, expandRowByClick: true }}
           />
         </Col>
       </Row>
@@ -363,34 +367,38 @@ const FarmRecords = () => {
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
         onClose={onDrawerClose}
       >
-        {(action === "edit_farm" || action === "add_farm") && (
-          <FarmRecordForm
-            type={action}
-            fields={selectedItem}
-            form={form}
-            csrUsers={csrUsers}
-            onFinish={onFinish}
-            onClose={onDrawerClose}
-            onAdd={onAdd}
-          />
-        )}
-        {(action === "add_survey" || action === "edit_survey") && (
-          <SurveyForm
-            type={action}
-            fields={selectedItem}
-            form={surveyForm}
-            onFinish={onFinishSurvey}
-            onClose={onDrawerClose}
-            onAdd={onAddSurvey}
-          />
-        )}
+        <Spin spinning={state.spinning} size="large">
+          {(action === "edit_farm" || action === "add_farm") && (
+            <FarmRecordForm
+              type={action}
+              fields={selectedItem}
+              form={form}
+              csrUsers={csrUsers}
+              onFinish={onFinish}
+              onClose={onDrawerClose}
+              onAdd={onAdd}
+            />
+          )}
+          {(action === "add_survey" || action === "edit_survey") && (
+            <SurveyForm
+              type={action}
+              fields={selectedItem}
+              form={surveyForm}
+              onFinish={onFinishSurvey}
+              onClose={onDrawerClose}
+              onAdd={onAddSurvey}
+            />
+          )}
+        </Spin>
       </Drawer>
       <Drawer
         visible={showPartitionDrawer}
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
         onClose={onPartitionDrawerClose}
       >
-        <PartitionForm onClose={onPartitionDrawerClose} form={partitionForm} onFinish={onFinishPartition} data={selectedItem}/>
+        <Spin spinning={state.spinning} size="large">
+          <PartitionForm onClose={onPartitionDrawerClose} form={partitionForm} onFinish={onFinishPartition} data={selectedItem}/>
+        </Spin>
       </Drawer>
     </>
   );

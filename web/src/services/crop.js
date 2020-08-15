@@ -15,8 +15,16 @@ class CropService {
     return axios.post(`/crop/add`, data);
   }
 
-  updateCropRecords(data) {
-    return axios.post(`/crop/update`, data);
+  deleteCropRecords(data) {
+    return axios.post(`/crop/delete`, data);
+  }
+
+  getLayerRecord(data) {
+    return axios.get(`crop/layer`, {params: data});
+  }
+
+  updateLayerRecord(data) {
+    return axios.post(`crop/layer/update`, data);
   }
 
 }

@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Layout, Menu, Button, Row, Col, Dropdown } from "antd";
-import { Link } from "react-router-dom";
-import { MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined, DownOutlined } from "@ant-design/icons";
-
+import { useHistory } from "react-router-dom";
+import { MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined, DownOutlined, WindowsFilled } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import Routes from "../../routes";
@@ -61,13 +60,23 @@ const NavigationBar = (props) => {
       }
     }
   };
+  const history = useHistory();
+  const navigate = (path) => {
+    if (path === "/" && window.location.href.slice(-1) !== "/") {
+      history.push(path)
+    }
+    else if (window.location.href.includes(path)) {
+      window.location.reload();
+    }
+    else history.push(path);
+  };
 
   const renderMenuItems = (menuItems) => {
     let menu = menuItems.map(item => {
       let formattedItem = item.replace(" ", "").toUpperCase();
       return (
         <Menu.Item key={formattedItem}>
-          <Link to={`${Routes[formattedItem]}`}>{item}</Link>
+          <Button type="link" onClick={() => navigate(Routes[formattedItem])}>{item}</Button>
         </Menu.Item>
       );
     });
@@ -94,11 +103,11 @@ const NavigationBar = (props) => {
           <img src={logoImage} alt="KrishiVedika" />
         </Col>
           <>
-            <Col xs={0} sm={0} md={9} lg={9} xl={9} offset={1}>
+            <Col xs={0} sm={0} md={0} lg={9} xl={9} offset={1}>
               <Menu mode="horizontal" selectedKeys={[currentTab]} onClick={(e) => setCurrentTab(e.key)}>
                 {!isLoggedIn &&
                   <Menu.Item key="LOGIN">
-                    <Link to="/">Login</Link>
+                    <Button type="link" onClick={() => navigate(Routes.ROOT)}>Sign In</Button>
                   </Menu.Item>
                 }
                 {menu}
@@ -111,10 +120,10 @@ const NavigationBar = (props) => {
                     <Dropdown overlay={
                       <Menu >
                         <Menu.Item key="profile">
-                          <Link to={Routes.PROFILE}>Profile</Link>
+                          <div onClick={() => navigate(Routes.PROFILE)}>Profile</div>
                         </Menu.Item>
                         <Menu.Item key="logout">
-                          <a href="/" onClick={logOut}>Logout</a>
+                          <a href="/" onClick={logOut}>Sign Out</a>
                         </Menu.Item>
                       </Menu>
                     } trigger={['click']}>
@@ -127,7 +136,7 @@ const NavigationBar = (props) => {
               </Menu>
             </Col>
           </>
-            <Col xs={2} md={2} offset={4} lg={0} xl={0}>
+            <Col xs={{span: 2, offset: 2}} md={2} offset={4} lg={0} xl={0}>
               <Button
                 className="nav-button"
                 type="primary"
@@ -149,18 +158,18 @@ const NavigationBar = (props) => {
       >
         {!isLoggedIn &&
           <Menu.Item key="LOGIN">
-            <Link to="/">Login</Link>
+            <Button type="link" onClick={() => navigate(Routes.ROOT)}>Sign In</Button>
           </Menu.Item>
         }
         {menu}
         {isLoggedIn &&
           <Menu.Item key="profile">
-            <Link to={Routes.PROFILE}>Profile</Link>
+            <div style={{color: "#88c73f", marginLeft: '15px'}} onClick={() => navigate(Routes.PROFILE)}>Profile</div>
           </Menu.Item>
         }
         {isLoggedIn &&
           <Menu.Item key="LOGOUT">
-            <a href="/" onClick={logOut}>Logout</a>
+            <a style={{color: "#88c73f", marginLeft: '15px'}} href="/" onClick={logOut}>Sign Out</a>
           </Menu.Item>
         }
       </Menu>

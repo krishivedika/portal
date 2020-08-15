@@ -1,8 +1,7 @@
 const { validator } = require("../middlewares");
 
 const validationRule = {
-  farmId: "required",
-  crops: "required",
+  farm: "required",
 }
 
 const addCropRecord = (req, res, next) => {
@@ -20,10 +19,9 @@ const addCropRecord = (req, res, next) => {
   });
 };
 
-const updateCropRecord = (req, res, next) => {
+const deleteCropRecord = (req, res, next) => {
   const validationRuleUpdate = {
     id: "required",
-    ...validationRule,
   };
   validator(req.body, validationRuleUpdate, {}, (err, status) => {
     if (!status) {
@@ -41,5 +39,5 @@ const updateCropRecord = (req, res, next) => {
 
 module.exports = {
   addCropRecord,
-  updateCropRecord,
+  deleteCropRecord,
 };

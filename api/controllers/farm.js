@@ -79,7 +79,7 @@ exports.addFarmRecord = (req, res) => {
   if (req.userRoleId === 5) userId = req.userId;
   else userId = req.body.member;
   farmRecords.userId = userId;
-  Farm.findOne({ where: { name: farmRecords.name, userId: userId } }).then(farm => {
+  Farm.findOne({ where: { name: farmRecords.name, userId: userId, isActive: true } }).then(farm => {
     if (farm) {
       return res.status(404).send({ message: "Farm with same name already exists" });
     }
@@ -157,19 +157,33 @@ exports.partitionFarmRecord = (req, res) => {
   });
 }
 
-exports.deleteFarmRecord = (req, res) => {
+exports.deleteFarmRecord = async (req, res) => {
   Farm.findOne({
     where: {
       id: req.params.id,
     },
-  }).then((farm) => {
+  }).then(async (farm) => {
     if (!farm) {
       return res.status(404).send({ message: "Farm Record doesn't exist" });
+    }
+    if ([3,4].includes(req.userRoleId)) {
+      const users = await User.findAll(
+        {where: {'$managedBy.UserAssociations.csrId$': req.userId},
+        include: [{model: User, as: 'managedBy', through: 'UserAssociations'}]
+      });
+      const csrUsers = users.map(x => x.id);
+      if (!csrUsers.includes(farm.userId)) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
+      }
+    }
+    else if (farm.userId !== req.userId) {
+      return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
     }
     farm.update({ isActive: false }).then(() => {
       return res.send({ message: "Farm Record Successfully Deleted!" });
     });
-  }).catch(() => {
+  }).catch((err) => {
+    console.log(err);
     return res.status(500).send({ message: "Unknown Error", code: 2 });
   });
 };

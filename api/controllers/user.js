@@ -76,34 +76,40 @@ exports.users = (req, res) => {
       if (!users) {
         return res.status(404).send({ message: "No Users exist" });
       }
-      let customisedUsers = [];
-      users.forEach((user) => {
-        customisedUsers.push({
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phone: user.phone,
-          email: user.email,
-          roles: user.Roles,
-          isOnboarded: user.isOnboarded,
-          createdAt: user.createdAt,
-          updateAt: user.updateAt,
-          updatedBy: user.updatedBy,
-          isActive: user.isActive,
-          ration: user.ration,
-          mandala: user.mandala,
-          district: user.district,
-          hamlet: user.hamlet,
-          panchayat: user.panchayat,
-          address: user.address,
-          age: user.age,
-          gender: user.gender,
-          managedBy: user.managedBy,
+      User.scope("withoutPassword").findAll(
+        {where: {'$Roles.UserRoles.roleId$': {[Op.in]: [3,4]}},
+        include: [{model: Role, through: 'UserRoles'}]
+      }).then(csrUsers => {
+        let customisedUsers = [];
+        users.forEach((user) => {
+          customisedUsers.push({
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
+            email: user.email,
+            roles: user.Roles,
+            isOnboarded: user.isOnboarded,
+            createdAt: user.createdAt,
+            updateAt: user.updateAt,
+            updatedBy: user.updatedBy,
+            isActive: user.isActive,
+            ration: user.ration,
+            mandala: user.mandala,
+            district: user.district,
+            hamlet: user.hamlet,
+            panchayat: user.panchayat,
+            address: user.address,
+            age: user.age,
+            gender: user.gender,
+            managedBy: user.managedBy,
+          });
         });
-      });
-      return res.status(200).send({
-        users: customisedUsers,
-      });
+        return res.status(200).send({
+          users: customisedUsers,
+          csrUsers,
+        });
+      })
     })
     .catch((err) => {
       console.log(err);
@@ -179,6 +185,14 @@ exports.bulkOnboardPrep = async (req, res) => {
       entries.push(row);
     })
     .on('end', async () => {
+      let valid = true;
+      entries.forEach(e => {
+        console.log(e);
+        if (Object.keys(e).length !== 9) valid = false;
+      });
+      if (!valid) {
+        return res.status(404).send({message: 'Malformed CSV structure'});
+      }
       const tempUsers = await user.findInvalidRows(entries);
       badEntries = [...tempUsers.badEntries];
       return res.status(200).send({entries: entries.length, badEntries: badEntries.length, csvData: badEntries});
@@ -205,14 +219,20 @@ exports.bulkOnboard = async (req, res) => {
       entries.push(row);
     })
     .on('end', async () => {
+      let valid = true;
       entries.forEach(entry => {
+        if (Object.keys(entry).length !== 9) valid = false;
         agents.push(entry.agent);
         entriesByPhone[entry.phone] = entry.agent;
         entry.isActive = true;
         entry.isOnboarded = true;
         entry.UserRoles = {roleId: 5};
         entry.updatedBy = req.userEmail;
+        console.log(entry);
       });
+      if (!valid) {
+        return res.status(404).send({message: 'Malformed CSV structure'});
+      }
       const tempUsers = await user.findInvalidRows(entries);
       goodEntries = [...tempUsers.goodEntries];
       const t = await db.sequelize.transaction();

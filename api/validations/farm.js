@@ -9,7 +9,7 @@ const validationRule = {
   khata: "required",
   isSelf: "required",
   ownerFirstName: "required|string|min: 2",
-  ownerLastName: "required|string|min: 2",
+  ownerLastName: "required|string|min: 1",
   ownerAge: "required",
   ownerGender: "required",
 }

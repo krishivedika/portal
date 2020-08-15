@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { Modal, Drawer, Button, Row, Col, Table, Upload, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
+import React, { useContext, useEffect, useState } from "react";
+import { Spin, Modal, Drawer, Button, Row, Col, Table, Upload, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
 import { PlusOutlined, EditOutlined, LikeOutlined } from "@ant-design/icons";
 
 import "./index.less";
 import UserService from "../../services/user";
 import MobileView from "./mobileView";
 import { MemberForm, StaffForm } from "../../components";
+import { SharedContext } from "../../context";
 
-const UserManagement = () => {
+const UserManagement = (props) => {
   const [users, setUsers] = useState([]);
   const [csrs, setCSRs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [state, setState] = useContext(SharedContext);
 
   const columns = [
     { title: "Email", dataIndex: "email", key: "email" },
@@ -104,18 +106,11 @@ const UserManagement = () => {
       search: values.search || "",
       isOnboarded: values.onboarded || false,
     }).then((response) => {
-      const tempUsers = [...response.data.users];
-      const tempCSRs = [];
-      tempUsers.forEach((user) => {
-        if (user.roles[0].id === 3 || user.roles[0].id === 4) {
-          tempCSRs.push(user);
-        }
-        if (user.age)
-          user.age = new Date().getFullYear() - new Date(user.age).getFullYear();
-        else user.age = undefined;
+      response.data.users.forEach(user => {
+        user.age = new Date().getFullYear() - new Date(user.age).getFullYear();
       });
-      setUsers(() => tempUsers);
-      setCSRs(() => tempCSRs);
+      setUsers(() => response.data.users);
+      setCSRs(() => response.data.csrUsers);
       setLoading(false);
     });
   };
@@ -126,8 +121,19 @@ const UserManagement = () => {
 
   const [showDrawer, setShowDrawer] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
+  const [role, setRole] = useState("");
+  const [newRole, setNewRole] = useState("FARMER");
+
+  const onRoleChange = (e) => {
+    setRole(e.toUpperCase());
+  };
+
+  const onNewRoleChange = (e) => {
+    setNewRole(e.toUpperCase());
+  };
 
   const review = (item) => {
+    setRole(item.roles[0]?.name);
     setSelectedItem({
       ...item, role: item.roles[0]?.name,
       csr: item.managedBy[0]?.id,
@@ -319,42 +325,65 @@ const UserManagement = () => {
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
         onClose={() => setShowDrawer(false)}
       >
-        {selectedItem.roles &&
-          selectedItem.roles[0].name.toUpperCase() === "FARMER" && (
-            <MemberForm
-              type="staff"
-              fields={selectedItem}
-              form={form}
-              onFinish={onFinish}
-              csrs={csrs}
-              onClose={() => setShowDrawer(false)}
-            />
-          )}
-        {selectedItem.roles &&
-          selectedItem.roles[0].name.toUpperCase() !== "FARMER" && (
-            <StaffForm
-              type="staff"
-              fields={selectedItem}
-              form={staffForm}
-              onFinish={onFinish}
-              onClose={() => setShowDrawer(false)}
-            />
-          )}
+        <Spin spinning={state.spinning} size="large">
+          {role.toUpperCase() === "FARMER" && (
+              <MemberForm
+                type="staff"
+                fields={selectedItem}
+                form={form}
+                onFinish={onFinish}
+                csrs={csrs}
+                onClose={() => setShowDrawer(false)}
+                onChange={onRoleChange}
+                role={role}
+              />
+            )}
+          {role.toUpperCase() !== "FARMER" && (
+              <StaffForm
+                type="staff"
+                fields={selectedItem}
+                form={staffForm}
+                onFinish={onFinish}
+                onClose={() => setShowDrawer(false)}
+                onChange={onRoleChange}
+                role={role}
+              />
+            )}
+        </Spin>
       </Drawer>
       <Drawer
         visible={showNewMemberDrawer}
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
         onClose={() => setShowNewMemberDrawer(false)}
       >
-        <MemberForm
-          type="staff"
-          new={true}
-          fields={{}}
-          form={newForm}
-          onFinish={openNewMemberFinish}
-          csrs={csrs}
-          onClose={() => setShowNewMemberDrawer(false)}
-        />
+        <Spin spinning={state.spinning} size="large">
+          {newRole.toUpperCase() === "FARMER" && (
+              <MemberForm
+                type="staff"
+                new={true}
+                fields={{role: newRole}}
+                form={newForm}
+                onFinish={openNewMemberFinish}
+                csrs={csrs}
+                onClose={() => setShowNewMemberDrawer(false)}
+                onChange={onNewRoleChange}
+                role={newRole}
+                csrs={csrs}
+              />
+            )}
+          {newRole.toUpperCase() !== "FARMER" && (
+              <StaffForm
+                type="staff"
+                new={true}
+                fields={{role: newRole}}
+                form={newForm}
+                onFinish={openNewMemberFinish}
+                onClose={() => setShowNewMemberDrawer(false)}
+                onChange={onNewRoleChange}
+                role={newRole}
+              />
+            )}
+        </Spin>
       </Drawer>
     </>
   );

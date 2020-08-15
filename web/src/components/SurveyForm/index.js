@@ -66,6 +66,7 @@ const SurveyForm = (props) => {
       tempSurveyFiles.forEach(file => file.uid = file.id);
       setFilesList(() => tempSurveyFiles);
     }
+    console.log(props);
   }, [props]);
 
   return (
@@ -85,7 +86,7 @@ const SurveyForm = (props) => {
         />
       }
       <Card
-        title={props.type === "edit_survey" ? `Editing: ${props.fields?.name}` : "Creating New Survey Record"}
+        title={props.type === "edit_survey" ? `Editing Survey #: ${props.fields?.number}` : "Creating New Survey Record"}
         className="g-ant-card"
         extra={[
           <Form key="save" form={props.form} layout="inline">

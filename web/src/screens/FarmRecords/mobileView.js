@@ -26,6 +26,7 @@ const MobileView = (props) => {
         {item.item.isActive &&
           <>
           <Button
+            size="small"
             type="primary"
             onClick={(event) => {
               event.stopPropagation();
@@ -35,6 +36,7 @@ const MobileView = (props) => {
             + Survey
           </Button>
           <Button
+            size="small"
             type="secondary"
             onClick={(event) => {
               event.stopPropagation();
@@ -43,29 +45,32 @@ const MobileView = (props) => {
             <EditFilled /> Farm
           </Button>
           <Button
+            size="small"
             type="secondary"
             onClick={() => props.reviewPartition(item.item, "partition_farm")}
             >
-              <AppstoreOutlined /> Farm
+              <AppstoreOutlined /> Plot
             </Button>
           <Button
+            size="small"
             type="danger"
             onClick={(event) => {
               event.stopPropagation();
               props.deleteRecord(item.item);
             }}>
-            <DeleteFilled /> Farm
+            <DeleteFilled /> Delete
           </Button>
         </>
         }
         {!item.item.isActive &&
           <Button
+            size="small"
             type="danger"
             onClick={(event) => {
               event.stopPropagation();
               props.restoreRecord(item.item);
             }}>
-            <ReloadOutlined /> Farm
+            <ReloadOutlined /> Restore Farm
           </Button>
         }
       </>
@@ -107,6 +112,7 @@ const MobileView = (props) => {
                       <List.Item key={item.id}
                         actions={[
                           <Button
+                            size="small"
                             onClick={(event) => {
                               event.stopPropagation();
                               props.review(item, "edit_survey");

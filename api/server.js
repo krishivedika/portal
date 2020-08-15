@@ -6,12 +6,15 @@ const cors = require("cors");
 const helmet = require('helmet')
 const morgan = require('morgan')
 const bcrypt = require("bcryptjs");
+const cookieParser = require("cookie-parser");
 
 const config = require("./config");
 const constants = require("./constants");
 const db = require("./models");
 
 const app = express();
+// Cookies
+app.use(cookieParser());
 
 // Logging
 app.use(morgan('combined', {
@@ -39,7 +42,7 @@ const corsOptions = {
     }
   }
 }
-app.use(cors());
+app.use(cors({credentials: true, origin: whitelist}));
 
 // middleware to auto parse the body
 app.use(bodyParser.json());
@@ -76,6 +79,7 @@ const initial = () => {
     {firstName: 'Hari', lastName: 'M', email: 'hmadanaraj@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true, updatedBy: 'System'},
     {firstName: 'Nagen', lastName: 'S', email: 'anagin@gmail.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true, updatedBy: 'System'},
     {firstName: 'Shiva', lastName: 'V', email: 'shiv@varmafoods.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true, updatedBy: 'System'},
+    {firstName: 'Venu', lastName: 'V', email: 'vyeduru@krishivedika.com', password: bcrypt.hashSync(config.DEFAULT_STAFF_PASSWORD, 8), isOnboarded: true, isActive: true, updatedBy: 'System'},
   ]
   systemAdmins.forEach(admin => {
     User.findOne({where: {email: admin.email}}).then(a => {

@@ -19,6 +19,13 @@ const MemberForm = (props) => {
     Object.entries(props.fields).forEach(entry => {
       fields.push({ name: entry[0], value: entry[1] });
     });
+    if (isStaff) {
+      fields.forEach(field => {
+        if (field.name === "role") {
+          field.value = props.role.toLowerCase();
+        }
+      });
+    }
     setFields(fields);
   }, [props]);
 
@@ -43,10 +50,10 @@ const MemberForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input User's role",
+                      message: "Please select User's role",
                     }
                   ]}>
-                  <Select placeholder="Select Role">
+                  <Select onChange={props.onChange} placeholder="Select Role">
                     <Option value="admin">Admin</Option>
                     <Option value="csr">CSR</Option>
                     <Option value="field_agent">Field Agent</Option>
@@ -59,7 +66,7 @@ const MemberForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input User's CSR / Field Agent",
+                      message: "Please select User's CSR / Field Agent",
                     }
                   ]}>
                   <Select placeholder="Select CSR / Field Agent">
@@ -73,7 +80,7 @@ const MemberForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input First Name",
+                    message: "Please enter First Name",
                   },
                 ]}>
                 <Input placeholder="Enter First Name" />
@@ -82,7 +89,7 @@ const MemberForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Last Name",
+                    message: "Please enter Last Name",
                   },
                 ]}>
                 <Input placeholder="Enter Last Name" />
@@ -91,7 +98,7 @@ const MemberForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Gender",
+                    message: "Please select Gender",
                   },
                 ]}>
                 <Radio.Group>
@@ -104,7 +111,7 @@ const MemberForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Age",
+                    message: "Please enter Age",
                   },
               ]}>
                 <InputNumber placeholder="Enter Age" min={18} />
@@ -117,16 +124,16 @@ const MemberForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Phone Number",
+                    message: "Please enter Phone Number",
                   },
                 ]}>
-                <Input placeholder="Enter Phone" disabled={!isNew}/>
+                <Input placeholder="Enter Phone" disabled={!isNew && !isStaff}/>
               </Form.Item>
               <Form.Item name="ration" label="Ration"
                 rules={[
                   {
                     required: true,
-                    message: "Please input Ration Number",
+                    message: "Please enter Ration Number",
                   },
                 ]}>
                 <Input placeholder="Enter Ration" />
@@ -139,7 +146,7 @@ const MemberForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Address",
+                    message: "Please enter Address",
                   },
                 ]}>
                 <Input placeholder="Enter Address" />
@@ -148,7 +155,7 @@ const MemberForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input District",
+                    message: "Please enter District",
                   },
                 ]}>
                 <Input placeholder="Enter Disctrict" />

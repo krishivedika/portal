@@ -14,6 +14,7 @@ const tailLayout = {
 const StaffForm = (props) => {
 
   const isStaff = props.type === 'staff';
+  const isNew = props.new || false;
 
   const [fields, setFields] = useState([]);
   useEffect(() => {
@@ -21,12 +22,19 @@ const StaffForm = (props) => {
     Object.entries(props.fields).forEach(entry => {
       fields.push({ name: entry[0], value: entry[1] });
     });
+    if (isStaff) {
+      fields.forEach(field => {
+        if (field.name === "role") {
+          field.value = props.role.toLowerCase();
+        }
+      });
+    }
     setFields(fields);
   }, [props]);
 
   return (
     <div style={{ margin: '15px' }}>
-      <Card title={`Editing: ${props.fields.email}`}
+      <Card title={isNew ? `Creating New Staff` : `Editing: ${props.fields.email}`}
         className="g-ant-card"
         extra={[
           <Form key="save" form={props.form} layout="inline">
@@ -45,10 +53,10 @@ const StaffForm = (props) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please input User's role",
+                        message: "Please select User's role",
                       }
                     ]}>
-                    <Select placeholder="Select Role">
+                    <Select onChange={props.onChange} placeholder="Select Role">
                       <Option value="admin">Admin</Option>
                       <Option value="csr">CSR</Option>
                       <Option value="field_agent">Field Agent</Option>
@@ -60,7 +68,7 @@ const StaffForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input First Name",
+                      message: "Please enter First Name",
                     },
                   ]}>
                   <Input placeholder="Enter First Name" />
@@ -69,7 +77,7 @@ const StaffForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Last Name",
+                      message: "Please enter Last Name",
                     },
                   ]}>
                   <Input placeholder="Enter Last Name" />
@@ -78,7 +86,7 @@ const StaffForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Gender",
+                      message: "Please select Gender",
                     },
                   ]}>
                   <Radio.Group>
@@ -91,7 +99,7 @@ const StaffForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Age",
+                      message: "Please enter Age",
                     },
                   ]}>
                   <InputNumber placeholder="Enter Age" min={18} />
@@ -100,7 +108,7 @@ const StaffForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Email.",
+                      message: "Please enter Email.",
                     },
                     { type: 'email' },
                   ]}
@@ -118,7 +126,7 @@ const StaffForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Address",
+                      message: "Please enter Address",
                     },
                   ]}>
                   <Input placeholder="Enter Address" />

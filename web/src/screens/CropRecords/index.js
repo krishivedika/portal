@@ -1,58 +1,133 @@
-import React, { useEffect, useState } from "react";
-import { Timeline, Modal, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
-import { CalendarFilled } from "@ant-design/icons";
+import React, { useContext, useEffect, useState } from "react";
+import { Spin, Tooltip, Timeline, Checkbox, Modal, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
+import { CheckCircleTwoTone, DeleteFilled } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import CropService from "../../services/crop";
 import { CropRecordForm } from "../../components";
 import MobileView from "./mobileView";
+import LayerTable from "./layerTable";
+import { SharedContext } from "../../context";
 
 const CropRecords = () => {
   const [farmRecord, setFarmRecords] = useState([]);
   const [cropRecord, setCropRecords] = useState([]);
+  const [cropRecordActive, setCropRecordsActive] = useState([]);
+  const [csrUsers, setCsrUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDrawer, setShowDrawer] = useState(false);
-  const [selectedItem, setSelectedItem] = useState({ id: 1 });
+  const [selectedItem, setSelectedItem] = useState({ id: 0 });
   const [action, setAction] = useState("add_farm");
   const [timeline, setTimeline] = useState(false);
+  const [state, setState] = useContext(SharedContext);
 
-  const showTimeLine = () => {
+  const user = AuthService.getCurrentUser();
+
+  let columns = [];
+  if (user.roles[0] !== "FARMER") {
+    columns = [
+      {
+        title: "Member", key: "member", ellipsis: true, render: (_, item) => (
+          <>{item.Farm.User.firstName} ({item.Farm.User.phone})</>
+        )
+      },
+    ];
+  }
+
+  columns = [...columns,
+  { title: "Farm Name", key: "farmname", ellipsis: true, render: (_, item) => (<p>{item.Farm.name}</p>) },
+  { title: "Khata", key: "farmname", ellipsis: true, render: (_, item) => (<p>{item.Farm.khata}</p>) },
+  { title: "Plot", dataIndex: "name", key: "name", ellipsis: true },
+  {
+    title: "Action",
+    key: "action",
+    render: (_, item) => (
+      <>
+        {item.isActive &&
+          <>
+            <Tooltip placement="top" title='Delete Crop'>
+              <Button
+                type="link"
+                onClick={() => deleteCropRecord(item)}
+                icon={<DeleteFilled />}
+              />
+            </Tooltip>
+          </>
+        }
+      </>
+    ),
+  },
+  ];
+
+  const [stages, setStages] = useState([]);
+  const [title, setTitle] = useState("");
+  const [layerId, setLayerId] = useState(0);
+  const [date, setDate] = useState({});
+
+  const updateStages = (data) => {
+    const layer = data;
+    const config = JSON.parse(layer.config);
+    setLayerId(layer.id);
+    setDate(layer.date);
+    setTitle(`${layer.crop} - ${new Date(layer.date).toDateString()}`);
+    setStages(() => config.stages);
     setTimeline(true);
   };
 
-  const columns = [
-  { title: "Farm Name (# Khata)", key: "farmname", ellipsis: true, render: (_, item) => (<p>{item.Farm.name} (# {item.Farm.khata})</p>) },
-    { title: "Plot", dataIndex: "name", key: "name", ellipsis: true },
-    { title: "Crop Layer One", dataIndex: "layerOne", key: "layerOne", ellipsis: true, render: (_, item) => (
-      <>{item.layerOne} <Button onClick={showTimeLine}><CalendarFilled /> </Button></>
-    )},
-    { title: "Crop Layer Two", dataIndex: "layerTwo", key: "layerTwo", ellipsis: true },
-    { title: "Crop Layer Three", dataIndex: "layerThree", key: "layerThree", ellipsis: true },
-    // {
-    //   title: "Action",
-    //   key: "action",
-    //   render: (_, item) => (
-    //     <>
-    //       <Tooltip placement="top" title='Add Crop'>
-    //         <Button type="link" icon={<PlusOutlined />} onClick={() => review(item, "add_crop")} />
-    //       </Tooltip>
-    //       <Tooltip placement="top" title='Edit Crop'>
-    //         <Button
-    //           type="link"
-    //           onClick={() => {
-    //             review(item, "edit_crop");
-    //           }}
-    //           icon={<EditFilled />}
-    //         />
-    //       </Tooltip>
-    //     </>
-    //   ),
-    // },
-  ];
+  const showActivity = (item) => {
+    if (item.config) {
+      CropService.getLayerRecord({id: item.id}).then(response => {
+        updateStages(response.data.layer);
+      }).catch(err => {
+        message.error(err.response.data.message);
+      });
+    } else {
+      message.error('No POP for this crop, please contact CSR');
+    }
+  };
 
-  const review = (e) => {
-    console.log(e);
+  const updateStage = (id) => {
+    CropService.updateLayerRecord({id: layerId, stageId: id}).then(response => {
+      message.success(response.data.message);
+      updateStages(response.data.layer);
+    }).catch(err => {
+      message.error(err.response.data.message);
+    });
+  };
+
+  const getTimeLineDate = (e) => {
+    let newDate = new Date(date);
+    newDate.setDate(newDate.getDate() + e);
+  if (newDate.toDateString() === new Date(date).toDateString()) return <b>{newDate.toDateString()}</b>
+    return newDate.toDateString();
+  };
+
+  const getTimeLineDot = (stage) => {
+    let color = "orange";
+    if (stage.completed) color = "green";
+    else color = "gray";
+    if (stage.stage === "presowing") color = "orange";
+    if (stage.completed) {
+      return (
+        <Button type="link" disabled>
+          <CheckCircleTwoTone twoToneColor={"green"} />
+        </Button>
+      )
+    }
+    else {
+      return  (
+        <Button onClick={() => updateStage(stage.id)} type="link">
+          <CheckCircleTwoTone twoToneColor={color} />
+        </Button>
+      )
+    }
   }
+
+  const expandedRowRender = (item) => {
+    return (
+      <LayerTable showActivity={showActivity} dataSource={item} farmId={item.id} />
+    );
+  };
 
   const [formSearch] = Form.useForm();
   const search = async () => {
@@ -60,12 +135,16 @@ const CropRecords = () => {
     fetchAndUpdateRecords(values);
   };
 
-  const fetchAndUpdateRecords = (values = { search: "" }) => {
+  const fetchAndUpdateRecords = (values = { search: "", deleted: false }) => {
     setLoading(true);
-    CropService.getCropRecords().then(
+    CropService.getCropRecords({ search: values.search || "", deleted: values.deleted || false }).then(
       (response) => {
         setFarmRecords(() => response.data.farms);
         setCropRecords(() => response.data.crops);
+        setCropRecordsActive(() => {
+          return response.data.crops.filter(x => x.isActive === true);
+        });
+        setCsrUsers(() => response.data.csrUsers);
         setLoading(false);
       }
     ).catch(err => {
@@ -80,26 +159,24 @@ const CropRecords = () => {
 
   const [form] = Form.useForm();
 
-  const onFinish = (values) => {
-    const crops = [];
-    let sections = 0;
-    farmRecord.forEach(farm => {
-      if (farm.id === values.farm) {
-        sections = [...JSON.parse(farm.partitions).partitions].length;
-      }
-    });
-    for (let i = 0; i < sections; i++) {
-      const sectionName = `Plot ${i+1}`;
-      crops.push({
-        name: sectionName,
-        layerOne: values[`${sectionName}_layerOne`],
-        layerTwo: values[`${sectionName}_layerTwo`],
-        layerThree: values[`${sectionName}_layerThree`],
-      });
+  const onAdd = async () => {
+    try {
+      const values = await form.validateFields();
+      values.add = true;
+      onFinish(values);
+    } catch (err) {
+      console.log(err);
     }
-    CropService.addCropRecords({farmId: values.farm, crops: crops}).then(response => {
-      fetchAndUpdateRecords();
+  };
+
+  const onFinish = (values) => {
+    CropService.addCropRecords(values).then(async response => {
+      message.success(response.data.message);
+      const values = await formSearch.validateFields();
+      fetchAndUpdateRecords(values);
       setShowDrawer(false);
+      form.resetFields();
+      if (values?.add) setShowDrawer(true);
     }).catch(err => {
       console.log(err);
       message.error(err.response.data.message);
@@ -111,46 +188,55 @@ const CropRecords = () => {
     setShowDrawer(true);
   }
 
+  const deleteCropRecord = (item) => {
+    CropService.deleteCropRecords({ id: item.id }).then(async response => {
+      message.success(response.data.message);
+      const values = await formSearch.validateFields();
+      fetchAndUpdateRecords(values);
+    }).catch(err => {
+      message.error(err.response.data.message);
+    });
+  }
+
   return (
     <>
-      <Modal title='Mango POP' footer={null} visible={timeline} onCancel={() => setTimeline(false)}>
-        <Timeline mode='left'>
-          <Timeline.Item label="2015-09-01">Land Preparation <p>INM: 1. Well decomped FYM
-8 to 10 tons/acre
-inoculum T viridae & P floroscens 2 Kg/acre each
-AND/OR
-2. Vermicompost
-5 tons/acre
-inoculum T viridae & P floroscens 2 Kg/acre each</p></Timeline.Item>
-          <Timeline.Item label="2015-09-02">Soil Preparation</Timeline.Item>
-          <Timeline.Item label="2015-09-03">Fertigation</Timeline.Item>
-          <Timeline.Item color="red" label="2015-09-04">Seed Treatment</Timeline.Item>
-          <Timeline.Item color="gray" label="2015-09-05">Irrigation</Timeline.Item>
-          <Timeline.Item color="gray" label="2015-09-06">Sowing Okra Seed</Timeline.Item>
-        </Timeline>
+      <Modal bodyStyle={{height: '80vh'}} width={900} title={title} footer={null} visible={timeline} onCancel={() => setTimeline(false)}>
+        <div style={{padding: '10px', overflowY: 'scroll', height: '100%'}}>
+          <Spin spinning={state.spinning} size="large">
+            <Timeline mode='left'>
+              {stages.map((s) => (
+                <Timeline.Item dot={getTimeLineDot(s)} key={s.id} label={getTimeLineDate(s.day)}>
+                  <p>Stage {s.stage}</p>
+                  <p>Activity: {s.activity}</p>
+                  <p>{s.general ? `General: ${s.general}` : ""}</p>
+                  <p>{s.inm ? `INM: ${s.inm}` : ""}</p>
+                  <p>{s.ipm ? `IPM: ${s.ipm}` : ""}</p>
+                </Timeline.Item>
+              ))}
+            </Timeline>
+          </Spin>
+        </div>
       </Modal>
       <Row style={{ padding: "10px", borderTop: "1px solid #90d150" }}>
         <Col xs={12} md={12} lg={12} xl={12}>
-          <Form form={formSearch} layout="vertical">
+          <Form form={formSearch} layout="inline">
             <Form.Item
               name="search"
-              onChange={search}
-              style={{ marginBottom: "0" }}
             >
-              <Input placeholder="Search with Name" />
+              <Input onPressEnter={search} placeholder="Farm Name" />
+            </Form.Item>
+            <Form.Item name="deleted" valuePropName="checked" style={{ fontWeight: 'bold' }}>
+              <Checkbox onChange={search}>Include Deleted</Checkbox>
             </Form.Item>
           </Form>
         </Col>
         <Col
-          xs={10}
-          md={10}
-          lg={10}
-          xl={10}
-          offset={2}
+          xs={{span: 8}}
+          lg={{span: 10, offset: 2}}
           style={{ textAlign: "end" }}
         >
           <Button type="primary" onClick={openNewForm}>
-            Add Crop Record
+            Add Crop
           </Button>
         </Col>
       </Row>
@@ -158,32 +244,38 @@ inoculum T viridae & P floroscens 2 Kg/acre each</p></Timeline.Item>
         <Col
           xs={0}
           sm={0}
-          md={window.innerWidth === 768 ? 0 : 24}
+          md={24}
           lg={24}
           xl={24}
         >
           <Table
             className="g-table-striped-rows g-ant-table-cell \"
+            rowClassName={(record, index) => record.isActive ? '' : 'g-table-striped-rows-danger'}
             ellipses={true}
             dataSource={cropRecord}
             columns={columns}
             loading={loading}
             rowKey="id"
             bordered
+            expandable={{ expandedRowRender }}
           />
         </Col>
       </Row>
-      {/* <MobileView
+      <MobileView
         farms={cropRecord}
-      /> */}
+        deleteCropRecord={deleteCropRecord}
+        showActivity={showActivity}
+      />
       <Drawer
         visible={showDrawer}
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
         onClose={() => setShowDrawer(false)}
       >
-        {(action === "edit_crop" || action === "add_crop") && (
-          <CropRecordForm farms={farmRecord} form={form} onFinish={onFinish} />
-        )}
+        <Spin spinning={state.spinning} size="large">
+          {(action === "edit_crop" || action === "add_crop") && (
+            <CropRecordForm onAdd={onAdd} onClose={() => setShowDrawer(false)} csrUsers={csrUsers} crops={cropRecordActive} farms={farmRecord} form={form} onFinish={onFinish} />
+          )}
+        </Spin>
       </Drawer>
     </>
   );

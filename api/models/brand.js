@@ -7,6 +7,11 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Brand',
+    scopes: {
+      withoutDates: {
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+      }
+    }
   });
   return Brand;
 };

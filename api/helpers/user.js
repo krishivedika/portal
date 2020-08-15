@@ -21,8 +21,8 @@ const findInvalidRows = async (entries) => {
       badEntries.push({...entry, reason: 'First Name should be atleast 2 cahracters long'});
       return;
     }
-    if (entry.lastName.length < 2) {
-      badEntries.push({...entry, reason: 'Last Name should be atleast 2 cahracters long'});
+    if (entry.lastName.length === "") {
+      badEntries.push({...entry, reason: 'Last Name should be atleast 1 cahracter long'});
       return;
     }
     if (!['male', 'female', 'other'].includes(entry.gender)) {

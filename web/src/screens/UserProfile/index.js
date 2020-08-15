@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Row, Col, Card, Skeleton, Form, message, Button, Drawer, Descriptions } from "antd";
+import React, { useState, useEffect, useContext } from "react";
+import { Spin, Row, Col, Card, Skeleton, Form, message, Button, Drawer, Descriptions } from "antd";
 
 import AuthService from "../../services/auth";
 import UserService from "../../services/user";
 import { MemberForm, StaffForm } from "../../components";
 import profileImage from "../../images/profile.jpg";
+import { SharedContext } from "../../context";
 
 const UserProfile = () => {
 
+  const [state, setState] = useContext(SharedContext);
   const [userProfile, setUserProfile] = useState({});
   const [currentForm, setCurrentForm] = useState({});
   const [showDrawer, setShowDrawer] = useState(false);
@@ -70,7 +72,7 @@ const UserProfile = () => {
               </>
             }
                 <Row>
-                  <Col xs={4} offset={20}>
+                  <Col xs={{span: 7, offset: 17}} md={{span: 4, offset: 20}}>
                     <Button type="primary" onClick={() => setShowDrawer(true)}>Update Profile</Button>
                   </Col>
                 </Row>
@@ -121,12 +123,14 @@ const UserProfile = () => {
         </Row>
       </Col>
       <Drawer visible={showDrawer} width={window.innerWidth > 768 ? 900 : window.innerWidth} onClose={() => setShowDrawer(false)}>
-        {userProfile.Roles && userProfile.Roles[0].name.toUpperCase() === 'FARMER' &&
-          <MemberForm type="self" fields={currentForm} form={form} onFinish={onFinish} />
-        }
-        {userProfile.Roles && userProfile.Roles[0].name.toUpperCase() !== 'FARMER' &&
-          <StaffForm type="self" fields={currentForm} form={form} onFinish={onFinish} />
-        }
+        <Spin spinning={state.spinning} size="large">
+          {userProfile.Roles && userProfile.Roles[0].name.toUpperCase() === 'FARMER' &&
+            <MemberForm type="self" fields={currentForm} form={form} onFinish={onFinish} onClose={() => setShowDrawer(false)}/>
+          }
+          {userProfile.Roles && userProfile.Roles[0].name.toUpperCase() !== 'FARMER' &&
+            <StaffForm type="self" fields={currentForm} form={form} onFinish={onFinish} onClose={() => setShowDrawer(false)}/>
+          }
+        </Spin>
       </Drawer>
     </Row>
   );

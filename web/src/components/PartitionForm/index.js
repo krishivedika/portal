@@ -8,14 +8,19 @@ const PartitionForm = (props) => {
   const [partitions, setPartitions] = useState([]);
   const [partitionExtents, setPartitionExtents] = useState({});
   const [totalSize, setTotalSize] = useState(0);
+  const [fields, setFields] = useState([]);
+
   useEffect(() => {
+    const fields = [];
     setPartitions(() => {
       let data = [...JSON.parse(props.data.partitions).partitions]
       data.forEach(item => {
         item.area = parseInt(item.area);
+        fields.push({name: item.item, value: item.area});
       });
       return data;
     });
+    setFields(() => fields);
     let tempSize = 0;
     props.data.Surveys.forEach(s => {
       tempSize += parseInt(s.extent);
@@ -62,16 +67,19 @@ const PartitionForm = (props) => {
     if (partitions.length === 10) {
       message.warning('Maximum partitions is reached');
     } else {
+      let tempSize = 0;
+      let newItem = {};
       setPartitions((state) => {
-        let tempSize = 0;
         state.forEach(p => {
           tempSize += parseInt(p.area);
         });
-        const newData = [...state, { item: `Plot ${partitions.length + 1}`, area: totalSize - tempSize }];
+        newItem = { item: `Plot ${partitions.length + 1}`, area: totalSize - tempSize };
+        const newData = [...state, newItem];
         chart.data(newData);
         chart.render();
         return newData;
       });
+      setFields((state) => [...state, {name: newItem.item, value: newItem.area}]);
     }
   }
 
@@ -108,7 +116,7 @@ const PartitionForm = (props) => {
             </Form.Item>
           </Form>
         ]}>
-      <Form form={props.form} onFinish={props.onFinish} layout="inline">
+      <Form preserve={false} fields={fields} form={props.form} onFinish={props.onFinish} layout="inline">
         <Row style={{ marginTop: '40px'}}>
           <Col>
             <Button onClick={addPartition}> + Add Plot</Button>
@@ -118,7 +126,7 @@ const PartitionForm = (props) => {
             {partitions.map((p, index) => (
               <div key={index}>
                 <Input.Group>
-                  <Form.Item initialValue={p.area} name={p.item} label={`Plot ${index + 1}`}
+                  <Form.Item name={p.item} label={`Plot ${index + 1}`}
                   rules= {[() => ({
                     validator(rule, value) {
                       if (value < partitionExtents[p.item]) {

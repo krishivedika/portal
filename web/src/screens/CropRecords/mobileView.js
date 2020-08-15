@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Collapse, Row, Col, Button, List, Skeleton } from "antd";
-import { EditFilled, DeleteFilled } from "@ant-design/icons";
 
 const { Panel } = Collapse;
 
 const MobileView = (props) => {
   const [farms, setFarms] = useState(props.farms);
-  const [surveys, setSurveys] = useState([]);
+  const [layers, setLayers] = useState([]);
 
   const callback = (key) => {
     props.farms.forEach(farm => {
       if (farm.id === Number(key)) {
-        setSurveys(() => [...farm.Surveys]);
+        setLayers(() => [...farm.Layers]);
       }
     });
   };
@@ -23,40 +22,25 @@ const MobileView = (props) => {
   const RenderActions = (item) => {
     return (
       <>
-        <Button
-          type="link"
-          onClick={(event) => {
-            event.stopPropagation();
-            props.review(item.item, "add_survey");
-          }}
-          style={{ padding: "0 5px" }}
-        >
-          Add Survey
-        </Button>
-        <Button
-          type="link"
-          onClick={(event) => {
-            event.stopPropagation();
-            props.review(item, "edit_farm");
-          }}
-          icon={<EditFilled />}
-        />
-        <Button
-          type="link"
-          onClick={(event) => {
-            event.stopPropagation();
-            props.deleteRecord(item);
-          }}
-          icon={<DeleteFilled />}
-        />
+        {item.item.isActive &&
+          <Button
+            type="link"
+            onClick={(event) => {
+              event.stopPropagation();
+              props.deleteCropRecord(item.item);
+            }}
+          >
+            Delete
+          </Button>
+        }
       </>
     );
   };
 
   return (
     <>
-      <Row style={{ padding: "10px" }}>
-        <Col xs={23} sm={23} md={window.innerWidth === 768 ? 23 : 0} lg={0} xl={0}>
+      <Row>
+        <Col xs={23} lg={0} xl={0}>
           <Collapse
             accordion={true}
             onChange={callback}
@@ -65,30 +49,31 @@ const MobileView = (props) => {
             {farms.map((item, key) => {
               return (
                 <Panel
-                  header={item.name}
+                  header={`${item.name} (${item.Farm.name})`}
                   key={item.id}
                   extra={<RenderActions item={item} />}
                 >
                   <List
                     className="demo-loadmore-list"
                     itemLayout="horizontal"
-                    dataSource={surveys}
+                    dataSource={layers}
                     renderItem={(item) => (
                       <List.Item key={item.id}
                         actions={[
-                          <a
+                          <Button
+                            type="secondary"
                             onClick={(event) => {
                               event.stopPropagation();
-                              props.review(item, "edit_survey");
+                              props.showActivity(item);
                             }}
                             key="list-loadmore-edit"
                           >
-                            Edit
-                          </a>,
+                            PoP
+                          </Button>,
                         ]}
                       >
                         <Skeleton active loading={false}>
-                          <List.Item.Meta title={item.name}></List.Item.Meta>
+                          <List.Item.Meta title={`${item.crop} (${new Date(item.date).toDateString()})`}></List.Item.Meta>
                         </Skeleton>
                       </List.Item>
                     )}
