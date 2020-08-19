@@ -77,7 +77,7 @@ exports.signin = (req, res) => {
         for (let i = 0; i < roles.length; i++) {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
-        res.cookie('token', token, {secure: config.NODE_ENV === "development" ? false : true, sameSite: 'None', httpOnly: true, expiresIn: 1209590});
+        res.cookie('token', token, { secure: config.NODE_ENV === "development" ? false : true, sameSite: 'None', httpOnly: true, expiresIn: 1209590 });
         res.append("Set-Cookie", `token=${token};`);
         return res.status(200).send({
           id: user.id,
@@ -141,7 +141,11 @@ exports.staffSignin = (req, res) => {
         for (let i = 0; i < roles.length; i++) {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
-        res.cookie('token', token, {secure: config.NODE_ENV === "development" ? false : true, sameSite: 'None', httpOnly: true, expiresIn: 1209590});
+        if (config.NODE_ENV === "development") {
+          res.cookie('token', token, { httpOnly: true, expiresIn: 1209590 });
+        } else {
+          res.cookie('token', token, { secure: config.NODE_ENV === "development" ? false : true, sameSite: 'None', httpOnly: true, expiresIn: 1209590 });
+        }
         res.append("Set-Cookie", `token=${token};`);
         return res.status(200).send({
           id: user.id,
@@ -161,49 +165,103 @@ exports.staffSignin = (req, res) => {
 
 exports.logout = (req, res) => {
   res.clearCookie('token');
-  return res.status(403).send({message: 'Logged out'});
+  return res.status(403).send({ message: 'Logged out' });
 };
 
-exports.forgotPassword = (req, res) => {
-  res.send({ message: 'Email send with reset link, check your email' });
+exports.forgotPasswordCheck = (req, res) => {
   User.findOne({
     where: {
       email: req.body.email,
       isActive: true,
     },
   }).then(user => {
-    if (user) {
-      const resetObj = {
-        key: uuidv4(config.SECRET_KEY, uuidv4.URL),
-        email: req.body.email,
-        isActive: true,
+    Reset.findAll({ where: { email: user.email } }).then(resets => {
+      if (!user.phone) {
+        return res.status(404).send({ message: "Phone not registered" });
       }
-      Reset.create(resetObj).then(reset => {
-        const emailBody = `
-        Dear KVP Member,
-        <br><br>
-        You have requested to reset password.
-        Click on this <a href="${config.ORIGIN}/reset?key=${reset.key}">link</a> to reset your password.
-        <br>
-        If you have not requested reset password, then please ignore.
-        <br><br>
-        Thanks,
-        KVP Admin.
-        `
-        email.sendEmail(req.body.email, 'KVP: Forgot Password', emailBody);
+      let attempts = 0;
+      resets.forEach(reset => {
+        console.log(resets.length);
+        let newDate = new Date();
+        if (newDate < reset.createdAt.setTime(reset.createdAt.getTime() + (1000 * 60 * 60 * 24))) {
+          console.log("in here");
+          attempts += 1;
+        }
+      });
+      console.log(attempts);
+      if (attempts > 3) {
+        return res.status(404).send({ message: "Maximum Retries reached for a day, try again later." });
+      }
+      else {
+        sms.generateOtp(user.phone).then(() => {
+          return res.send({ message: `OTP sent to registered number ending with ${user.phone.slice(-2)}` });
+        }).catch(err => {
+          console.log(err);
+          return res.send({ message: 'Failed to send OTP' });
+        });
+      }
+    })
+  });
+  return;
+};
+
+exports.forgotPassword = (req, res) => {
+  User.findOne({
+    where: {
+      email: req.body.email,
+      isActive: true,
+    },
+  }).then(user => {
+    if (!user) {
+      return res.status(404).send({ message: "User Not found, check email address" });
+    } else {
+      sms.verifyOtp(user.phone, req.body.otp).then(response => {
+        if (response.data.type === "error") {
+          return res.status(400).send({ message: response.data.message, code: 100 });
+        } else {
+          const resetObj = {
+            key: uuidv4(config.SECRET_KEY, uuidv4.URL),
+            email: req.body.email,
+            isActive: true,
+          }
+          res.send({ message: "Email sent with reset link, please check inbox" });
+          Reset.findAll({where: {email: req.body.email}}).then(resets => {
+            resets.forEach(async reset => {
+              await reset.update({isActive: false});
+            });
+            Reset.create(resetObj).then(reset => {
+              const emailBody = `
+                Dear KVP Member,
+                <br><br>
+                You have requested to reset password.
+                Click on this <a href="${config.ORIGIN}/reset?key=${reset.key}">link</a> to reset your password.
+                <br>
+                If you have not requested reset password, then please ignore.
+                <br><br>
+                Thanks,
+                KVP Admin.
+                `
+              email.sendEmail(req.body.email, 'KVP: Forgot Password', emailBody);
+            });
+          })
+        }
       });
     }
   });
-    return;
+  return;
 };
 
 exports.resetPassword = (req, res) => {
   Reset.findOne({ where: { key: req.body.key, isActive: true } }).then(reset => {
-    if (!reset) return res.status(500).send({ message: 'Link not valid or expired, try again.' });
+    if (!reset) return res.status(404).send({ message: 'Link not valid or expired, try again.' });
+    let newDate = new Date();
+    if (reset.createdAt > newDate.setTime(newDate.getTime() + (1000 * 60 * 60 * 4))) {
+      return res.status(404).send({ message: 'Link not valid or expired, try again.' });
+    }
     User.findOne({ where: { email: reset.email } }).then(user => {
-      reset.update({isActive: false}).then(() => {
+      reset.update({ isActive: false }).then(() => {
         const newPassword = bcrypt.hashSync(req.body.password, 8);
-        user.update({password: newPassword}).then(() => {
+        user.update({ password: newPassword }).then(() => {
           return res.send({ message: 'Password updated successfully' });
         });
       });

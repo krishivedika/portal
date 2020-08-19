@@ -24,14 +24,12 @@ const FarmRecordForm = (props) => {
   const [state, setState] = useContext(SharedContext);
 
   const setPropFields = () => {
-    if (props.type === "edit_farm") {
-      const fields = [];
-      Object.entries(props.fields).forEach(entry => {
-        fields.push({ name: entry[0], value: entry[1] });
-      });
-      setFields(() => fields);
-      setFieldsOld(() => fields);
-    }
+    const fields = [];
+    Object.entries(props.fields).forEach(entry => {
+      fields.push({ name: entry[0], value: entry[1] });
+    });
+    setFields(() => fields);
+    setFieldsOld(() => fields);
   }
   useEffect(() => {
     setPropFields();
@@ -39,12 +37,12 @@ const FarmRecordForm = (props) => {
     setCsrUsers(() => props.csrUsers);
     setShowUsers(() => {
       if ([1,2,3,4].includes(props.fields.role)) {
-        setOwnerType(false);
+        setFields(() => ([{name: 'isSelf', value: props.fields.isSelf}]));
         return true;
       }
       return false;
     });
-  }, []);
+  }, [props]);
 
   const selectUser = (e) => {
     const selectUser = csrUsers.filter(x => x.id === e)[0];

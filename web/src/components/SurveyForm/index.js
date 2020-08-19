@@ -66,7 +66,6 @@ const SurveyForm = (props) => {
       tempSurveyFiles.forEach(file => file.uid = file.id);
       setFilesList(() => tempSurveyFiles);
     }
-    console.log(props);
   }, [props]);
 
   return (

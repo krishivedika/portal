@@ -6,5 +6,6 @@ import Staff from "./Staff";
 import Reset from "./Reset";
 import FarmRecords from "./FarmRecords";
 import CropRecords from "./CropRecords";
+import Home from "./Home";
 
-export { Admin, Login, Onboarding, UserProfile, Staff, Reset, FarmRecords, CropRecords };
+export { Home, Admin, Login, Onboarding, UserProfile, Staff, Reset, FarmRecords, CropRecords };

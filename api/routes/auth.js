@@ -23,6 +23,8 @@ module.exports = (app) => {
 
   app.post("/signin/staff", [validation.staffSignin], controller.staffSignin);
 
+  app.post("/forgot/check", [validation.forgotCheck], controller.forgotPasswordCheck);
+
   app.post("/forgot", [validation.forgot], controller.forgotPassword);
 
   app.post("/reset", [validation.reset], controller.resetPassword);

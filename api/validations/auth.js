@@ -62,6 +62,7 @@ const staffSignin = (req, res, next) => {
 const forgot = (req, res, next) => {
   const validationRule = {
     email: "required|string",
+    otp: "required|string",
   };
   validator(req.body, validationRule, {}, (err, status) => {
     if (!status) {
@@ -75,6 +76,23 @@ const forgot = (req, res, next) => {
     }
   });
 };
+
+const forgotCheck = (req, res, next) => {
+  const validationRule = {
+    email: "required|string",
+  };
+  validator(req.body, validationRule, {}, (err, status) => {
+    if (!status) {
+      return res.status(412).send({
+        success: false,
+        message: "Validation failed",
+        data: err,
+      });
+    } else {
+      next();
+    }
+  });
+}
 
 const reset = (req, res, next) => {
   const validationRule = {
@@ -160,5 +178,6 @@ module.exports = {
   checkDuplicateUser,
   isOnboarded,
   forgot,
+  forgotCheck,
   reset,
 };

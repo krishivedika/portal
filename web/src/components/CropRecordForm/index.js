@@ -11,8 +11,6 @@ const layout = {
   wrapperCol: { span: 12 },
 };
 
-const user = AuthService.getCurrentUser();
-
 const CropRecordForm = (props) => {
 
   const [farms, setFarms] = useState([]);
@@ -32,6 +30,7 @@ const CropRecordForm = (props) => {
   useEffect(() => {
     setCrops(() => props.crops);
     setFarms(() => props.farms);
+    const user = AuthService.getCurrentUser();
     if (user.roles[0] === "FARMER") {
       setShowUsers(false);
       setShowFarms(true);

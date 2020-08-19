@@ -115,7 +115,13 @@ const StaffForm = (props) => {
                   style={{ marginTop: '10px' }}>
                   <Input placeholder="Enter Email" />
                 </Form.Item>
-                <Form.Item name="phone" label="Phone">
+                <Form.Item name="phone" label="Phone"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter Phone.",
+                    },
+                  ]}>
                   <Input placeholder="Enter Phone" disabled={!isStaff} />
                 </Form.Item>
               </Card>

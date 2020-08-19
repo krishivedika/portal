@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Layout, Menu, Button, Row, Col, Dropdown } from "antd";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined, DownOutlined, WindowsFilled } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
@@ -29,31 +29,27 @@ const NavigationBar = (props) => {
   };
 
   const filterMenuItems = () => {
-    if (!state.user.hasOwnProperty("roles")) {
+    const user = AuthService.getCurrentUser();
+    if (!user?.hasOwnProperty("roles")) {
       setMenuItem(constants.MAIN_MENU_ITEMS);
       setCurrentTab('LOGIN');
     }
     else {
-      switch (state.user.roles[0]) {
+      switch (user.roles[0]) {
         case 'SADMIN':
           setMenuItem(constants.SYSTEM_ADMIN_MENU_ITEMS);
-          setCurrentTab('ADMIN');
           break;
         case 'ADMIN':
           setMenuItem(constants.ADMIN_MENU_ITEMS);
-          setCurrentTab('USERMANAGEMENT');
           break;
         case 'CSR':
           setMenuItem(constants.CSR_MENU_ITEMS);
-          setCurrentTab('USERMANAGEMENT');
           break;
         case 'FIELD_AGENT':
           setMenuItem(constants.FIELD_AGENT_MENU_ITEMS);
-          setCurrentTab('USERMANAGEMENT');
           break;
         case 'FARMER':
           setMenuItem(constants.MEMBER_MENU_ITEMS);
-          setCurrentTab('PROFILE');
           break;
         default:
           setMenuItem(constants.MAIN_MENU_ITEMS);
@@ -62,6 +58,7 @@ const NavigationBar = (props) => {
   };
   const history = useHistory();
   const navigate = (path) => {
+    setCurrentTab(path);
     if (path === "/" && window.location.href.slice(-1) !== "/") {
       history.push(path)
     }
@@ -75,7 +72,7 @@ const NavigationBar = (props) => {
     let menu = menuItems.map(item => {
       let formattedItem = item.replace(" ", "").toUpperCase();
       return (
-        <Menu.Item key={formattedItem}>
+        <Menu.Item key={Routes[formattedItem]}>
           <Button type="link" onClick={() => navigate(Routes[formattedItem])}>{item}</Button>
         </Menu.Item>
       );
@@ -89,54 +86,63 @@ const NavigationBar = (props) => {
     renderMenuItems(menuItems)
   }, [state.user, menuItems]);
 
+  const location = useLocation();
   useEffect(() => {
     const user = AuthService.getCurrentUser();
-    if (user && !state.user.hasOwnProperty("roles")) {
+    if (user?.hasOwnProperty("roles")) {
       setState(state => ({ ...state, user: user }));
     }
+    setCurrentTab(location.pathname);
   }, []);
 
   return (
     <Header style={{ position: "fixed", zIndex: 1, width: "100%" }}>
       <Row>
         <Col xs={16} md={16} lg={3} xl={3} offset={0}>
-          <img src={logoImage} alt="KrishiVedika" />
+          <img onClick={() => history.push("/")} src={logoImage} alt="KrishiVedika" />
         </Col>
           <>
-            <Col xs={0} sm={0} md={0} lg={9} xl={9} offset={1}>
+            <Col xs={0} sm={0} md={0} lg={15} xl={15} offset={1}>
               <Menu mode="horizontal" selectedKeys={[currentTab]} onClick={(e) => setCurrentTab(e.key)}>
-                {!isLoggedIn &&
-                  <Menu.Item key="LOGIN">
-                    <Button type="link" onClick={() => navigate(Routes.ROOT)}>Sign In</Button>
-                  </Menu.Item>
-                }
-                {menu}
+                {isLoggedIn ? menu : null}
               </Menu>
             </Col>
-            <Col xs={0} sm={0} md={0} lg={11} xl={11} push={7}>
-              <Menu mode="horizontal" selectedKeys={[]} >
-                {isLoggedIn &&
-                  <Menu.Item key="USER">
-                    <Dropdown overlay={
-                      <Menu >
-                        <Menu.Item key="profile">
-                          <div onClick={() => navigate(Routes.PROFILE)}>Profile</div>
-                        </Menu.Item>
-                        <Menu.Item key="logout">
-                          <a href="/" onClick={logOut}>Sign Out</a>
-                        </Menu.Item>
-                      </Menu>
-                    } trigger={['click']}>
-                      <Button type="link" className="ant-dropdown-link" onClick={e => e.preventDefault()}>
-                        Welcome, {state.user.firstName} ({state.user.roles.includes("FARMER") ? "Member" : state.user.roles}) <UserOutlined /> <DownOutlined />
-                      </Button>
-                    </Dropdown>
-                  </Menu.Item>
-                }
-              </Menu>
+            <Col xs={0} sm={0} md={0} lg={5} xl={5}>
+              <Row justify="end">
+                <Menu mode="horizontal" selectedKeys={[]} >
+                  {isLoggedIn &&
+                    <Menu.Item key="USER">
+                      <Dropdown overlay={
+                        <Menu >
+                          <Menu.Item key="profile">
+                            <div onClick={() => navigate(Routes.PROFILE)}>Profile</div>
+                          </Menu.Item>
+                          <Menu.Item key="logout">
+                            <a href="/" onClick={logOut}>Sign Out</a>
+                          </Menu.Item>
+                        </Menu>
+                      } trigger={['click']}>
+                        <Button type="link" className="ant-dropdown-link" onClick={e => e.preventDefault()}>
+                          Welcome, {state.user.firstName} ({state.user.roles.includes("FARMER") ? "Member" : state.user.roles}) <UserOutlined /> <DownOutlined />
+                        </Button>
+                      </Dropdown>
+                    </Menu.Item>
+                  }
+                  {!isLoggedIn &&
+                    <Menu.Item key="LOGIN">
+                      <Button type="link" onClick={() => navigate(Routes.LOGIN)}>Sign In</Button>
+                    </Menu.Item>
+                  }
+                  {!isLoggedIn &&
+                    <Menu.Item key="SIGNUP">
+                      <Button type="link" onClick={() => navigate(Routes.SIGNUP)}>Sign Up</Button>
+                    </Menu.Item>
+                  }
+                </Menu>
+              </Row>
             </Col>
           </>
-            <Col xs={{span: 2, offset: 2}} md={2} offset={4} lg={0} xl={0}>
+            <Col xs={{span: 2, offset: 4}} md={2} lg={0} xl={0}>
               <Button
                 className="nav-button"
                 type="primary"
@@ -158,7 +164,7 @@ const NavigationBar = (props) => {
       >
         {!isLoggedIn &&
           <Menu.Item key="LOGIN">
-            <Button type="link" onClick={() => navigate(Routes.ROOT)}>Sign In</Button>
+            <Button type="link" onClick={() => navigate(Routes.LOGIN)}>Sign In</Button>
           </Menu.Item>
         }
         {menu}

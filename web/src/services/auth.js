@@ -9,6 +9,10 @@ class AuthService {
     return axios.post(`/signin/staff`, data);
   }
 
+  forgotPasswordCheck(data) {
+    return axios.post(`/forgot/check`, data);
+  }
+
   forgotPassword(data) {
     return axios.post(`/forgot`, data);
   }

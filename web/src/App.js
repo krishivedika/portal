@@ -7,7 +7,7 @@ import './App.less';
 import Routes from "./routes";
 import AuthService from "./services/auth";
 import config from "./config";
-import { Admin, Login, Reset, Onboarding, UserProfile, Staff, FarmRecords, CropRecords } from "./screens";
+import { Admin, Login, Reset, Onboarding, UserProfile, Staff, FarmRecords, CropRecords, Home } from "./screens";
 import { Header } from "./components";
 import { SharedContext } from "./context";
 
@@ -50,7 +50,9 @@ const App = (props) => {
             <Spin spinning={state.spinning} size="large">
               <Content  style={{marginBottom: '100px'}}>
                 <Switch>
-                  <Route exact path={Routes.ROOT} component={Login} />
+                  <Route exact path={Routes.ROOT} component={Home} />
+                  <Route exact path={Routes.LOGIN} render={(props) => < Login {...props} type="member" />} />
+                  <Route exact path={Routes.STAFF} render={(props) => < Login {...props} type="staff" />} />
                   <Route exact path={Routes.RESET} component={Reset} />
                   <Route exact path={Routes.SIGNUP} component={Onboarding} />
                   <Route exact path={Routes.PROFILE} component={UserProfile} />
