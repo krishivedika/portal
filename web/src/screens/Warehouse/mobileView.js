@@ -1,38 +1,41 @@
 import React, { useState, useEffect } from "react";
 import { Collapse, Row, Col, Button, List, Skeleton } from "antd";
-import { DeleteFilled } from "@ant-design/icons";
+import { EditFilled, DeleteFilled, ReloadOutlined, AppstoreOutlined } from "@ant-design/icons";
 
 const { Panel } = Collapse;
 
 const MobileView = (props) => {
-  const [farms, setFarms] = useState(props.farms);
-  const [layers, setLayers] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [inventories, setInventories] = useState([]);
 
   const callback = (key) => {
-    props.farms.forEach(farm => {
-      if (farm.id === Number(key)) {
-        setLayers(() => [...farm.Layers]);
+    props.warehouses.forEach(warehouse => {
+      if (warehouse.id === Number(key)) {
+        setInventories(() => [...warehouse.Inventories]);
       }
     });
   };
 
   useEffect(() => {
-    setFarms(props.farms);
+    setWarehouses(props.warehouses);
   }, [props]);
 
   const RenderActions = (item) => {
     return (
       <>
         {item.item.isActive &&
+          <>
           <Button
             size="small"
-            type="danger"
+            type="primary"
             onClick={(event) => {
               event.stopPropagation();
-              props.deleteRecord(item.item);
-            }}>
-            <DeleteFilled /> Delete
+              props.review(item.item, "add_inventory");
+            }}
+          >
+            + Inventory
           </Button>
+        </>
         }
       </>
     );
@@ -47,34 +50,21 @@ const MobileView = (props) => {
             onChange={callback}
             expandIconPosition={"left"}
           >
-            {farms.map((item, key) => {
+            {warehouses.map((item, key) => {
               return (
                 <Panel
-                  header={`${item.name} (${item.Farm.name})`}
+                  header={`${item.name}`}
                   key={item.id}
                   extra={<RenderActions item={item} />}
                 >
                   <List
-                    className="demo-loadmore-list"
                     itemLayout="horizontal"
-                    dataSource={layers}
+                    dataSource={inventories}
                     renderItem={(item) => (
                       <List.Item key={item.id}
-                        actions={[
-                          <Button
-                            type="secondary"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              props.showActivity(item);
-                            }}
-                            key="list-loadmore-edit"
-                          >
-                            PoP
-                          </Button>,
-                        ]}
                       >
                         <Skeleton active loading={false}>
-                          <List.Item.Meta title={`${item.crop} (${new Date(item.date).toDateString()})`}></List.Item.Meta>
+                          <List.Item.Meta title={`${item.item} Quantity: ${item.quantity}, Metric: ${item.metric}`}></List.Item.Meta>
                         </Skeleton>
                       </List.Item>
                     )}

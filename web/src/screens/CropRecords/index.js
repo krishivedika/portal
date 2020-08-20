@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Spin, Tooltip, Timeline, Checkbox, Modal, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
-import { CheckCircleTwoTone, DeleteFilled } from "@ant-design/icons";
+import { CheckCircleTwoTone, FlagTwoTone, DeleteFilled } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import CropService from "../../services/crop";
@@ -8,6 +8,7 @@ import { CropRecordForm } from "../../components";
 import MobileView from "./mobileView";
 import LayerTable from "./layerTable";
 import { SharedContext } from "../../context";
+import "./index.less";
 
 const CropRecords = () => {
   const [farmRecord, setFarmRecords] = useState([]);
@@ -76,7 +77,7 @@ const CropRecords = () => {
 
   const showActivity = (item) => {
     if (item.config) {
-      CropService.getLayerRecord({id: item.id}).then(response => {
+      CropService.getLayerRecord({ id: item.id }).then(response => {
         updateStages(response.data.layer);
       }).catch(err => {
         message.error(err.response.data.message);
@@ -87,7 +88,7 @@ const CropRecords = () => {
   };
 
   const updateStage = (id) => {
-    CropService.updateLayerRecord({id: layerId, stageId: id}).then(response => {
+    CropService.updateLayerRecord({ id: layerId, stageId: id }).then(response => {
       message.success(response.data.message);
       updateStages(response.data.layer);
     }).catch(err => {
@@ -95,10 +96,17 @@ const CropRecords = () => {
     });
   };
 
-  const getTimeLineDate = (e) => {
+  const getTimeLineDate = (stage) => {
     let newDate = new Date(date);
-    newDate.setDate(newDate.getDate() + e);
-  if (newDate.toDateString() === new Date(date).toDateString()) return <b>{newDate.toDateString()}</b>
+    newDate.setDate(newDate.getDate() + stage.day);
+    if (stage.stage === "presowing") {
+      if (stage.day > -7) {
+        return `${Math.abs(stage.day)} day(s) before`;
+      } else {
+        return `${Math.abs(parseInt(stage.day/7))} week(s) before`;
+      }
+    };
+    if (newDate.toDateString() === new Date(date).toDateString()) return <b>{newDate.toDateString()}</b>
     return newDate.toDateString();
   };
 
@@ -107,6 +115,13 @@ const CropRecords = () => {
     if (stage.completed) color = "green";
     else color = "gray";
     if (stage.stage === "presowing") color = "orange";
+    if (stage.day === 0) {
+      return (
+        <Button type="link" disabled>
+          <FlagTwoTone style={{ fontSize: '30px' }} twoToneColor={color} />
+        </Button>
+      )
+    }
     if (stage.completed) {
       return (
         <Button type="link" disabled>
@@ -115,7 +130,7 @@ const CropRecords = () => {
       )
     }
     else {
-      return  (
+      return (
         <Button onClick={() => updateStage(stage.id)} type="link">
           <CheckCircleTwoTone twoToneColor={color} />
         </Button>
@@ -200,12 +215,12 @@ const CropRecords = () => {
 
   return (
     <>
-      <Modal bodyStyle={{height: '80vh'}} width={900} title={title} footer={null} visible={timeline} onCancel={() => setTimeline(false)}>
-        <div style={{padding: '10px', overflowY: 'scroll', height: '100%'}}>
+      <Modal bodyStyle={{ height: '80vh' }} width={900} title={title} footer={null} visible={timeline} onCancel={() => setTimeline(false)}>
+        <div style={{ padding: '10px', overflowY: 'scroll', height: '100%' }}>
           <Spin spinning={state.spinning} size="large">
             <Timeline mode='left'>
               {stages.map((s) => (
-                <Timeline.Item dot={getTimeLineDot(s)} key={s.id} label={getTimeLineDate(s.day)}>
+                <Timeline.Item dot={getTimeLineDot(s)} key={s.id} label={getTimeLineDate(s)}>
                   <p>Stage {s.stage}</p>
                   <p>Activity: {s.activity}</p>
                   <p>{s.general ? `General: ${s.general}` : ""}</p>
@@ -231,8 +246,8 @@ const CropRecords = () => {
           </Form>
         </Col>
         <Col
-          xs={{span: 8}}
-          lg={{span: 10, offset: 2}}
+          xs={{ span: 8 }}
+          lg={{ span: 10, offset: 2 }}
           style={{ textAlign: "end" }}
         >
           <Button type="primary" onClick={openNewForm}>

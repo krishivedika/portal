@@ -67,7 +67,7 @@ exports.users = (req, res) => {
           where: { id: { [Op.gte]: req.userRoleId } },
         },
         {
-          model: User, as: 'managedBy', through: 'UserAssociations',
+          model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations',
           required: false,
         },
       ],
@@ -126,7 +126,7 @@ exports.onBoardMember = async (req, res) => {
           where: { id: { [Op.gte]: req.userRoleId } },
         },
         {
-          model: User, through: 'UserAssociations', as: 'managedBy'
+          model: User.scope("withoutPassword"), through: 'UserAssociations', as: 'managedBy'
         },
       ],
     })

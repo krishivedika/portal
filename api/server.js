@@ -53,6 +53,7 @@ require('./routes/user')(app);
 require('./routes/farm')(app);
 require('./routes/crop')(app);
 require('./routes/region')(app);
+require('./routes/warehouse')(app);
 
 const Role = db.role;
 const User = db.user;

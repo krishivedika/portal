@@ -6,5 +6,7 @@ import PartitionForm from "./PartitionForm";
 import FarmRecordForm from "./FarmRecordForm";
 import SurveyForm from "./SurveyForm";
 import CropRecordForm from "./CropRecordForm";
+import WarehouseForm from "./WarehouseForm";
+import InventoryForm from "./InventoryForm";
 
-export { Header, UserManagement, MemberForm, StaffForm, PartitionForm, FarmRecordForm, SurveyForm, CropRecordForm };
+export { Header, UserManagement, MemberForm, StaffForm, PartitionForm, FarmRecordForm, SurveyForm, CropRecordForm, WarehouseForm, InventoryForm };

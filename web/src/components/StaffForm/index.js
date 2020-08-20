@@ -122,7 +122,7 @@ const StaffForm = (props) => {
                       message: "Please enter Phone.",
                     },
                   ]}>
-                  <Input placeholder="Enter Phone" disabled={!isStaff} />
+                  <Input placeholder="Enter Phone" />
                 </Form.Item>
               </Card>
             </Col>

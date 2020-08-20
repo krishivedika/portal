@@ -65,7 +65,7 @@ const MemberForm = (props) => {
               <Form.Item name="csr" label="CSR"
                   rules={[
                     {
-                      required: true,
+                      required: props.fields.isOnboarded,
                       message: "Please select User's CSR / Field Agent",
                     }
                   ]}>

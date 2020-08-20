@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     subdivision: DataTypes.INTEGER,
     landType: DataTypes.STRING,
     extent: DataTypes.DOUBLE,
-    comment: DataTypes.STRING,
+    comment: DataTypes.TEXT,
     isActive: DataTypes.BOOLEAN,
   }, {
     sequelize,

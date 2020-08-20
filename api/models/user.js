@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     mandala: DataTypes.STRING,
     panchayat: DataTypes.STRING,
     hamlet: DataTypes.STRING,
-    address: DataTypes.STRING,
+    address: DataTypes.TEXT,
     isActive: DataTypes.BOOLEAN,
     isOnboarded: DataTypes.BOOLEAN,
     updatedBy: DataTypes.STRING,

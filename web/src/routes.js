@@ -10,6 +10,7 @@ export default {
   HELP: '/help',
   FARMRECORDS: '/farmrecords',
   CROPRECORDS: '/croprecords',
+  WAREHOUSE: '/warehouse',
   ANALYTICS: '/analytics',
   LOGOUT: '/logout',
   USERMANAGEMENT: '/usermanagement',

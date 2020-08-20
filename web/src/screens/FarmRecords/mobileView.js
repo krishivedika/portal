@@ -79,7 +79,7 @@ const MobileView = (props) => {
 
   return (
     <>
-      <Row style={{ padding: "10px" }}>
+      <Row>
         <Col xs={24} lg={0} xl={0}>
           <Collapse
             accordion={true}

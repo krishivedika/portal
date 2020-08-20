@@ -1,8 +1,6 @@
 const Sequelize = require("sequelize");
 
 const db = require("../models");
-const { common } = require("../helpers");
-const practice = require("../models/practice");
 
 const Op = Sequelize.Op;
 const Farm = db.farm
@@ -51,7 +49,7 @@ exports.cropRecords = async (req, res) => {
       where: { '$managedBy.UserAssociations.csrId$': req.userId },
       include: [
         {
-          model: User, as: 'managedBy', through: 'UserAssociations',
+          model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations',
           required: false,
         }
       ]
@@ -60,7 +58,7 @@ exports.cropRecords = async (req, res) => {
       users.push(csr.id);
     });
     where = { ...where, userId: { [Op.in]: users } };
-    include.push({ model: User });
+    include.push({ model: User.scope("withoutPassword")});
   }
 
   Farm.findAll({
@@ -127,17 +125,17 @@ exports.deleteCropRecord = (req, res) => {
       id: req.body.id,
     },
     include: [
-      { model: Farm, include: [{ model: User }] }
+      { model: Farm, include: [{ model: User.scope("withoutPassword") }] }
     ]
   }).then(async (crop) => {
     if (!crop) {
       return res.status(404).send({ message: "Crop Record doesn't exist" });
     }
     if ([3, 4].includes(req.userRoleId)) {
-      const users = await User.findAll(
+      const users = await User.scope("withoutPassword").findAll(
         {
           where: { '$managedBy.UserAssociations.csrId$': req.userId },
-          include: [{ model: User, as: 'managedBy', through: 'UserAssociations' }]
+          include: [{ model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations' }]
         });
       const managedUsers = users.map(x => x.id);
       if (!managedUsers.includes(crop.Farm.User.id)) {
@@ -164,7 +162,7 @@ exports.getLayerRecord = (req, res) => {
           model: Crop, include: [
             {
               model: Farm, include: [
-                { model: User }
+                { model: User.scope("withoutPassword") }
               ]
             }
           ]
@@ -175,10 +173,10 @@ exports.getLayerRecord = (req, res) => {
         return res.status(404).send({ message: "Layer doesn't exist" });
       }
       if ([3, 4].includes(req.userRoleId)) {
-        const users = await User.findAll(
+        const users = await User.scope("withoutPassword").findAll(
           {
             where: { '$managedBy.UserAssociations.csrId$': req.userId },
-            include: [{ model: User, as: 'managedBy', through: 'UserAssociations' }]
+            include: [{ model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations' }]
           });
         const csrUsers = users.map(x => x.id);
         if (!csrUsers.includes(layer.Crop.Farm.User.id)) {
@@ -204,7 +202,7 @@ exports.updateLayerRecord = (req, res) => {
           model: Crop, include: [
             {
               model: Farm, include: [
-                { model: User }
+                { model: User.scope("withoutPassword") }
               ]
             }
           ]
@@ -215,10 +213,10 @@ exports.updateLayerRecord = (req, res) => {
         return res.status(404).send({ message: "Layer doesn't exist" });
       }
       if ([3, 4].includes(req.userRoleId)) {
-        const users = await User.findAll(
+        const users = await User.scope("withoutPassword").findAll(
           {
             where: { '$managedBy.UserAssociations.csrId$': req.userId },
-            include: [{ model: User, as: 'managedBy', through: 'UserAssociations' }]
+            include: [{ model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations' }]
           });
         const csrUsers = users.map(x => x.id);
         if (!csrUsers.includes(layer.Crop.Farm.User.id)) {
