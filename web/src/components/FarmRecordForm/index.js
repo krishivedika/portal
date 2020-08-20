@@ -1,8 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Select, Form, Input, Radio, Button, Row, Col, Card, InputNumber } from "antd";
+import React, { useRef, useEffect, useState } from "react";
+import { Select, Form, Input, Radio, Button, Row, Col, Card, InputNumber, message } from "antd";
 
 import RegionService from "../../services/region";
-import { SharedContext } from "../../context";
 
 const { Option } = Select;
 
@@ -12,8 +11,11 @@ const layout = {
 };
 
 const FarmRecordForm = (props) => {
+
+  const fieldsOld = useRef();
+
   const [fields, setFields] = useState([]);
-  const [fieldsOld, setFieldsOld] = useState([]);
+  const [fieldsCopy, setFieldsCopy] = useState([]);
   const [ownerType, setOwnerType] = useState(true);
   const [csrUsers, setCsrUsers] = useState([]);
   const [showUsers, setShowUsers] = useState(false);
@@ -21,18 +23,17 @@ const FarmRecordForm = (props) => {
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
   const [villages, setVillages] = useState([]);
-  const [state, setState] = useContext(SharedContext);
 
-  const setPropFields = () => {
+  const setPropFields = (fieldsValue) => {
     const fields = [];
-    Object.entries(props.fields).forEach(entry => {
+    Object.entries(fieldsValue).forEach(entry => {
       fields.push({ name: entry[0], value: entry[1] });
     });
     setFields(() => fields);
-    setFieldsOld(() => fields);
+    setFieldsCopy(() => fields);
   }
   useEffect(() => {
-    setPropFields();
+    setPropFields(props.fields);
     setOwnerType(props.fields.isSelf);
     setCsrUsers(() => props.csrUsers);
     setShowUsers(() => {
@@ -42,6 +43,9 @@ const FarmRecordForm = (props) => {
       }
       return false;
     });
+    if (fieldsOld.current) {
+      setPropFields(fieldsOld.current);
+    }
   }, [props]);
 
   const selectUser = (e) => {
@@ -54,16 +58,15 @@ const FarmRecordForm = (props) => {
       { name: 'isSelf', value: true},
     ];
     setFields(() => fieldsUser);
-    setFieldsOld(() => fieldsUser);
+    setFieldsCopy(() => fieldsUser)
     setOwnerType(true);
   }
 
   const selectOwnerType = (e) => {
     setOwnerType(e.target.value);
     if (e.target.value) {
-      setFields(() => fieldsOld);
+      setFields(() => fieldsCopy);
     } else {
-      setFieldsOld(() => fields);
       setFields(() => [
         { name: 'ownerFirstName', value: '' },
         { name: 'ownerLastName', value: '' },
@@ -73,9 +76,9 @@ const FarmRecordForm = (props) => {
     }
   }
 
-  const selectState = (e) => {
-    RegionService.getRegions({ state: e }).then(response => {
-      setState(state => ({ ...state, spinning: true }));
+  const selectState = async (e) => {
+    fieldsOld.current = await props.form.getFieldsValue();
+    RegionService.getRegions({ 'state': e }).then(response => {
       setRegions(() => response.data.regions);
       setDistricts(() => {
         const entries = [];
@@ -84,7 +87,6 @@ const FarmRecordForm = (props) => {
         });
         return entries;
       });
-      setState(state => ({ ...state, spinning: false }));
     }).catch(err => {
       console.log(err);
     });
@@ -130,7 +132,7 @@ const FarmRecordForm = (props) => {
             </Form.Item>
           </Form>
         ]}>
-        <Form fields={fields} preserve={false} form={props.form} onFinish={props.onFinish} {...layout}>
+        <Form fields={fields} preserve={true} form={props.form} onFinish={props.onFinish} {...layout}>
           <Row>
             <Col span={24}>
               <Card title="Farm Ownership" className="g-ant-card">
@@ -254,7 +256,7 @@ const FarmRecordForm = (props) => {
                       message: "Please input State",
                     },
                   ]}>
-                  <Select placeholder="Select State" onChange={selectState}>
+                  <Select placeholder="Select State" onSelect={selectState}>
                     <Option value="ANDHRA PRADESH">Andhra Pradesh</Option>
                   </Select>
                 </Form.Item>
