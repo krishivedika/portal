@@ -10,6 +10,8 @@ const Farm = db.farm;
 const User = db.user;
 const Survey = db.survey;
 const SurveyFile = db.surveyFile;
+const WarehouseFarm = db.warehouseFarm;
+const Warehouse = db.warehouse;
 
 // Farm Record End Points
 exports.farmRecords = async (req, res) => {
@@ -19,17 +21,27 @@ exports.farmRecords = async (req, res) => {
     ],
   };
 
+  let surveyWhere = {};
   if (req.query.deleted !== 'true') {
     where = {...where, isActive: true};
+    surveyWhere = {...surveyWhere, isActive: true};
   }
 
   let include = [
     {
-      model: Survey,
+      model: Warehouse,
       required: false,
       where: { isActive: true },
+    },
+    {
+      model: Survey,
+      required: false,
+      where: surveyWhere,
       include: [{ model: SurveyFile, where: { isActive: true }, required: false }],
     },
+    {
+      model: User.scope("withoutPassword"),
+    }
   ]
   let csrUsers = [];
   let users = [];
@@ -83,10 +95,19 @@ exports.addFarmRecord = (req, res) => {
     if (farm) {
       return res.status(404).send({ message: "Farm with same name already exists" });
     }
-    Farm.create(farmRecords).then(() => {
-      return res.status(200).send({
-        message: "Farm Record Created Successfully!",
-      });
+    Farm.create(farmRecords).then(farm => {
+      if (farmRecords.warehouse) {
+        WarehouseFarm.create({FarmId: farm.id, WarehouseId: farmRecords.warehouse}, {fields: ['FarmId', 'WarehouseId']}).then(() => {
+          return res.status(200).send({
+            message: "Farm Record Created Successfully!",
+          });
+        });
+      }
+      else {
+        return res.status(200).send({
+          message: "Farm Record Created Successfully!",
+        });
+      }
     })
   }).catch(() => {
     return res.status(500).send({ message: "Unknown Error", code: 2 });
@@ -244,12 +265,17 @@ exports.addSurveyRecord = (req, res) => {
 exports.updateSurveyRecord = (req, res) => {
   let surveyRecord = { ...req.body };
   surveyRecord.extent = surveyRecord.extent.toFixed(4);
+  Survey.findOne({
+    where: {
+      id: req.body.id,
+    },
+  }).then((survey) => {
   Farm.findOne({ where: { id: surveyRecord.FarmId } }).then(farm => {
     Farm.findAll({ where: { panchayat: farm.panchayat }, include: [{ model: Survey }] }).then(farms => {
       let isSurvey = false;
       farms.forEach(f => {
         f.Surveys.forEach(s => {
-          if (s.number === surveyRecord.number && s.subdivision === surveyRecord.subdivision) {
+          if (s.number === surveyRecord.number && s.subdivision === surveyRecord.subdivision && s.id !== survey.id) {
             isSurvey = true;
           }
         });
@@ -257,11 +283,6 @@ exports.updateSurveyRecord = (req, res) => {
       if (isSurvey) {
         return res.status(404).send({ message: "Survey and Subdivision already exist in this village" });
       } else {
-        Survey.findOne({
-          where: {
-            id: req.body.id,
-          },
-        }).then((survey) => {
           if (!survey) {
             return res.status(404).send({ message: "Survey Record not found" });
           }
@@ -271,8 +292,8 @@ exports.updateSurveyRecord = (req, res) => {
             console.log(err);
             return res.status(500).send({ message: "Unknown Error", code: 2 });
           });;
-        })
-      }
+        }
+      })
     });
   }).catch(err => {
     console.log(err);
@@ -283,18 +304,50 @@ exports.updateSurveyRecord = (req, res) => {
 exports.deleteSurveyRecord = (req, res) => {
   Survey.findOne({
     where: {
-      id: req.params.id,
+      id: req.body.id,
     },
-  }).then((survey) => {
+    include: [
+      {model: Farm, required: false, include: [{model: User}]},
+    ]
+  }).then(async (survey) => {
     if (!survey) {
-      return res.status(404).send({ message: "Survey doesn't exist" });
+      return res.status(404).send({ message: "Survey Record doesn't exist" });
     }
-    survey.updated({ isActive: false }).then(() => {
-      return res.send({ message: "Survey Successfully Deleted!" });
+    if ([3,4].includes(req.userRoleId)) {
+      const users = await User.scope("withoutPassword").findAll(
+        {where: {'$managedBy.UserAssociations.csrId$': req.userId},
+        include: [{model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations'}]
+      });
+      const csrUsers = users.map(x => x.id);
+      if (!csrUsers.includes(survey.Farm.User.id)) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
+      }
+    }
+    else if (survey.Farm.User.id !== req.userId) {
+      console.log(survey.Farm.User.id);
+      return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
+    }
+    survey.update({ isActive: false }).then(() => {
+      return res.send({ message: "Survey Record Successfully Deleted!" });
     });
-  }).catch(() => {
+  }).catch((err) => {
+    console.log(err);
     return res.status(500).send({ message: "Unknown Error", code: 2 });
   });
+  // Survey.findOne({
+  //   where: {
+  //     id: req.params.id,
+  //   },
+  // }).then((survey) => {
+  //   if (!survey) {
+  //     return res.status(404).send({ message: "Survey doesn't exist" });
+  //   }
+  //   survey.updated({ isActive: false }).then(() => {
+  //     return res.send({ message: "Survey Successfully Deleted!" });
+  //   });
+  // }).catch(() => {
+  //   return res.status(500).send({ message: "Unknown Error", code: 2 });
+  // });
 };
 
 exports.fileUpload = (req, res) => {
@@ -312,7 +365,13 @@ exports.fileUpload = (req, res) => {
           filetype: fileName.split('.').pop(),
         }
         SurveyFile.create(surveyFileObj).then(surveyFile => {
-          return res.status(200).send({ id: surveyFile.id, url: storage.downloadFileUrl(surveyContainer, surveyFile.path) });
+          Survey.findAll(
+            {where: {id: req.body.survey, isActive: true},
+            include: [{model: SurveyFile, required: false, where: {isActive: true}}]
+            }
+            ).then(surveyFiles => {
+            return res.status(200).send({surveyFiles});
+          })
         }).catch(err => {
           console.log(err);
           return res.status(500).send({ message: err.message });

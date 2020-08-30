@@ -28,6 +28,8 @@ module.exports = (app) => {
 
   app.post("/farm/survey/update", [commonValidations.verifyToken, validation.updateSurvey], controller.updateSurveyRecord);
 
+  app.post("/farm/survey/delete", [commonValidations.verifyToken, validation.deleteSurvey], controller.deleteSurveyRecord);
+
   app.post("/farm/survey/upload/delete", [commonValidations.verifyToken], controller.deleteUpload);
 
   app.post("/farm/survey/upload", [files.single('file'), commonValidations.verifyToken], controller.fileUpload);

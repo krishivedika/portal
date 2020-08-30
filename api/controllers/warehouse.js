@@ -1,15 +1,19 @@
 const Sequelize = require("sequelize");
 
 const db = require("../models");
+const machineryType = require("../models/machineryType");
 
 const Op = Sequelize.Op;
 const User = db.user;
 const Warehouse = db.warehouse;
 const Inventory = db.inventory;
+const InventoryType = db.inventoryType;
+const Machinery = db.machinery;
+const MachineryType = db.machineryType;
 
 // Warehouse End Points
 exports.warehouses = async (req, res) => {
-  let where = {isActive: true};
+  let where = { isActive: true };
   let include = [];
   let csrUsers = [];
   let users = [];
@@ -36,11 +40,14 @@ exports.warehouses = async (req, res) => {
     });
     where = { ...where, UserId: { [Op.in]: users } };
   }
-  include.push({model: User.scope("withoutPassword")});
-  include.push({model: Inventory, required: false});
+  include.push({ model: User.scope("withoutPassword") });
+  include.push({ model: Inventory, required: false });
+  include.push({ model: Machinery, required: false });
   try {
-    const warehouses = await Warehouse.findAll({where: where, include: include});
-    return res.status(200).send({ warehouses, csrUsers });
+    const warehouses = await Warehouse.findAll({ where: where, include: include });
+    const inventories = await InventoryType.findAll({ where: { isActive: true } });
+    const machineries = await MachineryType.findAll({ where: { isActive: true } });
+    return res.status(200).send({ warehouses, csrUsers, inventories, machineries });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ message: err.message });
@@ -67,19 +74,131 @@ exports.addWarehouse = async (req, res) => {
   }
 };
 
-exports.addInventory = async (req, res) => {
-  try {
-    await Inventory.create({
-      name: req.body.name,
-      quantity: req.body.quantity,
-      metric: req.body.metric,
-      WarehouseId: req.body.warehouse
+exports.deleteWarehouse = async (req, res) => {
+  Warehouse.findOne({
+    where: {
+      id: req.body.id,
+      isActive: true,
+    },
+  }).then(async (warehouse) => {
+    if (!warehouse) {
+      return res.status(404).send({ message: "Warehouse doesn't exist" });
+    }
+    if ([3, 4].includes(req.userRoleId)) {
+      const users = await User.scope("withoutPassword").findAll(
+        {
+          where: { '$managedBy.UserAssociations.csrId$': req.userId },
+          include: [{ model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations' }]
+        });
+      const csrUsers = users.map(x => x.id);
+      if (!csrUsers.includes(warehouse.UserId)) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
+      }
+    }
+    else if (warehouse.UserId !== req.userId) {
+      return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
+    }
+    warehouse.update({ isActive: false }).then(() => {
+      return res.send({ message: "Warehouse Successfully Deleted!" });
     });
-    return res.status(200).send({
-      message: "Inventory Created Successfully!",
-    });
-  } catch (err) {
+  }).catch((err) => {
     console.log(err);
     return res.status(500).send({ message: "Unknown Error", code: 2 });
-  }
+  });
+};
+
+exports.addInventory = async (req, res) => {
+  Inventory.findOne({ where: { item: req.body.item, WarehouseId: req.body.warehouse } }).then(async inventory => {
+    if (inventory) {
+      inventory.update({ quantity: inventory.quantity + req.body.quantity }).then(() => {
+        return res.status(200).send({
+          message: "Inventory Updated Successfully!",
+        });
+      }).catch(err => {
+        console.log(err);
+        return res.status(500).send({ message: "Unknown Error", code: 2 });
+      });
+    } else {
+      try {
+        await Inventory.create({
+          item: req.body.item,
+          quantity: req.body.quantity,
+          metric: req.body.metric,
+          WarehouseId: req.body.warehouse
+        });
+        return res.status(200).send({
+          message: "Inventory Created Successfully!",
+        });
+      } catch (err) {
+        console.log(err);
+        return res.status(500).send({ message: "Unknown Error", code: 2 });
+      }
+    }
+  }).catch(err => {
+    console.log(err);
+    return res.status(500).send({ message: "Unknown Error", code: 2 });
+  });;
+};
+
+exports.editInventory = async (req, res) => {
+  Inventory.findOne({ where: { id: req.body.id } }).then(async inventory => {
+    if (inventory) {
+      inventory.update({ quantity: req.body.quantity }).then(() => {
+        return res.status(200).send({
+          message: "Inventory Updated Successfully!",
+        });
+      }).catch(err => {
+        console.log(err);
+        return res.status(500).send({ message: "Unknown Error", code: 2 });
+      });
+    }
+  });
+};
+
+exports.addMachinery = async (req, res) => {
+  Machinery.findOne({ where: { item: req.body.item, WarehouseId: req.body.warehouse } }).then(async machinery => {
+    if (machinery) {
+      machinery.update({ quantity: machinery.quantity + req.body.quantity }).then(() => {
+        return res.status(200).send({
+          message: "Machinery Updated Successfully!",
+        });
+      }).catch(err => {
+        console.log(err);
+        return res.status(500).send({ message: "Unknown Error", code: 2 });
+      });
+    } else {
+      try {
+        await Machinery.create({
+          item: req.body.item,
+          quantity: req.body.quantity,
+          details: req.body.details,
+          WarehouseId: req.body.warehouse
+        });
+        return res.status(200).send({
+          message: "Machinery Created Successfully!",
+        });
+      } catch (err) {
+        console.log(err);
+        return res.status(500).send({ message: "Unknown Error", code: 2 });
+      }
+    }
+  }).catch(err => {
+    console.log(err);
+    return res.status(500).send({ message: "Unknown Error", code: 2 });
+  });;
+};
+
+exports.editMachinery = async (req, res) => {
+  Machinery.findOne({ where: { id: req.body.id } }).then(async machinery => {
+    if (machinery) {
+      machinery.update({ quantity: req.body.quantity }).then(() => {
+        return res.status(200).send({
+          message: "Machinery Updated Successfully!",
+        });
+      }).catch(err => {
+        console.log(err);
+        return res.status(500).send({ message: "Unknown Error", code: 2 });
+      });
+    }
+  });
 };

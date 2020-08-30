@@ -37,7 +37,26 @@ const deleteCropRecord = (req, res, next) => {
   });
 };
 
+const restoreCropRecord = (req, res, next) => {
+  const validationRuleUpdate = {
+    id: "required",
+  };
+  validator(req.body, validationRuleUpdate, {}, (err, status) => {
+    if (!status) {
+      console.log(err);
+      return res.status(412).send({
+        success: false,
+        message: "Validation failed",
+        data: err,
+      });
+    } else {
+      next();
+    }
+  });
+};
+
 module.exports = {
   addCropRecord,
   deleteCropRecord,
+  restoreCropRecord,
 };

@@ -4,6 +4,7 @@ import { AppstoreOutlined, EditFilled, DeleteFilled, PlusOutlined, ReloadOutline
 
 import AuthService from "../../services/auth";
 import UserService from "../../services/user";
+import WarehouseService from "../../services/warehouse";
 import { FarmRecordForm, PartitionForm, SurveyForm } from "../../components";
 import SurveyTable from "./surveyTable";
 import MobileView from "./mobileView";
@@ -17,6 +18,7 @@ const layout = {
 const FarmRecords = () => {
   const [farmRecord, setFarmRecord] = useState([]);
   const [csrUsers, setCsrUsers] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDrawer, setShowDrawer] = useState(false);
   const [showPartitionDrawer, setShowPartitionDrawer] = useState(false);
@@ -159,7 +161,13 @@ const FarmRecords = () => {
         });
         setFarmRecord(() => tempFarms);
         setCsrUsers(() => response.data.csrUsers);
-        setLoading(false);
+        WarehouseService.getWarehouses().then(response => {
+          setWarehouses(() => response.data.warehouses);
+          setLoading(false);
+        }).catch(err => {
+          console.log(err);
+          message.error(err.response.data.message);
+        });
       }
     );
   };
@@ -167,6 +175,9 @@ const FarmRecords = () => {
   const review = (item, action) => {
     setLoading(true);
     setAction(action);
+    if (item.Warehouses) {
+      if (item.Warehouses.length !== 0) item.warehouse = item.Warehouses[0].name;
+    }
     setSelectedItem(() => item);
     setShowDrawer(true);
   };
@@ -256,6 +267,7 @@ const FarmRecords = () => {
       formValues.FarmId = selectedItem.id;
       UserService.addSurvey(formValues)
         .then(() => {
+          message.destroy();
           message.success(`Survey Successfully Added.`);
           setShowDrawer(false);
           surveyForm.resetFields();
@@ -265,9 +277,19 @@ const FarmRecords = () => {
         })
         .catch((err) => {
           console.log(err);
-          message.error(`Failed to add Survey, ${err.response.data.message}`);
+          message.error(`Failed to add Survey, ${err.response.data.message}`, 0);
         });
     }
+  };
+
+  const deleteSurveyRecords = (id) => {
+    UserService.deleteSurvey({id}).then(response => {
+      message.success(response.data.message);
+      fetchAndUpdateRecords();
+    }).catch(err => {
+      console.log(err);
+      message.error(err.response.data.message);
+    });
   };
 
   const openNewForm = () => {
@@ -302,7 +324,7 @@ const FarmRecords = () => {
 
   const expandedRowRender = (item) => {
     return (
-      <SurveyTable dataSource={farmRecord} farmId={item.id} review={review} />
+      <SurveyTable dataSource={farmRecord} farmId={item.id} review={review} delete={deleteSurveyRecords}/>
     );
   };
 
@@ -361,18 +383,41 @@ const FarmRecords = () => {
         deleteRecord={deleteRecord}
         restoreRecord={restoreRecord}
         reviewPartition={reviewPartition}
+        deleteSurvey={deleteSurveyRecords}
       />
       <Drawer
         visible={showDrawer}
         width={window.innerWidth > 768 ? 900 : window.innerWidth}
         onClose={onDrawerClose}
+        footerStyle={{textAlign: 'right'}}
+        footer={
+          <Row justify="end">
+            <Col>
+            <Form key="save" form={form} layout="inline">
+            <Form.Item>
+              <Button type="primary" htmlType="submit">Save</Button>
+            </Form.Item>
+            {action === 'add_farm' &&
+              <Form.Item>
+                <Button htmlType="button" onClick={onAdd}>Save And Add</Button>
+              </Form.Item>
+            }
+            <Form.Item>
+              <Button type="danger" onClick={onDrawerClose}>Cancel</Button>
+            </Form.Item>
+          </Form>
+            </Col>
+          </Row>
+        }
       >
+        {showDrawer &&
         <Spin spinning={state.spinning} size="large">
           {(action === "edit_farm" || action === "add_farm") && (
             <FarmRecordForm
               type={action}
               fields={selectedItem}
               form={form}
+              warehouses={warehouses}
               csrUsers={csrUsers}
               onFinish={onFinish}
               onClose={onDrawerClose}
@@ -390,6 +435,7 @@ const FarmRecords = () => {
             />
           )}
         </Spin>
+        }
       </Drawer>
       <Drawer
         visible={showPartitionDrawer}

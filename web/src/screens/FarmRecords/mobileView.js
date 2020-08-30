@@ -110,7 +110,7 @@ const MobileView = (props) => {
                     dataSource={surveys}
                     renderItem={(item) => (
                       <List.Item key={item.id}
-                        actions={[
+                        actions={item.isActive ? [
                           <Button
                             size="small"
                             onClick={(event) => {
@@ -120,7 +120,16 @@ const MobileView = (props) => {
                           >
                             <EditFilled /> Survey
                           </Button>,
-                        ]}
+                          <Button
+                          size="small"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            props.deleteSurvey(item.id);
+                          }}
+                        >
+                          <DeleteFilled /> Survey
+                        </Button>,
+                        ]: null}
                       >
                         <Skeleton active loading={false}>
                           <List.Item.Meta title={`${item.number} (${item.subdivision}) Extent: ${item.extent.toFixed(4)}`}></List.Item.Meta>

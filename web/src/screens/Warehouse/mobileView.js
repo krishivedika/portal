@@ -35,6 +35,16 @@ const MobileView = (props) => {
           >
             + Inventory
           </Button>
+          <Button
+            size="small"
+            type="primary"
+            onClick={(event) => {
+              event.stopPropagation();
+              props.review(item.item, "add_machinery");
+            }}
+          >
+            + Machinery
+          </Button>
         </>
         }
       </>

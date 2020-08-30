@@ -237,7 +237,7 @@ const CropRecordForm = (props) => {
                         message: "Please Select Sowing Date",
                       },
                     ]}>
-                    <DatePicker />
+                    <DatePicker format="DD-MM-YYYY" />
                   </Form.Item>
                 </>
               }

@@ -23,6 +23,7 @@ const UserProfile = () => {
     const user = AuthService.getCurrentUser();
     UserService.getUser({ id: user.id }).then(response => {
       setAge(response);
+      console.log(response.data);
       setUserProfile(() => response.data.user);
       setCurrentForm(() => response.data.user);
     }).catch(err => {
@@ -73,7 +74,7 @@ const UserProfile = () => {
             }
                 <Row>
                   <Col xs={{span: 7, offset: 17}} md={{span: 4, offset: 20}}>
-                    <Button type="primary" onClick={() => setShowDrawer(true)}>Update Profile</Button>
+                    <Button type="primary" onClick={() => setShowDrawer(true)}>Edit Profile</Button>
                   </Col>
                 </Row>
                 <Card title="Profile" className="g-ant-card" style={{ marginTop: '20px' }}>
@@ -109,7 +110,7 @@ const UserProfile = () => {
                 <Card title="Demographics" className="g-ant-card" style={{ marginTop: '20px' }}>
                   <Descriptions loading={loading} column={1} bordered >
                     <Descriptions.Item label="Address">{userProfile.address}</Descriptions.Item>
-                    {userProfile.roles && userProfile.roles[0].name.toUpperCase() === 'FARMER' &&
+                    {(userProfile.Roles && userProfile.Roles[0].name.toUpperCase() === 'FARMER') &&
                       <>
                         <Descriptions.Item label="District">{userProfile.district}</Descriptions.Item>
                         <Descriptions.Item label="Mandal">{userProfile.mandala}</Descriptions.Item>

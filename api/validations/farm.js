@@ -126,6 +126,23 @@ const updateSurvey = (req, res, next) => {
   });
 };
 
+const deleteSurvey = (req, res, next) => {
+  const validationRuleSurveyUpdate = {
+    id: "required",
+  };
+  validator(req.body, validationRuleSurveyUpdate, {}, (err, status) => {
+    if (!status) {
+      return res.status(412).send({
+        success: false,
+        message: "Validation failed",
+        data: err,
+      });
+    } else {
+      next();
+    }
+  });
+};
+
 module.exports = {
   addFarmRecord,
   addSurvey,
@@ -133,4 +150,5 @@ module.exports = {
   updateSurvey,
   partitionFarmRecord,
   restoreFarmRecord,
+  deleteSurvey,
 };

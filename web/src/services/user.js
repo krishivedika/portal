@@ -69,7 +69,7 @@ class UserService {
   }
 
   deleteSurvey(data) {
-    return axios.delete(`/farm/survey/delete/${data}`)
+    return axios.post(`/farm/survey/delete`, data);
   }
 
   uploadFile(data, config) {

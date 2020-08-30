@@ -12,6 +12,7 @@ const Brand = db.brand;
 const Seed = db.seed;
 const Irrigation = db.irrigation;
 const Practice = db.practice;
+const InventoryType = db.inventoryType;
 
 // Crop Record End Points
 exports.cropTypes = async (req, res) => {
@@ -96,6 +97,20 @@ exports.addCropRecord = (req, res) => {
         crop = await Crop.create({ FarmId: req.body.farm, name: req.body.plot });
       }
       const practice = await Practice.findOne({ where: { seed: req.body.seed, brand: req.body.brand, irrigation: req.body.irrigation } });
+      const inventoryTypes = await InventoryType.findAll({where: {isActive: true}});
+      const inventoryTypesObj = {};
+      inventoryTypes.forEach(i => {
+        inventoryTypesObj[i.item] = i.price;
+      });
+      let price = 0;
+      if (practice) {
+        const stages = JSON.parse(practice.config).stages;
+        stages.forEach(s => {
+          if (s.inventory) {
+            price += inventoryTypesObj[s.inventory.name] * s.inventory.quantity;
+          }
+        });
+      }
       await Layer.create({
         CropId: crop.id,
         name: req.body.layer,
@@ -105,6 +120,7 @@ exports.addCropRecord = (req, res) => {
         irrigation: req.body.irrigation,
         date: req.body.date,
         config: practice ? practice.config : null,
+        price: price,
       });
       return res.status(200).send({
         message: "Crop Record Created Successfully!",
@@ -116,6 +132,23 @@ exports.addCropRecord = (req, res) => {
   }).catch(err => {
     console.log(err);
     return res.status(500).send({ message: "Unknown Error", code: 2 });
+  });
+};
+
+exports.restoreCropRecord = (req, res) => {
+  Crop.findOne({ where: { isActive: true, name: req.body.plot, FarmId: req.body.farm } }).then(async (crop) => {
+    if (crop) {
+        return res.status(404).send({ message: "Crop already currently active, cannot restore", code: 2 });
+    } else {
+      Crop.findOne({where: {id: req.body.id}}).then(restoreCrop => {
+        restoreCrop.update({isActive: true}).then(() => {
+          return res.send({ message: "Successfully restored crop"})
+        }).catch(err => {
+          console.log(err);
+          return res.status(500).send({ message: "Unknown Error", code: 2 });
+        });
+      })
+    }
   });
 };
 

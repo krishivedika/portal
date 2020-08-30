@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Select, Form, Input, Radio, Button, Row, Col, Card, InputNumber, message } from "antd";
+import { Drawer, Select, Form, Input, Radio, Button, Row, Col, Card, InputNumber, message } from "antd";
 
 import RegionService from "../../services/region";
+import WarehouseService from "../../services/warehouse";
+import { WarehouseForm } from "../../components";
 
 const { Option } = Select;
 
@@ -14,10 +16,12 @@ const FarmRecordForm = (props) => {
 
   const fieldsOld = useRef();
 
+  const [loading, setLoading] = useState(false);
   const [fields, setFields] = useState([]);
   const [fieldsCopy, setFieldsCopy] = useState([]);
   const [ownerType, setOwnerType] = useState(true);
   const [csrUsers, setCsrUsers] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [showUsers, setShowUsers] = useState(false);
   const [regions, setRegions] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -37,8 +41,8 @@ const FarmRecordForm = (props) => {
     setOwnerType(props.fields.isSelf);
     setCsrUsers(() => props.csrUsers);
     setShowUsers(() => {
-      if ([1,2,3,4].includes(props.fields.role)) {
-        setFields(() => ([{name: 'isSelf', value: props.fields.isSelf}]));
+      if ([1, 2, 3, 4].includes(props.fields.role)) {
+        setFields(() => ([{ name: 'isSelf', value: props.fields.isSelf }]));
         return true;
       }
       return false;
@@ -46,16 +50,21 @@ const FarmRecordForm = (props) => {
     if (fieldsOld.current) {
       setPropFields(fieldsOld.current);
     }
+    if (![1, 2, 3, 4].includes(props.fields.role)) {
+      setWarehouses(props.warehouses);
+    }
   }, [props]);
 
   const selectUser = (e) => {
     const selectUser = csrUsers.filter(x => x.id === e)[0];
+    const warehouses = props.warehouses.filter(x => x.UserId == e);
+    setWarehouses(() => warehouses);
     const fieldsUser = [
       { name: 'ownerFirstName', value: selectUser.firstName },
       { name: 'ownerLastName', value: selectUser.lastName },
       { name: 'ownerAge', value: new Date().getFullYear() - new Date(selectUser.age).getFullYear() },
       { name: 'ownerGender', value: selectUser.gender },
-      { name: 'isSelf', value: true},
+      { name: 'isSelf', value: true },
     ];
     setFields(() => fieldsUser);
     setFieldsCopy(() => fieldsUser)
@@ -112,6 +121,31 @@ const FarmRecordForm = (props) => {
     });
   }
 
+  const [warehouseDrawer, setWarehouseDrawer] = useState(false);
+  const addWarehouse = () => {
+    setWarehouseDrawer(true);
+  };
+  const onWarehouseDrawerClose = () => {
+    setWarehouseDrawer(false);
+  };
+
+  const [warehouseForm] = Form.useForm();
+  const onFinishWarehouse = (values) => {
+    setLoading(true);
+    WarehouseService.addWarehouse(values).then(response => {
+      WarehouseService.getWarehouses().then(
+        (response) => {
+          setWarehouses(() => response.data.warehouses);
+          setWarehouseDrawer(false)
+        });
+        setLoading(false);
+      message.success(response.data.message);
+    }).catch(err => {
+      console.log(err);
+      message.error(err.response.data.message);
+    });
+  };
+
   return (
     <div style={{ margin: '15px' }}>
       <Card
@@ -132,7 +166,7 @@ const FarmRecordForm = (props) => {
             </Form.Item>
           </Form>
         ]}>
-        <Form fields={fields} preserve={true} form={props.form} onFinish={props.onFinish} {...layout}>
+        <Form scrollToFirstError={true} fields={fields} preserve={true} form={props.form} onFinish={props.onFinish} {...layout}>
           <Row>
             <Col span={24}>
               <Card title="Farm Ownership" className="g-ant-card">
@@ -307,9 +341,32 @@ const FarmRecordForm = (props) => {
                       required: true,
                       message: "Please input Khata #",
                     },
+                    { max: 10, message: 'Khata # should be at max 10 characters' },
                   ]}>
                   <Input placeholder="Khata #" />
                 </Form.Item>
+              </Card>
+              <Card title="Warehouse" className="g-ant-card" style={{ marginTop: '20px' }}>
+                {!loading &&
+                  <>
+                    <Form.Item name="warehouse" label="Warehouse">
+                      <Select showSearch placeholder="Select Warehouse">
+                        {warehouses.map(d => (
+                          <Option key={d.id} value={d.id}>{d.name}</Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                    <Button type="primary" onClick={addWarehouse}>Add Warehouse</Button>
+                    <Drawer
+                      title="Add Warehouse"
+                      width={window.innerWidth > 768 ? 700 : window.innerWidth}
+                      onClose={onWarehouseDrawerClose}
+                      visible={warehouseDrawer}
+                    >
+                      <WarehouseForm form={warehouseForm} onFinish={onFinishWarehouse} onClose={onWarehouseDrawerClose} csrUsers={csrUsers} fields={{}} />
+                    </Drawer>
+                  </>
+                }
               </Card>
             </Col>
           </Row>

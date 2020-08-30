@@ -114,9 +114,13 @@ const MemberForm = (props) => {
                     message: "Please enter Age",
                   },
               ]}>
-                <InputNumber placeholder="Enter Age" min={18} />
+                <InputNumber placeholder="Enter Age" min={18} max={120}/>
               </Form.Item>
               <Form.Item name="email" label="Email"
+                rules={[
+                  { max: 50, message: 'Email should be at max 50 characters' },
+                  { type: 'email' },
+                ]}
                 style={{ marginTop: '10px' }}>
                 <Input placeholder="Enter Email" />
               </Form.Item>
@@ -135,6 +139,7 @@ const MemberForm = (props) => {
                     required: true,
                     message: "Please enter Ration Number",
                   },
+                  { max: 25, message: 'Ration Number should be at max 25 characters' },
                 ]}>
                 <Input placeholder="Enter Ration" />
               </Form.Item>
@@ -148,16 +153,22 @@ const MemberForm = (props) => {
                     required: true,
                     message: "Please enter Address",
                   },
+                  { max: 200, message: 'Address should be at max 200 characters' },
                 ]}>
                 <Input placeholder="Enter Address" />
               </Form.Item>
-              <Form.Item name="district" label="District"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter District",
-                  },
-                ]}>
+              <Form.Item name="state" label="State"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input State",
+                    },
+                  ]}>
+                  <Select placeholder="Select State">
+                    <Option value="ANDHRA PRADESH">Andhra Pradesh</Option>
+                  </Select>
+              </Form.Item>
+              <Form.Item name="district" label="District">
                 <Input placeholder="Enter Disctrict" />
               </Form.Item>
               <Form.Item name="mandala" label="Mandal">

@@ -11,7 +11,7 @@ const validationRule = {
   phone: "required|string|min: 10",
   ration: "required|string",
   address: "required|string",
-  district: "required|string",
+  state: "required|string",
 }
 
 const createProfile = (req, res, next) => {

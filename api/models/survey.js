@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
   class Survey extends Model {};
   Survey.init({
     number: DataTypes.INTEGER,
-    subdivision: DataTypes.INTEGER,
+    subdivision: DataTypes.STRING,
     landType: DataTypes.STRING,
     extent: DataTypes.DOUBLE,
     comment: DataTypes.TEXT,

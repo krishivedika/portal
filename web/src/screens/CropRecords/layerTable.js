@@ -15,6 +15,7 @@ const LayerTable = (props) => {
     { title: "Brand", dataIndex: "brand", key: "brand" },
     { title: "Seed", dataIndex: "seed", key: "seed" },
     { title: "Irrigation", dataIndex: "irrigation", key: "irrigation" },
+    { title: "Total Cost", dataIndex: "price", key: "price" },
     { title: "Activity", dataIndex: "activity", render: (_, item) => (
         <>
           <Tooltip placement="top" title='Show Activity'>

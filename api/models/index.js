@@ -34,6 +34,9 @@ db.practice = require("../models/practice")(sequelize, Sequelize);
 db.warehouse = require("../models/warehouse")(sequelize, Sequelize);
 db.warehouseFarm = require("../models/warehouseFarm")(sequelize, Sequelize);
 db.inventory = require("../models/inventory")(sequelize, Sequelize);
+db.inventoryType = require("../models/inventoryType")(sequelize, Sequelize);
+db.machinery = require("../models/machinery")(sequelize, Sequelize);
+db.machineryType = require("../models/machineryType")(sequelize, Sequelize);
 
 // Associations
 db.role.belongsToMany(db.user, {
@@ -64,13 +67,16 @@ db.farm.belongsTo(db.user, {
 });
 
 db.farm.hasMany(db.survey);
+db.survey.belongsTo(db.farm);
 db.survey.hasMany(db.surveyFile);
 db.crop.belongsTo(db.farm);
 db.crop.hasMany(db.layer);
 db.layer.belongsTo(db.crop);
 db.warehouse.belongsTo(db.user);
 db.warehouse.hasMany(db.inventory);
+db.warehouse.hasMany(db.machinery);
 db.warehouse.belongsToMany(db.farm, {through: 'WarehouseFarms'});
+db.farm.belongsToMany(db.warehouse, {through: 'WarehouseFarms'});
 
 db.ROLES = ["farmer", "admin", "csr", "sadmin", "field_agent"];
 

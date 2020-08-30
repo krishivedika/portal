@@ -57,29 +57,33 @@ const PartitionForm = (props) => {
       newData.forEach(p => {
         if (p.item === item) p.area = e;
       });
-      chart.data(newData);
-      chart.render();
       return newData;
     });
   }
 
-  const addPartition = () => {
+  const addPartition = async () => {
+    const values = await props.form.getFieldsValue();
     if (partitions.length === 10) {
       message.warning('Maximum partitions is reached');
     } else {
-      let tempSize = 0;
       let newItem = {};
       setPartitions((state) => {
+        let tempSize = 0;
         state.forEach(p => {
+          p.area = values[p.item] || 0;
           tempSize += parseInt(p.area);
         });
-        newItem = { item: `Plot ${partitions.length + 1}`, area: totalSize - tempSize };
+        newItem = { item: `Plot ${partitions.length + 1}`, area: (totalSize - tempSize === 0) ? 1 : totalSize - tempSize };
         const newData = [...state, newItem];
-        chart.data(newData);
-        chart.render();
         return newData;
       });
-      setFields((state) => [...state, {name: newItem.item, value: newItem.area}]);
+      setFields((state) => {
+        const newData = [...state];
+        newData.forEach(p => {
+          p.value = values[p.name] || 0;
+        });
+        return [...newData, {name: newItem.item, value: newItem.area}];
+      });
     }
   }
 
@@ -116,7 +120,7 @@ const PartitionForm = (props) => {
             </Form.Item>
           </Form>
         ]}>
-      <Form preserve={false} fields={fields} form={props.form} onFinish={props.onFinish} layout="inline">
+      <Form preserve={true} fields={fields} form={props.form} onFinish={props.onFinish} layout="inline">
         <Row style={{ marginTop: '40px'}}>
           <Col>
             <Button onClick={addPartition}> + Add Plot</Button>
@@ -129,20 +133,20 @@ const PartitionForm = (props) => {
                   <Form.Item name={p.item} label={`Plot ${index + 1}`}
                   rules= {[() => ({
                     validator(rule, value) {
-                      if (value < partitionExtents[p.item]) {
+                      if (value <= partitionExtents[p.item]) {
                         return Promise.resolve();
                       }
-                      return Promise.reject('The area should be less than total Survey Extent areas.');
+                      return Promise.reject('The area should be less than or equal to total of selected Survey Extent areas.');
                     },
                   })
                   ]}>
-                    <InputNumber precision={4} placeholder='Acres' onChange={(e) => onInputChange(e, p.item)} />
+                    <InputNumber  style={{width: '100%'}} precision={4} placeholder='Acres' onChange={(e) => onInputChange(e, p.item)} />
                   </Form.Item>
                   <Form.Item>
                     <Checkbox.Group>
                       {props.data.Surveys.map((s) => (
-                        <Checkbox onChange={(e) => addExtent(e, p.item, s.extent)} key={`${p.item}_${s.id}`} value={`${p.item}_${s.id}_${s.extent}`} style={{ lineHeight: '32px' }}>
-                          # {s.number} (Acres: {s.extent})
+                        <Checkbox checked={true} onChange={(e) => addExtent(e, p.item, s.extent)} key={`${p.item}_${s.id}`} value={`${p.item}_${s.id}_${s.extent}`} style={{ lineHeight: '32px' }}>
+                          Survey # {s.number} (Acres: {s.extent})
                         </Checkbox>
                       ))}
                     </Checkbox.Group>

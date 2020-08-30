@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Spin, Tooltip, Timeline, Checkbox, Modal, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
-import { CheckCircleTwoTone, FlagTwoTone, DeleteFilled } from "@ant-design/icons";
+import { CheckCircleTwoTone, FlagTwoTone, DeleteFilled, ReloadOutlined } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import CropService from "../../services/crop";
@@ -51,6 +51,17 @@ const CropRecords = () => {
                 type="link"
                 onClick={() => deleteCropRecord(item)}
                 icon={<DeleteFilled />}
+              />
+            </Tooltip>
+          </>
+        }
+        {!item.isActive &&
+          <>
+            <Tooltip placement="top" title='Restore Crop'>
+              <Button
+                type="link"
+                onClick={() => restoreCropRecord(item)}
+                icon={<ReloadOutlined />}
               />
             </Tooltip>
           </>
@@ -203,6 +214,18 @@ const CropRecords = () => {
     setShowDrawer(true);
   }
 
+  const restoreCropRecord = (item) => {
+    console.log(item);
+    CropService.restoreCropRecords({ id: item.id, plot: item.name, farm: item.FarmId }).then(async response => {
+      message.success(response.data.message);
+      const values = await formSearch.validateFields();
+      fetchAndUpdateRecords(values);
+    }).catch(err => {
+      console.log(err);
+      message.error(err.response.data.message);
+    });
+  }
+
   const deleteCropRecord = (item) => {
     CropService.deleteCropRecords({ id: item.id }).then(async response => {
       message.success(response.data.message);
@@ -226,6 +249,8 @@ const CropRecords = () => {
                   <p>{s.general ? `General: ${s.general}` : ""}</p>
                   <p>{s.inm ? `INM: ${s.inm}` : ""}</p>
                   <p>{s.ipm ? `IPM: ${s.ipm}` : ""}</p>
+                  <p>{s.inventory ? `Material: ${s.inventory.name} Quantity: ${s.inventory.quantity}` : ""}</p>
+                  <p><a href="http://www.krishivedika.com/" target="_blank">Purchase at Krishi Vedika</a></p>
                 </Timeline.Item>
               ))}
             </Timeline>

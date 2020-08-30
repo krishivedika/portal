@@ -10,6 +10,8 @@ const Seed = db.seed;
 const Irrigation = db.irrigation;
 const Region = db.region;
 const Practice = db.practice;
+const InventoryType = db.inventoryType;
+const MachineryType = db.machineryType;
 
 (() => {
   db.sequelize.sync({ alter: { drop: false } }).then(() => {
@@ -39,6 +41,15 @@ const load = () => {
   if (process.argv[2] === "practice") {
     model = Practice, validLength = 3;
   }
+
+  if (process.argv[2] === "inventory") {
+    model = InventoryType, validLength = 3;
+  }
+
+  if (process.argv[2] === "machinery") {
+    model = MachineryType, validLength = 2;
+  }
+
   try {
     fs.createReadStream(process.argv[3])
       .pipe(csv())

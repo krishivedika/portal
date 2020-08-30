@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     ration: DataTypes.STRING,
     gender: DataTypes.STRING,
     age: DataTypes.DATE,
+    state: DataTypes.STRING,
     district: DataTypes.STRING,
     mandala: DataTypes.STRING,
     panchayat: DataTypes.STRING,

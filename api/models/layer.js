@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     irrigation: DataTypes.STRING,
     date: DataTypes.DATE,
     config: DataTypes.TEXT,
+    price: DataTypes.INTEGER,
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: () => true,

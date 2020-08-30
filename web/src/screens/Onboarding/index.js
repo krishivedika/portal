@@ -179,7 +179,7 @@ const OnBoardingForm = ({ history }) => {
                     message: "Please enter Age",
                   },
                 ]}>
-                <InputNumber placeholder="Enter Age" min={18} />
+                <InputNumber placeholder="Enter Age" min={18} max={120}/>
               </Form.Item>
               <Form.Item name="aadhar" label="AADHAR"
                 rules={[

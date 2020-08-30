@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Tooltip, Button, Table } from "antd";
-import { EditFilled } from "@ant-design/icons";
+import { EditFilled, DeleteFilled } from "@ant-design/icons";
 
 const SurveyTable = (props) => {
   const [loading, setLoading] = useState(true);
@@ -16,15 +16,30 @@ const SurveyTable = (props) => {
       dataIndex: "",
       key: "",
       render: (_, item) => (
-        <Tooltip placement="top" title='Edit Survey'>
-        <Button
-          type="link"
-          onClick={() => {
-            props.review(item, "edit_survey");
-          }}
-          icon={<EditFilled />}
-        />
-      </Tooltip>
+        <>
+          {item.isActive &&
+            <>
+              <Tooltip placement="top" title='Edit Survey'>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    props.review(item, "edit_survey");
+                  }}
+                  icon={<EditFilled />}
+                />
+              </Tooltip>
+              <Tooltip placement="top" title='Delete Survey'>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    props.delete(item.id, "delete_survey");
+                  }}
+                  icon={<DeleteFilled />}
+                />
+              </Tooltip>
+            </>
+          }
+        </>
       ),
     },
   ];
@@ -41,6 +56,7 @@ const SurveyTable = (props) => {
   return (
     <Table
       columns={columns}
+      rowClassName={(record, index) => record.isActive ? '' : 'g-table-striped-rows-danger'}
       dataSource={surveys}
       pagination={false}
       loading={loading}

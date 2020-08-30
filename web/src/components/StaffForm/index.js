@@ -102,7 +102,7 @@ const StaffForm = (props) => {
                       message: "Please enter Age",
                     },
                   ]}>
-                  <InputNumber placeholder="Enter Age" min={18} />
+                  <InputNumber placeholder="Enter Age" min={18} max={120}/>
                 </Form.Item>
                 <Form.Item name="email" label="Email"
                   rules={[
@@ -110,6 +110,7 @@ const StaffForm = (props) => {
                       required: true,
                       message: "Please enter Email.",
                     },
+                    { max: 50, message: 'Email should be at max 50 characters' },
                     { type: 'email' },
                   ]}
                   style={{ marginTop: '10px' }}>
@@ -134,6 +135,7 @@ const StaffForm = (props) => {
                       required: true,
                       message: "Please enter Address",
                     },
+                    { max: 200, message: 'Address should be at max 200 characters' },
                   ]}>
                   <Input placeholder="Enter Address" />
                 </Form.Item>
