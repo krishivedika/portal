@@ -9,6 +9,9 @@ const MachineryTable = (props) => {
   const columns = [
     { title: "Machinery Item Name", dataIndex: "item", key: "item" },
     { title: "Quantity", dataIndex: "quantity", key: "quantity" },
+    { title: "Manufacturer", dataIndex: "manufacturer", key: "manufacturer" },
+    { title: "Details", dataIndex: "details", key: "details", render: (_, item) => (<Tooltip placement="top" title={item.details}>{item.details ? item.details.slice(0,10) : ""}</Tooltip>) },
+    { title: "Total Cost Value", key: "totalCost", render: (_, item) => (<>{item.price * item.quantity}</>) },
     { title: "Updated At", dataIndex: "updatedAt", key: "updatedAt", render: (_, item) => (<>{new Date(item.updatedAt).toDateString()}</>) },
     {
       title: "Action",

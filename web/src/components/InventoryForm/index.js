@@ -15,6 +15,7 @@ const InventoryForm = (props) => {
   const [validMetrics, setValidMetrics] = useState([]);
   const [showUnit, setShowUnit] = useState(true);
   const [price, setPrice] = useState("");
+  const [disabled, setDisabled] = useState(false);
 
   useEffect(() => {
     const fields = [];
@@ -31,17 +32,21 @@ const InventoryForm = (props) => {
       }
     });
     setInventories(() => inventories);
+    if (props.type === "edit_inventory") setDisabled(true);
   }, [props]);
 
   const onItemSelect = (e) => {
     const metrics = [];
+    let priceSlected = "";
     props.inventories.forEach(i => {
       if (i.item === e && i.metric !== "") {
         metrics.push(i.metric);
+        priceSlected = i.price;
       }
     });
     if (metrics.length === 0) setShowUnit(false);
     else setShowUnit(true);
+    props.form.setFieldsValue({'item' : e, 'metric':  "", "price": priceSlected});
     setValidMetrics(() => metrics);
     setPrice("");
   };
@@ -63,7 +68,7 @@ const InventoryForm = (props) => {
           <Form key="save" form={props.form} layout="inline">
             <Form.Item>
               <Button type="primary" htmlType="submit" style={{ marginRight: '5px' }}>Save</Button>
-              {props.action === "add_invetory" &&
+              {props.type === "add_inventory" &&
                 <Button htmlType="button" onClick={props.onAdd}  style={{ marginRight: '5px' }}>Save And Add</Button>
               }
               <Button key="close" type="danger" onClick={props.onClose}>Cancel</Button>
@@ -81,7 +86,7 @@ const InventoryForm = (props) => {
                         message: "Please select Item",
                       },
                     ]}>
-                    <Select placeholder="Select Item" onSelect={onItemSelect}>
+                    <Select disabled={disabled} placeholder="Select Item" onSelect={onItemSelect}>
                       {inventoriesUnique.map(d => (
                         <Option key={d.id} value={d.item}>{d.item}</Option>
                       ))}
@@ -95,16 +100,26 @@ const InventoryForm = (props) => {
                         message: "Please select Unit",
                       },
                     ]}>
-                    <Select placeholder="Select Unit" onSelect={onMetricSelect}>
+                    <Select  disabled={disabled} defaultActiveFirstOption={false} placeholder="Select Unit" onSelect={onMetricSelect}>
                       {validMetrics.map(d => (
                         <Option key={d} value={d}>{d}</Option>
                       ))}
                     </Select>
                   </Form.Item>
                 }
-                  <Form.Item label="Item Price">
-                    <Input disabled placeholder="" value={price} />
+                  <Form.Item name="price" style={{display: 'none'}}>
+                    <Input value={`${price}`} />
                   </Form.Item>
+                  {props.type === "add_inventory" &&
+                    <Form.Item label="Item Price">
+                      <Input disabled placeholder={`${price}`} />
+                    </Form.Item>
+                  }
+                  {props.type === "edit_inventory" &&
+                    <Form.Item label="Item Price">
+                      <Input disabled placeholder={`${props.fields.price}`} />
+                    </Form.Item>
+                  }
                   <Form.Item name="quantity" label="Quantity"
                   rules={[
                     {

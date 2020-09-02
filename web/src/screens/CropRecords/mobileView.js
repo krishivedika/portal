@@ -74,7 +74,7 @@ const MobileView = (props) => {
                         ]}
                       >
                         <Skeleton active loading={false}>
-                          <List.Item.Meta title={`${item.crop} (${new Date(item.date).toDateString()})`}></List.Item.Meta>
+                          <List.Item.Meta title={`${item.crop} (${new Date(item.date).toDateString()}), Total Inventory Cost: ${item.price}, Total Machinery Cost: ${item.machineryPrice}`}></List.Item.Meta>
                         </Skeleton>
                       </List.Item>
                     )}

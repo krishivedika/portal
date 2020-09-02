@@ -191,19 +191,6 @@ const CropRecordForm = (props) => {
                       ))}
                     </Select>
                   </Form.Item>
-                  <Form.Item name="brand" label="Select Brand"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please Select Brand",
-                      },
-                    ]}>
-                    <Select placeholder="Select Brand">
-                      {brands.map(p => (
-                        <Option value={p.name} key={p.name}>{p.name}</Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
                   <Form.Item name="seed" label="Select Seed"
                     rules={[
                       {
@@ -213,6 +200,19 @@ const CropRecordForm = (props) => {
                     ]}>
                     <Select placeholder="Select Seed">
                       {seeds.map(p => (
+                        <Option value={p.name} key={p.name}>{p.name}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                  <Form.Item name="brand" label="Select Brand"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please Select Brand",
+                      },
+                    ]}>
+                    <Select placeholder="Select Brand">
+                      {brands.map(p => (
                         <Option value={p.name} key={p.name}>{p.name}</Option>
                       ))}
                     </Select>

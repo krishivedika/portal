@@ -8,6 +8,7 @@ const { common } = require("../helpers");
 const Op = Sequelize.Op;
 const Farm = db.farm;
 const User = db.user;
+const Role = db.role;
 const Survey = db.survey;
 const SurveyFile = db.surveyFile;
 const WarehouseFarm = db.warehouseFarm;
@@ -49,20 +50,37 @@ exports.farmRecords = async (req, res) => {
     where = { ...where, userId: req.userId }
   }
   else {
-    csrUsers = await User.scope("withoutPassword").findAll({
-      where: { '$managedBy.UserAssociations.csrId$': req.userId },
-      include: [
-        {
-          model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations',
-          required: false,
-        }
-      ]
-    });
-    csrUsers.forEach(csr => {
-      users.push(csr.id);
-    });
-    where = {...where, userId: { [Op.in]: users}};
-    include.push({model: User.scope("withoutPassword")});
+    if (req.userRoleId === 2) {
+      csrUsers = await User.scope("withoutPassword").findAll({
+        where: {'$Roles.UserRoles.roleId$': {[Op.in]: [5]}},
+        include: [
+          {
+            model: Role, through: 'UserRoles',
+            required: false,
+          }
+        ]
+      });
+      csrUsers.forEach(csr => {
+        users.push(csr.id);
+      });
+      where = {...where, userId: { [Op.in]: users}};
+      include.push({model: User.scope("withoutPassword")});
+    } else {
+      csrUsers = await User.scope("withoutPassword").findAll({
+        where: { '$managedBy.UserAssociations.csrId$': req.userId },
+        include: [
+          {
+            model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations',
+            required: false,
+          }
+        ]
+      });
+      csrUsers.forEach(csr => {
+        users.push(csr.id);
+      });
+      where = {...where, userId: { [Op.in]: users}};
+      include.push({model: User.scope("withoutPassword")});
+    }
   }
 
   Farm.findAll({
@@ -334,20 +352,6 @@ exports.deleteSurveyRecord = (req, res) => {
     console.log(err);
     return res.status(500).send({ message: "Unknown Error", code: 2 });
   });
-  // Survey.findOne({
-  //   where: {
-  //     id: req.params.id,
-  //   },
-  // }).then((survey) => {
-  //   if (!survey) {
-  //     return res.status(404).send({ message: "Survey doesn't exist" });
-  //   }
-  //   survey.updated({ isActive: false }).then(() => {
-  //     return res.send({ message: "Survey Successfully Deleted!" });
-  //   });
-  // }).catch(() => {
-  //   return res.status(500).send({ message: "Unknown Error", code: 2 });
-  // });
 };
 
 exports.fileUpload = (req, res) => {

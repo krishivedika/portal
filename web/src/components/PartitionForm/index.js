@@ -21,11 +21,12 @@ const PartitionForm = (props) => {
       return data;
     });
     setFields(() => fields);
-    let tempSize = 0;
+    let tempSize = 0.0000;
     props.data.Surveys.forEach(s => {
-      tempSize += parseInt(s.extent);
+      tempSize += parseFloat(s.extent);
     });
-    setTotalSize(tempSize);
+    const tempSizeFixed = tempSize.toFixed(4);
+    setTotalSize(tempSizeFixed);
   }, [props]);
 
   useEffect(() => {

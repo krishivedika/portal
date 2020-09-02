@@ -1,18 +1,24 @@
 const Sequelize = require("sequelize");
 
 const db = require("../models");
+const warehouseFarm = require("../models/warehouseFarm");
 
 const Op = Sequelize.Op;
 const Farm = db.farm
 const Crop = db.crop;
 const Layer = db.layer;
 const User = db.user;
+const Role = db.role;
 const CropType = db.cropType;
 const Brand = db.brand;
 const Seed = db.seed;
 const Irrigation = db.irrigation;
 const Practice = db.practice;
 const InventoryType = db.inventoryType;
+const Warehouse = db.warehouse;
+const Inventory = db.inventory;
+const Machinery = db.machinery;
+const MachineryType = db.machineryType;
 
 // Crop Record End Points
 exports.cropTypes = async (req, res) => {
@@ -46,20 +52,37 @@ exports.cropRecords = async (req, res) => {
     where = { ...where, userId: req.userId }
   }
   else {
-    csrUsers = await User.scope("withoutPassword").findAll({
-      where: { '$managedBy.UserAssociations.csrId$': req.userId },
-      include: [
-        {
-          model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations',
-          required: false,
-        }
-      ]
-    });
-    csrUsers.forEach(csr => {
-      users.push(csr.id);
-    });
-    where = { ...where, userId: { [Op.in]: users } };
-    include.push({ model: User.scope("withoutPassword")});
+    if (req.userRoleId === 2) {
+      csrUsers = await User.scope("withoutPassword").findAll({
+        where: {'$Roles.UserRoles.roleId$': {[Op.in]: [5]}},
+        include: [
+          {
+            model: Role, through: 'UserRoles',
+            required: false,
+          }
+        ]
+      });
+      csrUsers.forEach(csr => {
+        users.push(csr.id);
+      });
+      where = {...where, userId: { [Op.in]: users}};
+      include.push({model: User.scope("withoutPassword")});
+    } else {
+      csrUsers = await User.scope("withoutPassword").findAll({
+        where: { '$managedBy.UserAssociations.csrId$': req.userId },
+        include: [
+          {
+            model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations',
+            required: false,
+          }
+        ]
+      });
+      csrUsers.forEach(csr => {
+        users.push(csr.id);
+      });
+      where = {...where, userId: { [Op.in]: users}};
+      include.push({model: User.scope("withoutPassword")});
+    }
   }
 
   Farm.findAll({
@@ -98,16 +121,25 @@ exports.addCropRecord = (req, res) => {
       }
       const practice = await Practice.findOne({ where: { seed: req.body.seed, brand: req.body.brand, irrigation: req.body.irrigation } });
       const inventoryTypes = await InventoryType.findAll({where: {isActive: true}});
+      const machineryTypes = await MachineryType.findAll({where: {isActive: true}});
       const inventoryTypesObj = {};
       inventoryTypes.forEach(i => {
         inventoryTypesObj[i.item] = i.price;
       });
+      const machineryTypesObj = {};
+      machineryTypes.forEach(i => {
+        machineryTypesObj[i.item] = i.price;
+      });
       let price = 0;
+      let machineryPrice = 0;
       if (practice) {
         const stages = JSON.parse(practice.config).stages;
         stages.forEach(s => {
           if (s.inventory) {
             price += inventoryTypesObj[s.inventory.name] * s.inventory.quantity;
+          }
+          if (s.machinery) {
+            machineryPrice += machineryTypesObj[s.machinery.name] * s.machinery.quantity;
           }
         });
       }
@@ -121,6 +153,7 @@ exports.addCropRecord = (req, res) => {
         date: req.body.date,
         config: practice ? practice.config : null,
         price: price,
+        machineryPrice: machineryPrice,
       });
       return res.status(200).send({
         message: "Crop Record Created Successfully!",
@@ -195,7 +228,12 @@ exports.getLayerRecord = (req, res) => {
           model: Crop, include: [
             {
               model: Farm, include: [
-                { model: User.scope("withoutPassword") }
+                { model: User.scope("withoutPassword") },
+                {
+                  model: Warehouse,
+                  required: false,
+                  where: { isActive: true },
+                },
               ]
             }
           ]
@@ -219,7 +257,9 @@ exports.getLayerRecord = (req, res) => {
       else if (layer.Crop.Farm.User.id !== req.userId) {
         return res.status(404).send({ message: "You dont have the permission to get this Crop" });
       }
-      return res.send({ layer: layer });
+      const inventories = await Inventory.findAll({where: {WarehouseId: {[Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id)}}});
+      const machinery = await Machinery.findAll({where: {WarehouseId: {[Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id)}}});
+      return res.send({ layer: layer, machinery, inventories });
     }).catch(err => {
       console.log(err);
       return res.status(500).send({ message: 'Unknown error' });
@@ -260,8 +300,10 @@ exports.updateLayerRecord = (req, res) => {
         return res.status(404).send({ message: "You dont have the permission to update this Crop" });
       }
       const currentConfig = JSON.parse(layer.config);
+      let selectedLayer = {};
       currentConfig.stages.forEach((layer, index) => {
         if (layer.id === req.body.stageId) {
+          selectedLayer = layer;
           layer.completed = true;
           if (layer.state !== "presowing") {
             layer.current = false;
@@ -272,7 +314,25 @@ exports.updateLayerRecord = (req, res) => {
         }
       });
       layer.update({ config: JSON.stringify(currentConfig) }).then(l => {
-        return res.send({ message: 'Successfully Updated Activity', layer: l });
+        if (req.body.confirm) {
+          Inventory.findOne({where: {id: req.body.inventoryId}}).then(i => {
+            if (!i) {
+              return res.send({ message: 'Successfully Updated Activity', layer: l });
+            }
+            let quantity = 0;
+            if (i.quantity > selectedLayer.inventory.quantity) {
+              quantity = i.quantity - selectedLayer.inventory.quantity;
+            }
+            i.update({quantity: quantity}).then(() => {
+              return res.send({ message: 'Successfully Updated Activity and Inventory', layer: l });
+            })
+          }).catch(err => {
+            console.log(err);
+            return res.status(500).send({message: 'Unknown error'});
+          })
+        } else {
+          return res.send({ message: 'Successfully Updated Activity', layer: l });
+        }
       });
     }).catch(err => {
       console.log(err);

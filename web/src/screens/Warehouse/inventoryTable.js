@@ -10,6 +10,7 @@ const InventoryTable = (props) => {
     { title: "Inventory Item Name", dataIndex: "item", key: "item" },
     { title: "Quantity", dataIndex: "quantity", key: "quantity" },
     { title: "Metric", dataIndex: "metric", key: "metric" },
+    { title: "Total Cost Value", key: "totalCost", render: (_, item) => (<>{item.price * item.quantity}</>) },
     { title: "Updated At", dataIndex: "updatedAt", key: "updatedAt", render: (_, item) => (<>{new Date(item.updatedAt).toDateString()}</>) },
     {
       title: "Action",

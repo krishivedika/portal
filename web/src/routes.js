@@ -16,4 +16,5 @@ export default {
   USERMANAGEMENT: '/usermanagement',
   SERVICES: '/services',
   RESET: '/reset',
+  CHC: '/chc',
 };

@@ -323,7 +323,7 @@ exports.updateMember = (req, res) => {
       }
       let updatedValues = { ...req.body };
       updatedValues.age = common.convertAgeToDate(req.body.age);
-
+      updatedValues.updatedBy = req.userEmail;
       let roleId;
       Object.keys(constants.ROLES).forEach((key) => {
         if (constants.ROLES[key].name === req.body.role) {

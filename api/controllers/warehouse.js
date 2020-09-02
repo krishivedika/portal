@@ -1,10 +1,10 @@
 const Sequelize = require("sequelize");
 
 const db = require("../models");
-const machineryType = require("../models/machineryType");
 
 const Op = Sequelize.Op;
 const User = db.user;
+const Role = db.role;
 const Warehouse = db.warehouse;
 const Inventory = db.inventory;
 const InventoryType = db.inventoryType;
@@ -26,19 +26,37 @@ exports.warehouses = async (req, res) => {
     where = { ...where, UserId: req.userId }
   }
   else {
-    csrUsers = await User.scope("withoutPassword").findAll({
-      where: { '$managedBy.UserAssociations.csrId$': req.userId },
-      include: [
-        {
-          model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations',
-          required: false,
-        }
-      ]
-    });
-    csrUsers.forEach(csr => {
-      users.push(csr.id);
-    });
-    where = { ...where, UserId: { [Op.in]: users } };
+    if (req.userRoleId === 2) {
+      csrUsers = await User.scope("withoutPassword").findAll({
+        where: {'$Roles.UserRoles.roleId$': {[Op.in]: [5]}},
+        include: [
+          {
+            model: Role, through: 'UserRoles',
+            required: false,
+          }
+        ]
+      });
+      csrUsers.forEach(csr => {
+        users.push(csr.id);
+      });
+      where = {...where, userId: { [Op.in]: users}};
+      include.push({model: User.scope("withoutPassword")});
+    } else {
+      csrUsers = await User.scope("withoutPassword").findAll({
+        where: { '$managedBy.UserAssociations.csrId$': req.userId },
+        include: [
+          {
+            model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations',
+            required: false,
+          }
+        ]
+      });
+      csrUsers.forEach(csr => {
+        users.push(csr.id);
+      });
+      where = {...where, userId: { [Op.in]: users}};
+      include.push({model: User.scope("withoutPassword")});
+    }
   }
   include.push({ model: User.scope("withoutPassword") });
   include.push({ model: Inventory, required: false });
@@ -124,7 +142,8 @@ exports.addInventory = async (req, res) => {
           item: req.body.item,
           quantity: req.body.quantity,
           metric: req.body.metric,
-          WarehouseId: req.body.warehouse
+          price: req.body.price,
+          WarehouseId: req.body.warehouse,
         });
         return res.status(200).send({
           message: "Inventory Created Successfully!",
@@ -172,6 +191,9 @@ exports.addMachinery = async (req, res) => {
           item: req.body.item,
           quantity: req.body.quantity,
           details: req.body.details,
+          price: req.body.price,
+          date: req.body.date,
+          manufacturer: req.body.manufacturer,
           WarehouseId: req.body.warehouse
         });
         return res.status(200).send({
@@ -191,7 +213,7 @@ exports.addMachinery = async (req, res) => {
 exports.editMachinery = async (req, res) => {
   Machinery.findOne({ where: { id: req.body.id } }).then(async machinery => {
     if (machinery) {
-      machinery.update({ quantity: req.body.quantity }).then(() => {
+      machinery.update({ quantity: req.body.quantity, details: req.body.details }).then(() => {
         return res.status(200).send({
           message: "Machinery Updated Successfully!",
         });

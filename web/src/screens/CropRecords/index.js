@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Spin, Tooltip, Timeline, Checkbox, Modal, Drawer, Button, Row, Col, Table, Input, Form, message } from "antd";
+import React, { useContext, useEffect, useState, useRef } from "react";
+import { Spin, Tooltip, Typography, Timeline, Checkbox, Modal, Drawer, Button, Row, Col, Table, Input, Form, message, Popconfirm } from "antd";
 import { CheckCircleTwoTone, FlagTwoTone, DeleteFilled, ReloadOutlined } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
@@ -10,6 +10,8 @@ import LayerTable from "./layerTable";
 import { SharedContext } from "../../context";
 import "./index.less";
 
+const { Text } = Typography;
+
 const CropRecords = () => {
   const [farmRecord, setFarmRecords] = useState([]);
   const [cropRecord, setCropRecords] = useState([]);
@@ -17,7 +19,6 @@ const CropRecords = () => {
   const [csrUsers, setCsrUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDrawer, setShowDrawer] = useState(false);
-  const [selectedItem, setSelectedItem] = useState({ id: 0 });
   const [action, setAction] = useState("add_farm");
   const [timeline, setTimeline] = useState(false);
   const [state, setState] = useContext(SharedContext);
@@ -75,9 +76,12 @@ const CropRecords = () => {
   const [title, setTitle] = useState("");
   const [layerId, setLayerId] = useState(0);
   const [date, setDate] = useState({});
+  const [currentInventory, setCurrentInventory] = useState([]);
+  const currentInventoryId = useRef(0);
+  const [currentMachinery, setCurrentMachinery] = useState([]);
 
   const updateStages = (data) => {
-    const layer = data;
+    const layer = data.layer;
     const config = JSON.parse(layer.config);
     setLayerId(layer.id);
     setDate(layer.date);
@@ -89,7 +93,9 @@ const CropRecords = () => {
   const showActivity = (item) => {
     if (item.config) {
       CropService.getLayerRecord({ id: item.id }).then(response => {
-        updateStages(response.data.layer);
+        updateStages(response.data);
+        setCurrentInventory(() => response.data.inventories);
+        setCurrentMachinery(() => response.data.machinery);
       }).catch(err => {
         message.error(err.response.data.message);
       });
@@ -98,14 +104,53 @@ const CropRecords = () => {
     }
   };
 
-  const updateStage = (id) => {
-    CropService.updateLayerRecord({ id: layerId, stageId: id }).then(response => {
+  const updateStage = (id, confirm) => {
+    CropService.updateLayerRecord({ id: layerId, stageId: id, confirm: confirm, inventoryId: currentInventoryId.current}).then(response => {
       message.success(response.data.message);
-      updateStages(response.data.layer);
+      updateStages(response.data);
     }).catch(err => {
       message.error(err.response.data.message);
     });
   };
+
+  const getInventoryText = (stage) => {
+    const { inventory, completed } = stage;
+    if (!inventory) return "";
+    else {
+      let text = "";
+      currentInventory.forEach(c => {
+        if (c.item === inventory.name) {
+          if (c.quantity >= inventory.quantity) {
+            currentInventoryId.current = c.id;
+            text = <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
+          } else {
+            if (completed) text =  <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
+            else text = <Text type="danger">{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
+          }
+        }
+      });
+      return text;
+    }
+  }
+
+  const getMachineryText = (stage) => {
+    const { machinery, completed } = stage;
+    if (!machinery) return "";
+    else {
+      let text = "";
+      currentMachinery.forEach(c => {
+        if (c.item === machinery.name) {
+          if (c.quantity >= machinery.quantity) {
+            text = <Text>{`Machinery: ${machinery.name} Quantity: ${machinery.quantity}`}</Text>;
+          } else {
+            if (completed) text = <Text>{`Machinery: ${machinery.name} Quantity: ${machinery.quantity}`}</Text>;
+            else text = <Text type="danger">{`Machinery: ${machinery.name} Quantity: ${machinery.quantity}`}</Text>;
+          }
+        }
+      });
+      return text;
+    }
+  }
 
   const getTimeLineDate = (stage) => {
     let newDate = new Date(date);
@@ -114,7 +159,7 @@ const CropRecords = () => {
       if (stage.day > -7) {
         return `${Math.abs(stage.day)} day(s) before`;
       } else {
-        return `${Math.abs(parseInt(stage.day/7))} week(s) before`;
+        return `${Math.abs(parseInt(stage.day / 7))} week(s) before`;
       }
     };
     if (newDate.toDateString() === new Date(date).toDateString()) return <b>{newDate.toDateString()}</b>
@@ -126,28 +171,36 @@ const CropRecords = () => {
     if (stage.completed) color = "green";
     else color = "gray";
     if (stage.stage === "presowing") color = "orange";
-    if (stage.day === 0) {
-      return (
-        <Button type="link" disabled>
-          <FlagTwoTone style={{ fontSize: '30px' }} twoToneColor={color} />
-        </Button>
-      )
-    }
+    if (stage.stage === "presowing" && stage.completed) color = "green";
+    const fontStyle = {fontSize: stage.day === 0 ? "30px" : "12px"};
     if (stage.completed) {
       return (
         <Button type="link" disabled>
-          <CheckCircleTwoTone twoToneColor={"green"} />
+          <CheckCircleTwoTone style={fontStyle} twoToneColor={"green"} />
         </Button>
       )
     }
     else {
       return (
-        <Button onClick={() => updateStage(stage.id)} type="link">
-          <CheckCircleTwoTone twoToneColor={color} />
-        </Button>
+        <Popconfirm
+          title="Do you want to adjust item quantity in warehouse?"
+          okText="Yes and Save Activity"
+          cancelText="No and Save Activity"
+          onConfirm={handleConfirm.bind(this, "confirm", stage.id)}
+          onCancel={handleConfirm.bind(this, "cancel", stage.id)}
+        >
+          <Button type="link">
+            <CheckCircleTwoTone style={fontStyle} twoToneColor={color} />
+          </Button>
+        </Popconfirm>
       )
     }
-  }
+  };
+
+  const handleConfirm = (confirm, stage, e) => {
+    e.persist();
+    updateStage(stage, confirm == "confirm" ? true : false);
+  };
 
   const expandedRowRender = (item) => {
     return (
@@ -215,7 +268,6 @@ const CropRecords = () => {
   }
 
   const restoreCropRecord = (item) => {
-    console.log(item);
     CropService.restoreCropRecords({ id: item.id, plot: item.name, farm: item.FarmId }).then(async response => {
       message.success(response.data.message);
       const values = await formSearch.validateFields();
@@ -249,8 +301,9 @@ const CropRecords = () => {
                   <p>{s.general ? `General: ${s.general}` : ""}</p>
                   <p>{s.inm ? `INM: ${s.inm}` : ""}</p>
                   <p>{s.ipm ? `IPM: ${s.ipm}` : ""}</p>
-                  <p>{s.inventory ? `Material: ${s.inventory.name} Quantity: ${s.inventory.quantity}` : ""}</p>
-                  <p><a href="http://www.krishivedika.com/" target="_blank">Purchase at Krishi Vedika</a></p>
+                  <p>{getInventoryText(s)}</p>
+                  <p>{getMachineryText(s)}</p>
+                  <p><a href="http://www.krishivedika.com/" target="_blank">Purchase at KrishiVedika</a></p>
                 </Timeline.Item>
               ))}
             </Timeline>

@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     item: DataTypes.STRING,
     quantity: DataTypes.INTEGER,
     metric: DataTypes.STRING,
+    price: DataTypes.INTEGER,
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: () => true,

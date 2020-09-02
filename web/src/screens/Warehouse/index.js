@@ -103,7 +103,6 @@ const Warehouse = () => {
 
   const onFinish = (values) => {
     WarehouseService.addWarehouse(values).then(response => {
-      console.log(response);
       fetchAndUpdateRecords();
       setShowDrawer(false);
       message.success(response.data.message);
@@ -114,7 +113,6 @@ const Warehouse = () => {
   };
 
   const openNewForm = (e) => {
-    console.log(e);
     setShowDrawer(true);
   };
 

@@ -7,7 +7,7 @@ import './App.less';
 import Routes from "./routes";
 import AuthService from "./services/auth";
 import config from "./config";
-import { Admin, Login, Reset, Onboarding, UserProfile, Staff, FarmRecords, CropRecords, Home, Warehouse } from "./screens";
+import { Admin, Login, Reset, Onboarding, UserProfile, Staff, FarmRecords, CropRecords, Home, Warehouse, Chc } from "./screens";
 import { Header } from "./components";
 import { SharedContext } from "./context";
 
@@ -61,6 +61,7 @@ const App = (props) => {
                   <Route exact path={Routes.WAREHOUSE} component={Warehouse} />
                   <Route exact path={Routes.ADMIN} component={Admin} />
                   <Route exact path={Routes.USERMANAGEMENT} component={Staff} />
+                  <Route exact path={Routes.CHC} component={Chc} />
                 </Switch>
               </Content>
             </Spin>
