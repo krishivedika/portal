@@ -305,6 +305,10 @@ exports.updateLayerRecord = (req, res) => {
         if (layer.id === req.body.stageId) {
           selectedLayer = layer;
           layer.completed = true;
+          if (req.body.labour) {
+            layer["man_labour"] = req.body.man;
+            layer["woman_labour"] = req.body.woman;
+          }
           if (layer.state !== "presowing") {
             layer.current = false;
             if (index !== (currentConfig.stages.length - 1)) {
@@ -313,7 +317,8 @@ exports.updateLayerRecord = (req, res) => {
           }
         }
       });
-      layer.update({ config: JSON.stringify(currentConfig) }).then(l => {
+      let values = { config: JSON.stringify(currentConfig) };
+      layer.update(values).then(l => {
         if (req.body.confirm) {
           Inventory.findOne({where: {id: req.body.inventoryId}}).then(i => {
             if (!i) {

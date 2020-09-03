@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-import { Spin, Tooltip, Typography, Timeline, Checkbox, Modal, Drawer, Button, Row, Col, Table, Input, Form, message, Popconfirm } from "antd";
+import { Spin, Tooltip, Typography, Timeline, Checkbox, Modal, Drawer, Button, Row, Col, Table, Input, Form, message, Popconfirm, InputNumber } from "antd";
 import { CheckCircleTwoTone, FlagTwoTone, DeleteFilled, ReloadOutlined } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
@@ -79,6 +79,8 @@ const CropRecords = () => {
   const [currentInventory, setCurrentInventory] = useState([]);
   const currentInventoryId = useRef(0);
   const [currentMachinery, setCurrentMachinery] = useState([]);
+  const [initialValues, setInitialValues] = useState([]);
+  const [formLabour] = Form.useForm();
 
   const updateStages = (data) => {
     const layer = data.layer;
@@ -87,6 +89,18 @@ const CropRecords = () => {
     setDate(layer.date);
     setTitle(`${layer.crop} - ${new Date(layer.date).toDateString()}`);
     setStages(() => config.stages);
+    const fields = [];
+    const values = {};
+    config.stages.forEach(s => {
+      if (s.labour) {
+        fields.push({ name: `${s.id}_man_labour`, value: s.man_labour });
+        fields.push({ name: `${s.id}_woman_labour`, value: s.woman_labour });
+        values[`${s.id}_man_labour`] = s.man_labour;
+        values[`${s.id}_woman_labour`] = s.woman_labour;
+      }
+    });
+    formLabour.setFieldsValue(values);
+    setInitialValues(fields);
     setTimeline(true);
   };
 
@@ -105,7 +119,17 @@ const CropRecords = () => {
   };
 
   const updateStage = (id, confirm) => {
-    CropService.updateLayerRecord({ id: layerId, stageId: id, confirm: confirm, inventoryId: currentInventoryId.current}).then(response => {
+    let values = {
+      id: layerId, stageId: id,
+      confirm: confirm, inventoryId: currentInventoryId.current,
+    };
+    if (labour.isSet && id == labour.stage) {
+      values["labour"] = true;
+      values["man"] = labour.man;
+      values["woman"] = labour.woman;
+    }
+    console.log(values);
+    CropService.updateLayerRecord(values).then(response => {
       message.success(response.data.message);
       updateStages(response.data);
     }).catch(err => {
@@ -117,16 +141,13 @@ const CropRecords = () => {
     const { inventory, completed } = stage;
     if (!inventory) return "";
     else {
-      let text = "";
+      let text = <Text type="danger">{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
       currentInventory.forEach(c => {
         if (c.item === inventory.name) {
           if (c.quantity >= inventory.quantity) {
             currentInventoryId.current = c.id;
             text = <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
-          } else {
-            if (completed) text =  <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
-            else text = <Text type="danger">{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
-          }
+          } else if (completed) text = <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
         }
       });
       return text;
@@ -137,15 +158,12 @@ const CropRecords = () => {
     const { machinery, completed } = stage;
     if (!machinery) return "";
     else {
-      let text = "";
+      let text = <Text type="danger">{`Machinery: ${machinery.name} Quantity: ${machinery.quantity}`}</Text>;
       currentMachinery.forEach(c => {
         if (c.item === machinery.name) {
           if (c.quantity >= machinery.quantity) {
             text = <Text>{`Machinery: ${machinery.name} Quantity: ${machinery.quantity}`}</Text>;
-          } else {
-            if (completed) text = <Text>{`Machinery: ${machinery.name} Quantity: ${machinery.quantity}`}</Text>;
-            else text = <Text type="danger">{`Machinery: ${machinery.name} Quantity: ${machinery.quantity}`}</Text>;
-          }
+          } else if (completed) text = <Text>{`Machinery: ${machinery.name} Quantity: ${machinery.quantity}`}</Text>;
         }
       });
       return text;
@@ -172,11 +190,18 @@ const CropRecords = () => {
     else color = "gray";
     if (stage.stage === "presowing") color = "orange";
     if (stage.stage === "presowing" && stage.completed) color = "green";
-    const fontStyle = {fontSize: stage.day === 0 ? "30px" : "12px"};
+    const fontStyle = { fontSize: stage.day === 0 ? "30px" : "12px" };
     if (stage.completed) {
       return (
         <Button type="link" disabled>
           <CheckCircleTwoTone style={fontStyle} twoToneColor={"green"} />
+        </Button>
+      )
+    }
+    if (!stage.current && stage.stage !== "presowing") {
+      return (
+        <Button type="link" disabled>
+          <CheckCircleTwoTone style={fontStyle} twoToneColor={color} />
         </Button>
       )
     }
@@ -200,6 +225,14 @@ const CropRecords = () => {
   const handleConfirm = (confirm, stage, e) => {
     e.persist();
     updateStage(stage, confirm == "confirm" ? true : false);
+  };
+
+  const [labour, setLabour] = useState({ isSet: false, man: 0, woman: 0, stage: 0 });
+  const enterLabour = (id, type, e) => {
+    if (type === "man")
+      setLabour((state) => ({ ...state, stage: id, man: e, isSet: true }));
+    else
+      setLabour((state) => ({ ...state, stage: id, woman: e, isSet: true }));
   };
 
   const expandedRowRender = (item) => {
@@ -290,7 +323,8 @@ const CropRecords = () => {
 
   return (
     <>
-      <Modal bodyStyle={{ height: '80vh' }} width={900} title={title} footer={null} visible={timeline} onCancel={() => setTimeline(false)}>
+      {/* <Modal bodyStyle={{ height: '80vh' }} width={900} title={title} footer={null} visible={timeline} onCancel={() => setTimeline(false)}> */}
+      <Drawer visible={timeline} title={title} placement="bottom" height={(window.innerHeight * 90) / 100} onClose={() => setTimeline(false)}>
         <div style={{ padding: '10px', overflowY: 'scroll', height: '100%' }}>
           <Spin spinning={state.spinning} size="large">
             <Timeline mode='left'>
@@ -304,12 +338,23 @@ const CropRecords = () => {
                   <p>{getInventoryText(s)}</p>
                   <p>{getMachineryText(s)}</p>
                   <p><a href="http://www.krishivedika.com/" target="_blank">Purchase at KrishiVedika</a></p>
+                  {s.labour &&
+                    <Form form={formLabour} layout="inline" initialValues={initialValues}>
+                      <Form.Item name={`${s.id}_man_labour`} label="Man Labour">
+                        <InputNumber onChange={enterLabour.bind(this, s.id, "man")} placeholder="0" min={1} />
+                      </Form.Item>
+                      <Form.Item name={`${s.id}_woman_labour`} label="Woman Labour">
+                        <InputNumber onChange={enterLabour.bind(this, s.id, "woman")} placeholder="0" min={1} />
+                      </Form.Item>
+                    </Form>
+                  }
                 </Timeline.Item>
               ))}
             </Timeline>
           </Spin>
         </div>
-      </Modal>
+      </Drawer>
+      {/* </Modal> */}
       <Row style={{ padding: "10px", borderTop: "1px solid #90d150" }}>
         <Col xs={12} md={12} lg={12} xl={12}>
           <Form form={formSearch} layout="inline">
