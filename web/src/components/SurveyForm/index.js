@@ -134,6 +134,12 @@ const SurveyForm = (props) => {
               <Form.Item
                 name="number"
                 label="Survey #"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter Suvery #",
+                  },
+                ]}
               >
                 <InputNumber placeholder={props.fields.number} />
               </Form.Item>
@@ -143,7 +149,7 @@ const SurveyForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Subdivision",
+                    message: "Please enter Subdivision",
                   },
                   { max: 4, message: 'Subdivision should be at max 4 characters' },
                 ]}
@@ -156,7 +162,7 @@ const SurveyForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Extent in Acres",
+                    message: "Please enter Extent in Acres",
                   },
                 ]}
               >
@@ -168,7 +174,7 @@ const SurveyForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input Land Type",
+                    message: "Please enter Land Type",
                   },
                   { max: 50, message: 'Land Type should be at max 50 characters' },
                 ]}
