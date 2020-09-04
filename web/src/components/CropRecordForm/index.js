@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DatePicker, Card, Form, Button, Input, Row, Col, message, Select } from "antd";
+import moment from 'moment';
 
 import AuthService from "../../services/auth";
 import CropService from "../../services/crop";
@@ -26,6 +27,7 @@ const CropRecordForm = (props) => {
   const [irrigations, setIrrigations] = useState([]);
   const [layers, setLayers] = useState([]);
   const [showUsers, setShowUsers] = useState(true);
+  const [fields, setFields] = useState([]);
 
   useEffect(() => {
     setCrops(() => props.crops);
@@ -35,7 +37,28 @@ const CropRecordForm = (props) => {
       setShowUsers(false);
       setShowFarms(true);
     }
+    if (props.type === "edit_crop") {
+      setShowPlots(true);
+      let fieldValues = [];
+      props.fields.date = moment(new Date(props.fields.date), "DD-MM-YYYY");
+      Object.entries(props.fields).forEach(entry => {
+        fieldValues.push({name: entry[0], value: entry[1]});
+      });
+      setFields(() => fieldValues);
+    }
   }, [props]);
+
+  useEffect(() => {
+    CropService.getCropTypes().then(response => {
+      setCropTypes(() => response.data.cropTypes);
+      setBrands(() => response.data.brands);
+      setSeeds(() => response.data.seeds);
+      setIrrigations(() => response.data.irrigations);
+      setShowFields(true);
+    }).catch(err => {
+      console.log(err);
+    });
+  }, []);
 
   const selectMember = (e) => {
     setShowPlots(false);
@@ -81,7 +104,7 @@ const CropRecordForm = (props) => {
     crops.filter(x => x.FarmId === farm).forEach(crop => {
       crop.Layers.forEach(layer => {
         layers.forEach(l => {
-          if (l.name === layer.name && crop.name === e) {
+          if (l.name === layer.name && crop.name === e && layer.isActive === true) {
             l.isActive = false;
           }
         });
@@ -102,7 +125,7 @@ const CropRecordForm = (props) => {
   return (
     <div style={{ margin: '15px' }}>
       <Card
-        title={"Create New Crop Record"}
+        title={props.type === "add_crop" ? "Create New Crop Record": `Editing Crop: ${props.fields.farm} - ${props.fields.plot}`}
         className="g-ant-card"
         extra={[
           <Form key="save" form={props.form} layout="inline">
@@ -117,7 +140,7 @@ const CropRecordForm = (props) => {
             </Form.Item>
           </Form>
         ]}>
-        <Form {...layout} preserve={false} form={props.form} onFinish={props.onFinish}>
+        <Form fields={fields} {...layout} preserve={false} form={props.form} onFinish={props.onFinish}>
           {showUsers &&
             <Form.Item name="member" label="Select Member"
               rules={[

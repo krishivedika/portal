@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     config: DataTypes.TEXT,
     price: DataTypes.INTEGER,
     machineryPrice: DataTypes.INTEGER,
+    isStarted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: () => false,
+    },
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: () => true,

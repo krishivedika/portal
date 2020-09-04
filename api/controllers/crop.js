@@ -1,7 +1,6 @@
 const Sequelize = require("sequelize");
 
 const db = require("../models");
-const warehouseFarm = require("../models/warehouseFarm");
 
 const Op = Sequelize.Op;
 const Farm = db.farm
@@ -40,12 +39,14 @@ exports.cropRecords = async (req, res) => {
     ],
   };
   let cropWhere = { isActive: true };
+  let layerWhere = { isActive: true };
   let include = []
   let csrUsers = [];
   let users = [];
 
   if (req.query.deleted === 'true') {
     cropWhere = {};
+    layerWhere = {};
   }
 
   if (req.userRoleId === 5) {
@@ -54,7 +55,7 @@ exports.cropRecords = async (req, res) => {
   else {
     if (req.userRoleId === 2) {
       csrUsers = await User.scope("withoutPassword").findAll({
-        where: {'$Roles.UserRoles.roleId$': {[Op.in]: [5]}},
+        where: { '$Roles.UserRoles.roleId$': { [Op.in]: [5] } },
         include: [
           {
             model: Role, through: 'UserRoles',
@@ -65,8 +66,8 @@ exports.cropRecords = async (req, res) => {
       csrUsers.forEach(csr => {
         users.push(csr.id);
       });
-      where = {...where, userId: { [Op.in]: users}};
-      include.push({model: User.scope("withoutPassword")});
+      where = { ...where, userId: { [Op.in]: users } };
+      include.push({ model: User.scope("withoutPassword") });
     } else {
       csrUsers = await User.scope("withoutPassword").findAll({
         where: { '$managedBy.UserAssociations.csrId$': req.userId },
@@ -80,8 +81,8 @@ exports.cropRecords = async (req, res) => {
       csrUsers.forEach(csr => {
         users.push(csr.id);
       });
-      where = {...where, userId: { [Op.in]: users}};
-      include.push({model: User.scope("withoutPassword")});
+      where = { ...where, userId: { [Op.in]: users } };
+      include.push({ model: User.scope("withoutPassword") });
     }
   }
 
@@ -94,7 +95,7 @@ exports.cropRecords = async (req, res) => {
       where: { ...cropWhere, farmId: { [Op.in]: farmIds } },
       include: [
         { model: Farm, include: [{ model: User.scope('withoutPassword') }] },
-        { model: Layer, required: false },
+        { model: Layer, required: false, where: layerWhere },
       ]
     }).then(crops => {
       if (!farms) {
@@ -120,8 +121,8 @@ exports.addCropRecord = (req, res) => {
         crop = await Crop.create({ FarmId: req.body.farm, name: req.body.plot });
       }
       const practice = await Practice.findOne({ where: { seed: req.body.seed, brand: req.body.brand, irrigation: req.body.irrigation } });
-      const inventoryTypes = await InventoryType.findAll({where: {isActive: true}});
-      const machineryTypes = await MachineryType.findAll({where: {isActive: true}});
+      const inventoryTypes = await InventoryType.findAll({ where: { isActive: true } });
+      const machineryTypes = await MachineryType.findAll({ where: { isActive: true } });
       const inventoryTypesObj = {};
       inventoryTypes.forEach(i => {
         inventoryTypesObj[i.item] = i.price;
@@ -168,14 +169,28 @@ exports.addCropRecord = (req, res) => {
   });
 };
 
+exports.editLayerRecord = (req, res) => {
+  Layer.findOne({ where: { isActive: true, id: req.body.id }}).then(async (layer) => {
+    if (!layer) {
+      return res.status(404).send({ message: "Crop does not exist", code: 2 });
+    }
+    layer.update({...req.body}).then(() => {
+      return res.send({message: 'Successfully updated crop'});
+    });
+  }).catch(err => {
+    console.log(err);
+    return res.status(500).send({ message: "Unknown Error", code: 2 });
+  });
+};
+
 exports.restoreCropRecord = (req, res) => {
   Crop.findOne({ where: { isActive: true, name: req.body.plot, FarmId: req.body.farm } }).then(async (crop) => {
     if (crop) {
-        return res.status(404).send({ message: "Crop already currently active, cannot restore", code: 2 });
+      return res.status(404).send({ message: "Crop already currently active, cannot restore", code: 2 });
     } else {
-      Crop.findOne({where: {id: req.body.id}}).then(restoreCrop => {
-        restoreCrop.update({isActive: true}).then(() => {
-          return res.send({ message: "Successfully restored crop"})
+      Crop.findOne({ where: { id: req.body.id } }).then(restoreCrop => {
+        restoreCrop.update({ isActive: true }).then(() => {
+          return res.send({ message: "Successfully restored crop" })
         }).catch(err => {
           console.log(err);
           return res.status(500).send({ message: "Unknown Error", code: 2 });
@@ -257,9 +272,11 @@ exports.getLayerRecord = (req, res) => {
       else if (layer.Crop.Farm.User.id !== req.userId) {
         return res.status(404).send({ message: "You dont have the permission to get this Crop" });
       }
-      const inventories = await Inventory.findAll({where: {WarehouseId: {[Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id)}}});
-      const machinery = await Machinery.findAll({where: {WarehouseId: {[Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id)}}});
-      return res.send({ layer: layer, machinery, inventories });
+      const inventories = await Inventory.findAll({ where: { WarehouseId: { [Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id) } } });
+      const inventoryTypes = await InventoryType.findAll({ where: { isActive: true} });
+      const machinery = await Machinery.findAll({ where: { WarehouseId: { [Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id) } } });
+      const machineryTypes = await MachineryType.findAll({ where: { isActive: true} });
+      return res.send({ layer: layer, machinery, inventories, inventoryTypes, machineryTypes });
     }).catch(err => {
       console.log(err);
       return res.status(500).send({ message: 'Unknown error' });
@@ -275,7 +292,12 @@ exports.updateLayerRecord = (req, res) => {
           model: Crop, include: [
             {
               model: Farm, include: [
-                { model: User.scope("withoutPassword") }
+                { model: User.scope("withoutPassword") },
+                {
+                  model: Warehouse,
+                  required: false,
+                  where: { isActive: true },
+                },
               ]
             }
           ]
@@ -308,6 +330,7 @@ exports.updateLayerRecord = (req, res) => {
           if (req.body.labour) {
             layer["man_labour"] = req.body.man;
             layer["woman_labour"] = req.body.woman;
+            layer["cost_labour"] = req.body.cost;
           }
           if (layer.state !== "presowing") {
             layer.current = false;
@@ -317,23 +340,28 @@ exports.updateLayerRecord = (req, res) => {
           }
         }
       });
-      let values = { config: JSON.stringify(currentConfig) };
-      layer.update(values).then(l => {
+      let values = { config: JSON.stringify(currentConfig), isStarted: true };
+      layer.update(values).then(async l => {
         if (req.body.confirm) {
-          Inventory.findOne({where: {id: req.body.inventoryId}}).then(i => {
+          let inventories = machinery = [];
+          if (layer.Crop.Farm.Warehouses) {
+            inventories = await Inventory.findAll({ where: { WarehouseId: { [Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id) } } });
+            machinery = await Machinery.findAll({ where: { WarehouseId: { [Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id) } } });
+          }
+          Inventory.findOne({ where: { id: req.body.inventoryId } }).then(async i => {
             if (!i) {
-              return res.send({ message: 'Successfully Updated Activity', layer: l });
+              return res.send({ message: 'Successfully Updated Activity', layer: l, inventories, machinery });
             }
             let quantity = 0;
             if (i.quantity > selectedLayer.inventory.quantity) {
               quantity = i.quantity - selectedLayer.inventory.quantity;
             }
-            i.update({quantity: quantity}).then(() => {
-              return res.send({ message: 'Successfully Updated Activity and Inventory', layer: l });
+            i.update({ quantity: quantity }).then(() => {
+              return res.send({ message: 'Successfully Updated Activity and Inventory', layer: l, inventories, machinery });
             })
           }).catch(err => {
             console.log(err);
-            return res.status(500).send({message: 'Unknown error'});
+            return res.status(500).send({ message: 'Unknown error' });
           })
         } else {
           return res.send({ message: 'Successfully Updated Activity', layer: l });
@@ -341,6 +369,51 @@ exports.updateLayerRecord = (req, res) => {
       });
     }).catch(err => {
       console.log(err);
-      return res.status(500).send({message: 'Unknown error'});
+      return res.status(500).send({ message: 'Unknown error' });
+    });
+}
+
+exports.deleteLayerRecord = (req, res) => {
+  Layer.findOne(
+    {
+      where: { id: req.body.id },
+      include: [
+        {
+          model: Crop, include: [
+            {
+              model: Farm, include: [
+                { model: User.scope("withoutPassword") }
+              ]
+            }
+          ]
+        }
+      ]
+    }).then(async layer => {
+      if (!layer) {
+        return res.status(404).send({ message: "Layer doesn't exist" });
+      }
+      if ([3, 4].includes(req.userRoleId)) {
+        const users = await User.scope("withoutPassword").findAll(
+          {
+            where: { '$managedBy.UserAssociations.csrId$': req.userId },
+            include: [{ model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations' }]
+          });
+        const csrUsers = users.map(x => x.id);
+        if (!csrUsers.includes(layer.Crop.Farm.User.id)) {
+          return res.status(404).send({ message: "You dont have the permission to delete this Layer Crop" });
+        }
+      }
+      else if (layer.Crop.Farm.User.id !== req.userId) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Layer Crop" });
+      }
+      layer.update({ isActive: false }).then(async l => {
+        return res.send({ message: 'Successfully Deleted Layer' });
+      }).catch(err => {
+        console.log(err);
+        return res.status(500).send({ message: 'Unknown error' });
+      })
+    }).catch(err => {
+      console.log(err);
+      return res.status(500).send({ message: 'Unknown error' });
     });
 }

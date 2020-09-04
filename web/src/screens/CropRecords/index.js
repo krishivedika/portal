@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
-import { Spin, Tooltip, Typography, Timeline, Checkbox, Modal, Drawer, Button, Row, Col, Table, Input, Form, message, Popconfirm, InputNumber } from "antd";
-import { CheckCircleTwoTone, FlagTwoTone, DeleteFilled, ReloadOutlined } from "@ant-design/icons";
+import React, { useContext, useEffect, useState } from "react";
+import { Spin, Tooltip, Typography, Timeline, Checkbox, Drawer, Button, Row, Col, Table, Input, Form, message, Popconfirm, InputNumber } from "antd";
+import { CheckCircleTwoTone, DeleteFilled, ReloadOutlined } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import CropService from "../../services/crop";
@@ -77,12 +77,14 @@ const CropRecords = () => {
   const [layerId, setLayerId] = useState(0);
   const [date, setDate] = useState({});
   const [currentInventory, setCurrentInventory] = useState([]);
-  const currentInventoryId = useRef(0);
+  const [inventoryTypes, setInventoryTypes] = useState([]);
+  const [machineryTypes, setMachineryTypes] = useState([]);
   const [currentMachinery, setCurrentMachinery] = useState([]);
   const [initialValues, setInitialValues] = useState([]);
   const [formLabour] = Form.useForm();
 
   const updateStages = (data) => {
+    setTimeline(false);
     const layer = data.layer;
     const config = JSON.parse(layer.config);
     setLayerId(layer.id);
@@ -95,8 +97,10 @@ const CropRecords = () => {
       if (s.labour) {
         fields.push({ name: `${s.id}_man_labour`, value: s.man_labour });
         fields.push({ name: `${s.id}_woman_labour`, value: s.woman_labour });
+        fields.push({ name: `${s.id}_cost_labour`, value: s.cost_labour });
         values[`${s.id}_man_labour`] = s.man_labour;
         values[`${s.id}_woman_labour`] = s.woman_labour;
+        values[`${s.id}_cost_labour`] = s.cost_labour;
       }
     });
     formLabour.setFieldsValue(values);
@@ -109,7 +113,9 @@ const CropRecords = () => {
       CropService.getLayerRecord({ id: item.id }).then(response => {
         updateStages(response.data);
         setCurrentInventory(() => response.data.inventories);
+        setInventoryTypes(() => response.data.inventoryTypes);
         setCurrentMachinery(() => response.data.machinery);
+        setMachineryTypes(() => response.data.machineryTypes);
       }).catch(err => {
         message.error(err.response.data.message);
       });
@@ -118,20 +124,22 @@ const CropRecords = () => {
     }
   };
 
-  const updateStage = (id, confirm) => {
+  const updateStage = (id, inventoryId, confirm) => {
     let values = {
       id: layerId, stageId: id,
-      confirm: confirm, inventoryId: currentInventoryId.current,
+      confirm: confirm, inventoryId: inventoryId,
     };
     if (labour.isSet && id == labour.stage) {
       values["labour"] = true;
       values["man"] = labour.man;
       values["woman"] = labour.woman;
+      values["cost"] = labour.cost;
     }
-    console.log(values);
     CropService.updateLayerRecord(values).then(response => {
       message.success(response.data.message);
       updateStages(response.data);
+      setCurrentInventory(() => response.data.inventories);
+      setCurrentMachinery(() => response.data.machinery);
     }).catch(err => {
       message.error(err.response.data.message);
     });
@@ -143,11 +151,13 @@ const CropRecords = () => {
     else {
       let text = <Text type="danger">{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
       currentInventory.forEach(c => {
-        if (c.item === inventory.name) {
+        if (c.item === inventory.name && c.metric == inventory.metric) {
           if (c.quantity >= inventory.quantity) {
-            currentInventoryId.current = c.id;
-            text = <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
-          } else if (completed) text = <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity}`}</Text>;
+            text = <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity} (In Inventory: ${c.quantity})`}</Text>;
+          } else {
+            if (completed) text = <Text>{`Material: ${inventory.name} Quantity: ${inventory.quantity} (In Inventory: ${c.quantity})`}</Text>;
+            else text = <Text type="danger">{`Material: ${inventory.name} Quantity: ${inventory.quantity} (In Inventory: ${c.quantity})`}</Text>;
+          }
         }
       });
       return text;
@@ -169,6 +179,28 @@ const CropRecords = () => {
       return text;
     }
   }
+
+  const getTotalCostText = (stage) => {
+    let totalIventory = 0;
+    let totalMachinery = 0;
+    let totalLabour = 0;
+    if (stage.inventory) {
+      inventoryTypes.forEach(i => {
+        if (i.item === stage.inventory.name && i.metric === stage.inventory.metric) {
+          totalIventory += stage.inventory.quantity * i.price;
+        }
+      });
+    }
+    if (stage.machinery) {
+      machineryTypes.forEach(i => {
+        if (i.item === stage.machinery.name) {
+          totalMachinery += stage.inventory.quantity * i.price;
+        }
+      });
+    }
+    totalLabour += (stage.man_labour || 0 + stage.woman_labour || 0 ) * (stage.cost_labour || 0);
+    return {total:  totalMachinery + totalIventory + totalLabour, totalIventory, totalMachinery, totalLabour};
+  };
 
   const getTimeLineDate = (stage) => {
     let newDate = new Date(date);
@@ -206,13 +238,19 @@ const CropRecords = () => {
       )
     }
     else {
+      let inventoryId = 0;
+      currentInventory.forEach(c => {
+        if (c.item === stage.inventory?.name && c.metric == stage.inventory?.metric) {
+          inventoryId = c.id;
+        }
+      });
       return (
         <Popconfirm
           title="Do you want to adjust item quantity in warehouse?"
           okText="Yes and Save Activity"
           cancelText="No and Save Activity"
-          onConfirm={handleConfirm.bind(this, "confirm", stage.id)}
-          onCancel={handleConfirm.bind(this, "cancel", stage.id)}
+          onConfirm={handleConfirm.bind(this, "confirm", stage.id, inventoryId)}
+          onCancel={handleConfirm.bind(this, "cancel", stage.id, inventoryId)}
         >
           <Button type="link">
             <CheckCircleTwoTone style={fontStyle} twoToneColor={color} />
@@ -222,22 +260,24 @@ const CropRecords = () => {
     }
   };
 
-  const handleConfirm = (confirm, stage, e) => {
+  const handleConfirm = (confirm, stage, inventoryId, e) => {
     e.persist();
-    updateStage(stage, confirm == "confirm" ? true : false);
+    updateStage(stage, inventoryId, confirm == "confirm" ? true : false);
   };
 
-  const [labour, setLabour] = useState({ isSet: false, man: 0, woman: 0, stage: 0 });
+  const [labour, setLabour] = useState({ isSet: false, man: 0, woman: 0, stage: 0, cost: 0 });
   const enterLabour = (id, type, e) => {
     if (type === "man")
       setLabour((state) => ({ ...state, stage: id, man: e, isSet: true }));
-    else
+    else if (type === "woman")
       setLabour((state) => ({ ...state, stage: id, woman: e, isSet: true }));
+    else
+      setLabour((state) => ({ ...state, stage: id, cost: e, isSet: true }));
   };
 
   const expandedRowRender = (item) => {
     return (
-      <LayerTable showActivity={showActivity} dataSource={item} farmId={item.id} />
+      <LayerTable editLayer={editLayer} deleteLayer={deleteLayer} showActivity={showActivity} dataSource={item} farmId={item.id} />
     );
   };
 
@@ -295,6 +335,21 @@ const CropRecords = () => {
     });
   }
 
+  const onFinishEdit = (values) => {
+    values = {...values, id: selectedItem.id};
+    CropService.editLayerRecord(values).then(async response => {
+      message.success(response.data.message);
+      let values = await formSearch.validateFields();
+      fetchAndUpdateRecords(values);
+      setShowDrawer(false);
+      form.resetFields();
+      if (values?.add) setShowDrawer(true);
+    }).catch(err => {
+      console.log(err);
+      message.error(err.response.data.message);
+    });
+  }
+
   const openNewForm = () => {
     setAction("add_crop");
     setShowDrawer(true);
@@ -321,9 +376,31 @@ const CropRecords = () => {
     });
   }
 
+  const [selectedItem, setSelectedItem] = useState({});
+  const editLayer = (item) => {
+    setAction("edit_crop");
+    cropRecord.forEach(c => {
+      c.Layers.forEach(l => {
+        if (l.id === item.id) {
+          setSelectedItem({...item, farm: c.Farm.name, plot: c.name, layer: l.name});
+        }
+      })
+    });
+    setShowDrawer(true);
+  };
+
+  const deleteLayer = (item) => {
+    CropService.deleteLayerRecord({ id: item.id }).then(async response => {
+      message.success(response.data.message);
+      const values = await formSearch.validateFields();
+      fetchAndUpdateRecords(values);
+    }).catch(err => {
+      message.error(err.response.data.message);
+    });
+  }
+
   return (
     <>
-      {/* <Modal bodyStyle={{ height: '80vh' }} width={900} title={title} footer={null} visible={timeline} onCancel={() => setTimeline(false)}> */}
       <Drawer visible={timeline} title={title} placement="bottom" height={(window.innerHeight * 90) / 100} onClose={() => setTimeline(false)}>
         <div style={{ padding: '10px', overflowY: 'scroll', height: '100%' }}>
           <Spin spinning={state.spinning} size="large">
@@ -339,14 +416,25 @@ const CropRecords = () => {
                   <p>{getMachineryText(s)}</p>
                   <p><a href="http://www.krishivedika.com/" target="_blank">Purchase at KrishiVedika</a></p>
                   {s.labour &&
+                    <>
                     <Form form={formLabour} layout="inline" initialValues={initialValues}>
                       <Form.Item name={`${s.id}_man_labour`} label="Man Labour">
-                        <InputNumber onChange={enterLabour.bind(this, s.id, "man")} placeholder="0" min={1} />
+                        <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "man")} placeholder="0" min={1} />
                       </Form.Item>
                       <Form.Item name={`${s.id}_woman_labour`} label="Woman Labour">
-                        <InputNumber onChange={enterLabour.bind(this, s.id, "woman")} placeholder="0" min={1} />
+                        <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "woman")} placeholder="0" min={1} />
+                      </Form.Item>
+                      <Form.Item name={`${s.id}_cost_labour`} label="Cost">
+                        <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "cost")} placeholder="0" min={1} />
                       </Form.Item>
                     </Form>
+                    <Tooltip
+                    title={`Total: ${getTotalCostText(s).total}, Inventory: ${getTotalCostText(s).totalIventory}, Machinery: ${getTotalCostText(s).totalMachinery}, Labour: ${getTotalCostText(s).totalLabour}`}
+                    placement="top"
+                    >
+                    <p>Total Activity Cost: {getTotalCostText(s)['total']}</p>
+                    </Tooltip>
+                    </>
                   }
                 </Timeline.Item>
               ))}
@@ -354,7 +442,6 @@ const CropRecords = () => {
           </Spin>
         </div>
       </Drawer>
-      {/* </Modal> */}
       <Row style={{ padding: "10px", borderTop: "1px solid #90d150" }}>
         <Col xs={12} md={12} lg={12} xl={12}>
           <Form form={formSearch} layout="inline">
@@ -410,9 +497,12 @@ const CropRecords = () => {
         onClose={() => setShowDrawer(false)}
       >
         <Spin spinning={state.spinning} size="large">
-          {(action === "edit_crop" || action === "add_crop") && (
-            <CropRecordForm onAdd={onAdd} onClose={() => setShowDrawer(false)} csrUsers={csrUsers} crops={cropRecordActive} farms={farmRecord} form={form} onFinish={onFinish} />
-          )}
+          {action === "add_crop" &&
+            <CropRecordForm type={action} onAdd={onAdd} onClose={() => setShowDrawer(false)} csrUsers={csrUsers} crops={cropRecordActive} farms={farmRecord} form={form} onFinish={onFinish} />
+          }
+          {action === "edit_crop" &&
+            <CropRecordForm fields={selectedItem} type={action} onAdd={onAdd} onClose={() => setShowDrawer(false)} csrUsers={csrUsers} crops={cropRecordActive} farms={farmRecord} form={form} onFinish={onFinishEdit} />
+          }
         </Spin>
       </Drawer>
     </>

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Tooltip, Button, Table } from "antd";
-import { CalendarFilled } from "@ant-design/icons";
+import { CalendarFilled, DeleteFilled, EditFilled} from "@ant-design/icons";
 
 const LayerTable = (props) => {
 
@@ -26,6 +26,31 @@ const LayerTable = (props) => {
               icon={<CalendarFilled />}
             />
           </Tooltip>
+          {!item.isStarted &&
+            <Tooltip placement="top" title='Edit Layer'>
+              <Button
+                type="link"
+                onClick={() => props.editLayer(item)}
+                icon={<EditFilled />}
+              />
+            </Tooltip>
+          }
+          {item.isStarted &&
+            <Tooltip placement="top" title='Activity has been started!'>
+              <Button
+                disabled
+                type="link"
+                icon={<EditFilled />}
+              />
+            </Tooltip>
+          }
+          <Tooltip placement="top" title='Delete Layer'>
+            <Button
+              type="link"
+              onClick={() => props.deleteLayer(item)}
+              icon={<DeleteFilled />}
+            />
+          </Tooltip>
         </>
       )
     },
@@ -33,6 +58,8 @@ const LayerTable = (props) => {
 
   return (
     <Table
+      className="g-table-striped-rows g-ant-table-cell \"
+      rowClassName={(record, index) => record.isActive ? '' : 'g-table-striped-rows-danger'}
       columns={columns}
       dataSource={props.dataSource.Layers}
       pagination={false}

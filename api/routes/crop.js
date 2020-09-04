@@ -16,6 +16,10 @@ module.exports = (app) => {
 
   app.get("/crop/layer", [commonValidations.verifyToken], controller.getLayerRecord);
 
+  app.post("/crop/layer/edit", [commonValidations.verifyToken], controller.editLayerRecord);
+
   app.post("/crop/layer/update", [commonValidations.verifyToken], controller.updateLayerRecord);
+
+  app.post("/crop/layer/delete", [commonValidations.verifyToken], controller.deleteLayerRecord);
 
 };
