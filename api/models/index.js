@@ -37,6 +37,7 @@ db.inventory = require("../models/inventory")(sequelize, Sequelize);
 db.inventoryType = require("../models/inventoryType")(sequelize, Sequelize);
 db.machinery = require("../models/machinery")(sequelize, Sequelize);
 db.machineryType = require("../models/machineryType")(sequelize, Sequelize);
+db.activity = require("../models/activity")(sequelize, Sequelize);
 
 // Associations
 db.role.belongsToMany(db.user, {

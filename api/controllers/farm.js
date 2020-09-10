@@ -104,7 +104,6 @@ exports.addFarmRecord = (req, res) => {
   farmRecords.isActive = true;
   farmRecords.userId = req.userId;
   farmRecords.ownerAge = common.convertAgeToDate(req.body.ownerAge);
-  farmRecords.partitions = JSON.stringify({ partitions: [{ item: 'Plot 1', area: 0 }] });
   let userId = 0;
   if (req.userRoleId === 5) userId = req.userId;
   else userId = req.body.member;
@@ -144,9 +143,29 @@ exports.updateFarmRecord = (req, res) => {
       return res.status(404).send({ message: "Farm Record doesn't exist" });
     }
     farm.update(farmRecords).then((farm) => {
-      return res.send({ farm: farm });
+      if (farmRecords.warehouse) {
+        WarehouseFarm.destroy({where: {FarmId: farm.id}}).then(() => {
+          WarehouseFarm.create({FarmId: farm.id, WarehouseId: farmRecords.warehouse}, {fields: ['FarmId', 'WarehouseId']}).then(() => {
+            return res.status(200).send({
+              message: "Farm Record Updated Successfully!",
+            });
+          })
+        }).catch(err => {
+          if (err.original.code === 'ER_DUP_ENTRY') {
+            return res.status(200).send({
+              message: "Farm Record Updated Successfully!",
+            });
+          } else {
+            return res.status(500).send({ message: "Unknown Error", code: 2 });
+          }
+        });;
+      }
+      else {
+        return res.send({ farm: farm, message: "Farm Record Updated Successfully!" });
+      }
     });
-  }).catch(() => {
+  }).catch(err => {
+    console.log(err);
     return res.status(500).send({ message: "Unknown Error", code: 2 });
   });
 };

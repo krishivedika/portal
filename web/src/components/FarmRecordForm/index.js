@@ -27,6 +27,7 @@ const FarmRecordForm = (props) => {
   const [districts, setDistricts] = useState([]);
   const [mandals, setMandals] = useState([]);
   const [villages, setVillages] = useState([]);
+  const [warehouseUpdated, setWarehouseUpdated] = useState(false);
 
   const setPropFields = (fieldsValue) => {
     const fields = [];
@@ -166,7 +167,7 @@ const FarmRecordForm = (props) => {
             </Form.Item>
           </Form>
         ]}>
-        <Form scrollToFirstError={true} fields={fields} preserve={true} form={props.form} onFinish={props.onFinish} {...layout}>
+        <Form scrollToFirstError={true} fields={fields} preserve={true} form={props.form} onFinish={props.onFinish.bind(this, warehouseUpdated)} {...layout}>
           <Row>
             <Col span={24}>
               <Card title="Farm Ownership" className="g-ant-card">
@@ -350,7 +351,7 @@ const FarmRecordForm = (props) => {
                 {!loading &&
                   <>
                     <Form.Item name="warehouse" label="Warehouse">
-                      <Select showSearch placeholder="Select Warehouse">
+                      <Select showSearch placeholder="Select Warehouse" onChange={() => setWarehouseUpdated(true)}>
                         {warehouses.map(d => (
                           <Option key={d.id} value={d.id}>{d.name}</Option>
                         ))}

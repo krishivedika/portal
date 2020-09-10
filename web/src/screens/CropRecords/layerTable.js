@@ -1,5 +1,5 @@
 import React from "react";
-import { Tooltip, Button, Table } from "antd";
+import { Tooltip, Button, Popconfirm, Table } from "antd";
 import { CalendarFilled, DeleteFilled, EditFilled} from "@ant-design/icons";
 
 const LayerTable = (props) => {
@@ -15,8 +15,8 @@ const LayerTable = (props) => {
     { title: "Brand", dataIndex: "brand", key: "brand" },
     { title: "Seed", dataIndex: "seed", key: "seed" },
     { title: "Irrigation", dataIndex: "irrigation", key: "irrigation" },
-    { title: "Total Inventory Cost", dataIndex: "price", key: "price" },
-    { title: "Total Machinery Cost", dataIndex: "machineryPrice", key: "machineryPrice" },
+    { title: "Estimated Inventory Cost", dataIndex: "price", key: "price" },
+    { title: "Estimated Machinery Cost", dataIndex: "machineryPrice", key: "machineryPrice" },
     { title: "Activity", dataIndex: "activity", render: (_, item) => (
         <>
           <Tooltip placement="top" title='Show Activity'>
@@ -44,13 +44,35 @@ const LayerTable = (props) => {
               />
             </Tooltip>
           }
-          <Tooltip placement="top" title='Delete Layer'>
-            <Button
-              type="link"
-              onClick={() => props.deleteLayer(item)}
-              icon={<DeleteFilled />}
-            />
-          </Tooltip>
+          {item.isStarted &&
+            <Tooltip placement="bottom" title='Delete Layer'>
+              <Button
+                type="link"
+                icon={
+                <Popconfirm
+                  title="Activity has started and cost has already been spent on this crop, are you sure you want to delete?"
+                  okText="Yes"
+                  cancelText="No"
+                  onConfirm={props.deleteLayer.bind(this, "confirm", item)}
+                  onCancel={props.deleteLayer.bind(this, "cancel", item)}
+                >
+                  <DeleteFilled />
+                </Popconfirm>
+                }
+              />
+            </Tooltip>
+          }
+          {!item.isStarted &&
+            <Tooltip placement="bottom" title='Delete Layer'>
+              <Button
+                type="link"
+                onClick={props.deleteLayer.bind(this, "confirm", item)}
+                icon={
+                  <DeleteFilled />
+                }
+              />
+            </Tooltip>
+          }
         </>
       )
     },

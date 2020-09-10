@@ -87,7 +87,11 @@ const CropRecordForm = (props) => {
     }
     farms.forEach(farm => {
       if (farm.id === e) {
-        const plots = [...JSON.parse(farm.partitions).partitions];
+        const plots = [...JSON.parse(farm.partitions)?.partitions || []];
+        if (plots.length == 0) {
+          message.warning("Farm not plotted, please plot in Farm Records.", 0);
+          props.onClose();
+        }
         setFarm(e);
         setPartitions(() => plots);
         setShowPlots(true);

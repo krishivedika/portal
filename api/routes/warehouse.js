@@ -8,6 +8,8 @@ module.exports = (app) => {
 
   app.post("/warehouse/add", [commonValidations.verifyToken, validation.addWarehouse], controller.addWarehouse);
 
+  app.post("/warehouse/update", [commonValidations.verifyToken, validation.updateWarehouse], controller.updateWarehouse);
+
   app.post("/warehouse/delete", [commonValidations.verifyToken, validation.deleteWarehouse], controller.deleteWarehouse);
 
   app.post("/warehouse/inventory/add", [commonValidations.verifyToken, validation.addInventory], controller.addInventory);

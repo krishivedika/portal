@@ -18,6 +18,7 @@ const Warehouse = db.warehouse;
 const Inventory = db.inventory;
 const Machinery = db.machinery;
 const MachineryType = db.machineryType;
+const Activity = db.activity;
 
 // Crop Record End Points
 exports.cropTypes = async (req, res) => {
@@ -109,7 +110,8 @@ exports.cropRecords = async (req, res) => {
   });
 };
 
-exports.addCropRecord = (req, res) => {
+exports.addCropRecord = async (req, res) => {
+  const farm = await Farm.findOne({where: {id: req.body.farm, isActive: true}});
   Crop.findOne({ where: { isActive: true, name: req.body.plot, FarmId: req.body.farm } }).then(async (crop) => {
     if (crop) {
       Layer.findOne({ where: { CropId: crop.id, isActive: true, name: req.body.layer } }).then(layer => {
@@ -118,11 +120,12 @@ exports.addCropRecord = (req, res) => {
     }
     try {
       if (!crop) {
-        crop = await Crop.create({ FarmId: req.body.farm, name: req.body.plot });
+        crop = await Crop.create({ FarmId: farm.id, name: req.body.plot });
       }
       const practice = await Practice.findOne({ where: { seed: req.body.seed, brand: req.body.brand, irrigation: req.body.irrigation } });
       const inventoryTypes = await InventoryType.findAll({ where: { isActive: true } });
       const machineryTypes = await MachineryType.findAll({ where: { isActive: true } });
+      const activity = await Activity.findAll({ where: { isActive: true } });
       const inventoryTypesObj = {};
       inventoryTypes.forEach(i => {
         inventoryTypesObj[i.item] = i.price;
@@ -131,10 +134,27 @@ exports.addCropRecord = (req, res) => {
       machineryTypes.forEach(i => {
         machineryTypesObj[i.item] = i.price;
       });
+      const activityObj = {};
+      activity.forEach(i => {
+        activityObj[i.name] = {man_price: i.man_price, woman_price: i.woman_price};
+      });
+
       let price = 0;
       let machineryPrice = 0;
+      let practiceCalculated = undefined;
       if (practice) {
-        const stages = JSON.parse(practice.config).stages;
+        let stages = JSON.parse(practice.config).stages;
+        let farmSize = 0;
+        JSON.parse(farm.partitions).partitions.forEach(p => {
+          if (p.item == req.body.plot) {
+            farmSize = p.area;
+          }
+        });
+        stages.forEach(s => {
+          if (s.inventory) {
+            s.inventory.quantity = parseInt(s.inventory.quantity * farmSize);
+          }
+        });
         stages.forEach(s => {
           if (s.inventory) {
             price += inventoryTypesObj[s.inventory.name] * s.inventory.quantity;
@@ -142,7 +162,12 @@ exports.addCropRecord = (req, res) => {
           if (s.machinery) {
             machineryPrice += machineryTypesObj[s.machinery.name] * s.machinery.quantity;
           }
+          let man_activity = activityObj[s.activity];
+          s.man_price = man_activity || 1;
+          let woman_activity = activityObj[s.activity];
+          s.woman_price = woman_activity || 1;
         });
+        practiceCalculated = JSON.stringify({stages: stages});
       }
       await Layer.create({
         CropId: crop.id,
@@ -152,7 +177,7 @@ exports.addCropRecord = (req, res) => {
         brand: req.body.brand,
         irrigation: req.body.irrigation,
         date: req.body.date,
-        config: practice ? practice.config : null,
+        config: practiceCalculated ? practiceCalculated : null,
         price: price,
         machineryPrice: machineryPrice,
       });
@@ -330,8 +355,9 @@ exports.updateLayerRecord = (req, res) => {
           if (req.body.labour) {
             layer["man_labour"] = req.body.man;
             layer["woman_labour"] = req.body.woman;
-            layer["cost_labour"] = req.body.cost;
           }
+          layer["extra_cost"] = req.body.extra_cost;
+          console.log(req.body);
           if (layer.state !== "presowing") {
             layer.current = false;
             if (index !== (currentConfig.stages.length - 1)) {

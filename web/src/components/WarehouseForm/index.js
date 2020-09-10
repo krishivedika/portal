@@ -31,12 +31,19 @@ const WarehouseForm = (props) => {
         }
       });
     }
+    if (props.type === "edit_warehouse") {
+      fields.forEach(field => {
+        if(field.name === "User") {
+          fields.push({name: "member", value: field.value.firstName});
+        }
+      });
+    }
     setFields(fields);
   }, [props]);
 
   return (
     <div style={{ margin: '15px' }}>
-      <Card title={`Creating New Warehouse`}
+      <Card title={props.type === "add_warehouse" ? `Creating New Warehouse` : `Editing Warehouse`}
         className="g-ant-card"
         extra={[
           <Form key="save" form={props.form} layout="inline">
@@ -58,7 +65,7 @@ const WarehouseForm = (props) => {
                         message: "Please input Member",
                       },
                     ]}>
-                    <Select placeholder="Select Member">
+                    <Select disabled={props.type === "edit_warehouse"} placeholder="Select Member">
                       {props.csrUsers.map(d => (
                         <Option key={d.id} value={d.id}>{d.firstName} ({d.phone})</Option>
                       ))}

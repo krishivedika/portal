@@ -194,13 +194,16 @@ const FarmRecords = () => {
     }
   }
 
-  const onFinish = (values) => {
+  const onFinish = (warehouseUpdated = true, values) => {
     let formValues = { ...values };
     if (selectedItem.id) {
       formValues.id = selectedItem.id;
+      if (!warehouseUpdated) {
+        delete formValues.warehouse;
+      }
       UserService.updateFarmRecords(formValues)
-        .then(() => {
-          message.success(`Farm Record Successfully Added.`);
+        .then(response => {
+          message.success(response.data.message);
           setShowDrawer(false);
           form.resetFields();
           fetchAndUpdateRecords();

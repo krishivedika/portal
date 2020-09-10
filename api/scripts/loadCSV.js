@@ -12,6 +12,7 @@ const Region = db.region;
 const Practice = db.practice;
 const InventoryType = db.inventoryType;
 const MachineryType = db.machineryType;
+const Activity = db.activity;
 
 (() => {
   db.sequelize.sync({ alter: { drop: false } }).then(() => {
@@ -48,6 +49,10 @@ const load = () => {
 
   if (process.argv[2] === "machinery") {
     model = MachineryType, validLength = 2;
+  }
+
+  if (process.argv[2] === "activity") {
+    model = Activity, validLength = 3;
   }
 
   try {

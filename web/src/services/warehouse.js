@@ -11,6 +11,10 @@ class Warehouse {
     return axios.post(`/warehouse/add`, data);
   }
 
+  updateWarehouse(data) {
+    return axios.post(`/warehouse/update`, data);
+  }
+
   deleteWarehouse(data) {
     return axios.post(`/warehouse/delete`, data);
   }

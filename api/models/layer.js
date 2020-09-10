@@ -1,3 +1,5 @@
+const constants = require("../constants");
+
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
@@ -12,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     config: DataTypes.TEXT,
     price: DataTypes.INTEGER,
     machineryPrice: DataTypes.INTEGER,
+    labourCost:  {
+      type: DataTypes.INTEGER,
+      defaultValue: () => constants.LABOUR_COST,
+    },
     isStarted: {
       type: DataTypes.BOOLEAN,
       defaultValue: () => false,

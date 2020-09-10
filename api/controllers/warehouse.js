@@ -92,6 +92,39 @@ exports.addWarehouse = async (req, res) => {
   }
 };
 
+exports.updateWarehouse = async (req, res) => {
+  Warehouse.findOne({
+    where: {
+      id: req.body.id,
+      isActive: true,
+    },
+  }).then(async (warehouse) => {
+    if (!warehouse) {
+      return res.status(404).send({ message: "Warehouse doesn't exist" });
+    }
+    if ([3, 4].includes(req.userRoleId)) {
+      const users = await User.scope("withoutPassword").findAll(
+        {
+          where: { '$managedBy.UserAssociations.csrId$': req.userId },
+          include: [{ model: User.scope("withoutPassword"), as: 'managedBy', through: 'UserAssociations' }]
+        });
+      const csrUsers = users.map(x => x.id);
+      if (!csrUsers.includes(warehouse.UserId)) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
+      }
+    }
+    else if (warehouse.UserId !== req.userId) {
+      return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
+    }
+    warehouse.update({...req.body}).then(() => {
+      return res.send({ message: "Warehouse Successfully Updated!" });
+    });
+  }).catch((err) => {
+    console.log(err);
+    return res.status(500).send({ message: "Unknown Error", code: 2 });
+  });
+};
+
 exports.deleteWarehouse = async (req, res) => {
   Warehouse.findOne({
     where: {

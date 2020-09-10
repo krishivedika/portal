@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Spin, Tooltip, Drawer, Button, Row, Col, Table, Form, message } from "antd";
-import { PlusOutlined, DeleteFilled, SettingOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteFilled, SettingOutlined, EditFilled } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import WarehouseService from "../../services/warehouse";
@@ -60,6 +60,9 @@ const Warehouse = () => {
             <Tooltip placement="top" title='Add Machinery'>
               <Button type="link" icon={<SettingOutlined />} onClick={() => review(item, "add_machinery")} />
             </Tooltip>
+            <Tooltip placement="top" title='Edit Warehouse'>
+              <Button type="link" icon={<EditFilled />} onClick={() => editWarehouse(item, "edit_warehouse")} />
+            </Tooltip>
             <Tooltip placement="top" title='Delete Warehouse'>
               <Button type="link" icon={<DeleteFilled />} onClick={() => deleteWarehouse(item, "delete_warehouse")} />
             </Tooltip>
@@ -75,6 +78,13 @@ const Warehouse = () => {
     setSelectedItem(() => item);
     setShowInventoryDrawer(true);
   }
+
+  const [fields, setFields] = useState({});
+  const editWarehouse = (item, action) => {
+    setAction(action)
+    setFields(item);
+    setShowDrawer(true);
+  };
 
   const deleteWarehouse = (item, action) => {
     WarehouseService.deleteWarehouse({id: item.id}).then(response => {
@@ -101,10 +111,25 @@ const Warehouse = () => {
 
   const [form] = Form.useForm();
 
+  const onFinishUpdate = (values) => {
+    values.id = fields.id;
+    WarehouseService.updateWarehouse(values).then(response => {
+      fetchAndUpdateRecords();
+      setFields(() => ({}));
+      setShowDrawer(false);
+      form.resetFields();
+      message.success(response.data.message);
+    }).catch(err => {
+      console.log(err);
+      message.error(err.response.data.message);
+    });
+  };
+
   const onFinish = (values) => {
     WarehouseService.addWarehouse(values).then(response => {
       fetchAndUpdateRecords();
       setShowDrawer(false);
+      form.resetFields();
       message.success(response.data.message);
     }).catch(err => {
       console.log(err);
@@ -113,11 +138,13 @@ const Warehouse = () => {
   };
 
   const openNewForm = (e) => {
+    setAction("add_warehouse");
     setShowDrawer(true);
   };
 
   const onDrawerClose = () => {
     setLoading(false);
+    setFields({});
     setShowDrawer(false);
   };
 
@@ -273,14 +300,26 @@ const Warehouse = () => {
         onClose={onDrawerClose}
       >
         <Spin spinning={state.spinning} size="large">
-          <WarehouseForm
-            type={action}
-            fields={{}}
-            form={form}
-            csrUsers={csrUsers}
-            onFinish={onFinish}
-            onClose={onDrawerClose}
-          />
+          {action === "add_warehouse" &&
+            <WarehouseForm
+              type={action}
+              fields={{}}
+              form={form}
+              csrUsers={csrUsers}
+              onFinish={onFinish}
+              onClose={onDrawerClose}
+            />
+          }
+          {action === "edit_warehouse" &&
+            <WarehouseForm
+              type={action}
+              fields={fields}
+              form={form}
+              csrUsers={csrUsers}
+              onFinish={onFinishUpdate}
+              onClose={onDrawerClose}
+            />
+          }
         </Spin>
       </Drawer>
       <Drawer

@@ -11,9 +11,18 @@ const PartitionForm = (props) => {
   const [fields, setFields] = useState([]);
 
   useEffect(() => {
+    let tempSize = 0.0000;
+    props.data.Surveys.forEach(s => {
+      tempSize += parseFloat(s.extent);
+    });
+    const tempSizeFixed = tempSize.toFixed(4);
     const fields = [];
     setPartitions(() => {
-      let data = [...JSON.parse(props.data.partitions).partitions]
+      let data = [...JSON.parse(props.data.partitions)?.partitions || []];
+      if (data.length == 0) {
+        data.push({item: "Plot 1", area: tempSizeFixed});
+        fields.push({name: "Plot 1", value: tempSizeFixed});
+      }
       data.forEach(item => {
         item.area = parseInt(item.area);
         fields.push({name: item.item, value: item.area});
@@ -21,11 +30,6 @@ const PartitionForm = (props) => {
       return data;
     });
     setFields(() => fields);
-    let tempSize = 0.0000;
-    props.data.Surveys.forEach(s => {
-      tempSize += parseFloat(s.extent);
-    });
-    const tempSizeFixed = tempSize.toFixed(4);
     setTotalSize(tempSizeFixed);
   }, [props]);
 

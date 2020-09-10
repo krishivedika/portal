@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Collapse, Row, Col, Button, List, Skeleton } from "antd";
+import { Popconfirm, Collapse, Row, Col, Button, List, Skeleton } from "antd";
 import { DeleteFilled } from "@ant-design/icons";
 
 const { Panel } = Collapse;
@@ -29,7 +29,7 @@ const MobileView = (props) => {
             type="danger"
             onClick={(event) => {
               event.stopPropagation();
-              props.deleteRecord(item.item);
+              props.deleteCropRecord(item.item);
             }}>
             <DeleteFilled /> Delete
           </Button>
@@ -71,10 +71,27 @@ const MobileView = (props) => {
                           >
                             PoP
                           </Button>,
+                           <Button
+                           type="secondary"
+                           onClick={(event) => {
+                             event.stopPropagation();
+                           }}
+                           key="list-loadmore-delete"
+                         >
+                          <Popconfirm
+                            title="Activity has started and cost has already been spent on this crop, are you sure you want to delete?"
+                            okText="Yes"
+                            cancelText="No"
+                            onConfirm={props.deleteLayer.bind(this, "confirm", item)}
+                            onCancel={props.deleteLayer.bind(this, "cancel", item)}
+                          >
+                            Delete
+                          </Popconfirm>
+                         </Button>,
                         ]}
                       >
                         <Skeleton active loading={false}>
-                          <List.Item.Meta title={`${item.crop} (${new Date(item.date).toDateString()}), Total Inventory Cost: ${item.price}, Total Machinery Cost: ${item.machineryPrice}`}></List.Item.Meta>
+                          <List.Item.Meta title={`${item.crop} (${new Date(item.date).toDateString()}), Estimated Inventory Cost: ${item.price}, Estimated Machinery Cost: ${item.machineryPrice}`}></List.Item.Meta>
                         </Skeleton>
                       </List.Item>
                     )}
