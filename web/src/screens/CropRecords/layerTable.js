@@ -9,7 +9,7 @@ const LayerTable = (props) => {
     { title: "Layer", dataIndex: "name", key: "name" },
     {
       title: "Date", dataIndex: "date", key: "date", render: (_, item) => (
-        <p>{new Date(item.date).toDateString()}</p>
+        <>{new Date(item.date).toDateString()}</>
       )
     },
     { title: "Brand", dataIndex: "brand", key: "brand" },

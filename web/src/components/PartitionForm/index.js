@@ -24,7 +24,7 @@ const PartitionForm = (props) => {
         fields.push({name: "Plot 1", value: tempSizeFixed});
       }
       data.forEach(item => {
-        item.area = parseInt(item.area);
+        item.area = parseFloat(item.area);
         fields.push({name: item.item, value: item.area});
       });
       return data;
@@ -76,7 +76,7 @@ const PartitionForm = (props) => {
         let tempSize = 0;
         state.forEach(p => {
           p.area = values[p.item] || 0;
-          tempSize += parseInt(p.area);
+          tempSize += parseFloat(p.area);
         });
         newItem = { item: `Plot ${partitions.length + 1}`, area: (totalSize - tempSize === 0) ? 1 : totalSize - tempSize };
         const newData = [...state, newItem];

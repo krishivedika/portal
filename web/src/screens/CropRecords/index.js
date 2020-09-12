@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Spin, Tooltip, Typography, Timeline, Checkbox, Drawer, Button, Row, Col, Table, Input, Form, message, Popconfirm, InputNumber } from "antd";
+import { Tabs, Spin, Tooltip, Typography, Timeline, Checkbox, Drawer, Button, Row, Col, Table, Input, Form, message, Popconfirm, InputNumber, Card } from "antd";
 import { CheckCircleTwoTone, DeleteFilled, ReloadOutlined } from "@ant-design/icons";
 import { useHistory } from "react-router-dom";
 
@@ -13,6 +13,7 @@ import Routes from "../../routes";
 import "./index.less";
 
 const { Text } = Typography;
+const { TabPane } = Tabs;
 
 const CropRecords = () => {
   const [farmRecord, setFarmRecords] = useState([]);
@@ -41,7 +42,7 @@ const CropRecords = () => {
   columns = [...columns,
   { title: "Farm Name", key: "farmname", ellipsis: true, render: (_, item) => (<p>{item.Farm.name}</p>) },
   { title: "Khata", key: "farmname", ellipsis: true, render: (_, item) => (<p>{item.Farm.khata}</p>) },
-  { title: "Plot", dataIndex: "name", key: "name", ellipsis: true },
+  { title: "Plot", dataIndex: "name", key: "name", ellipsis: true, render: (_, item) => (<p>{item.name} (Size: {item.size})</p>) },
   {
     title: "Action",
     key: "action",
@@ -85,6 +86,7 @@ const CropRecords = () => {
   const [currentMachinery, setCurrentMachinery] = useState([]);
   const [initialValues, setInitialValues] = useState([]);
   const [formLabour] = Form.useForm();
+  const [formMachinery] = Form.useForm();
 
   const updateStages = (data) => {
     setTimeline(false);
@@ -99,14 +101,14 @@ const CropRecords = () => {
     config.stages.forEach(s => {
       if (s.completed) {
         if (s.inventory) {
-          data.inventoryTypes.forEach(i => {
+          data.inventories.forEach(i => {
             if (i.item === s.inventory.name && i.metric === s.inventory.metric) {
               totalIventory = s.inventory.quantity * i.price;
             }
           });
         }
         if (s.machinery) {
-          data.machineryTypes.forEach(i => {
+          data.machinery.forEach(i => {
             if (i.item === s.machinery.name) {
               totalMachinery = s.machinery.quantity * i.price;
             }
@@ -115,7 +117,7 @@ const CropRecords = () => {
         currentCost += parseInt(getTotalCostText(s).totalOther + getTotalCostText(s).totalLabour) + totalIventory + totalMachinery;
       }
     });
-    setTitle(`${layer.crop} - ${new Date(layer.date).toDateString()}, Cost till day: ${currentCost}`);
+    setTitle(`${layer.crop} (Size: ${layer.Crop.size}) - ${new Date(layer.date).toDateString()}, Cost till day: ${currentCost}`);
     setStages(() => config.stages);
     const fields = [];
     const values = {};
@@ -124,12 +126,21 @@ const CropRecords = () => {
         fields.push({ name: `${s.id}_man_labour`, value: s.man_labour });
         fields.push({ name: `${s.id}_woman_labour`, value: s.woman_labour });
         fields.push({ name: `${s.id}_extra_cost`, value: s.extra_cost });
+        fields.push({ name: `${s.id}_machinery_rent`, value: s.machinery_rent });
+        fields.push({ name: `${s.id}_machinery_fuel`, value: s.machinery_fuel });
+        fields.push({ name: `${s.id}_machinery_man_power`, value: s.machinery_man_power });
         values[`${s.id}_man_labour`] = s.man_labour;
         values[`${s.id}_woman_labour`] = s.woman_labour;
         values[`${s.id}_extra_cost`] = s.extra_cost;
+        values[`${s.id}_machinery_rent`] = s.machinery_rent;
+        values[`${s.id}_machinery_fuel`] = s.machinery_fuel;
+        values[`${s.id}_machinery_man_power`] = s.machinery_man_power;
       }
     });
     formLabour.setFieldsValue(values);
+    formMachinery.setFieldsValue(values);
+    setCurrentInventory(() => data.inventories);
+    setCurrentMachinery(() => data.machinery);
     setInitialValues(fields);
     setTimeline(true);
   };
@@ -150,23 +161,28 @@ const CropRecords = () => {
     }
   };
 
-  const updateStage = (id, inventoryId, confirm) => {
+  const updateStage = (id, inventoryId, confirm, complete) => {
     let values = {
       id: layerId, stageId: id,
-      confirm: confirm, inventoryId: inventoryId,
+      confirm: confirm, inventoryId: inventoryId, complete: complete,
     };
     if (labour.isSet && id == labour.stage) {
       values["labour"] = true;
       values["man"] = labour.man;
       values["woman"] = labour.woman;
     }
+    if (machinery.isSet && id == machinery.stage) {
+      values["machinery"] = true;
+      values["machinery_rent"] = machinery.rent;
+      values["machinery_fuel"] = machinery.fuel;
+      values["machinery_man_power"] = machinery.man_power;
+    }
     values["extra_cost"] = labour.extra_cost;
     CropService.updateLayerRecord(values).then(response => {
       message.success(response.data.message);
-      setCurrentInventory(() => response.data.inventories);
-      setCurrentMachinery(() => response.data.machinery);
       updateStages(response.data);
     }).catch(err => {
+      console.log(err);
       message.error(err.response.data.message);
     });
   };
@@ -210,11 +226,9 @@ const CropRecords = () => {
     }
   }
 
-  const getTotalCostText = (stage) => {
+  const getTotalSystemCostText = (stage) => {
     let totalIventory = 0;
     let totalMachinery = 0;
-    let totalLabour = 0;
-    let totalOther = stage.extra_cost || 0;
     if (stage.inventory) {
       inventoryTypes.forEach(i => {
         if (i.item === stage.inventory.name && i.metric === stage.inventory.metric) {
@@ -229,8 +243,50 @@ const CropRecords = () => {
         }
       });
     }
+    return { total: totalMachinery + totalIventory, totalIventory, totalMachinery };
+  };
+
+  const getTotalCostText = (stage) => {
+    let totalIventory = 0;
+    let totalMachinery = 0;
+    let totalLabour = 0;
+    let totalOther = stage.extra_cost || 0;
+    if (stage.inventory) {
+      currentInventory.forEach(i => {
+        let found = false;
+        if (i.item === stage.inventory.name && i.metric === stage.inventory.metric) {
+          found = true;
+          totalIventory += stage.inventory.quantity * i.price;
+        }
+        if (!found) {
+          inventoryTypes.forEach(i => {
+            let found = false;
+            if (i.item === stage.inventory.name && i.metric === stage.inventory.metric) {
+              totalIventory += stage.inventory.quantity * i.price;
+            }
+          });
+        }
+      });
+    }
+    if (stage.machinery) {
+      currentMachinery.forEach(i => {
+        let found = false;
+        if (i.item === stage.machinery.name) {
+          found = true;
+          totalMachinery += stage.machinery.quantity * i.price;
+        }
+        if (!found) {
+          machineryTypes.forEach(i => {
+            let found = false;
+            if (i.item === stage.machinery.name) {
+              totalMachinery += stage.machinery.quantity * i.price;
+            }
+          });
+        }
+      });
+    }
     totalLabour += ((stage.man_labour || 0) * stage.man_price) + ((stage.woman_labour || 0) * stage.woman_price);
-    return {total:  totalMachinery + totalIventory + totalLabour + totalOther, totalIventory, totalMachinery, totalLabour, totalOther};
+    return { total: totalMachinery + totalIventory + totalLabour + totalOther, totalIventory, totalMachinery, totalLabour, totalOther };
   };
 
   const getTimeLineDate = (stage) => {
@@ -280,8 +336,8 @@ const CropRecords = () => {
           title="Do you want to adjust item quantity in warehouse?"
           okText="Yes and Save Activity"
           cancelText="No and Save Activity"
-          onConfirm={handleConfirm.bind(this, "confirm", stage.id, inventoryId)}
-          onCancel={handleConfirm.bind(this, "cancel", stage.id, inventoryId)}
+          onConfirm={handleConfirm.bind(this, "confirm", true, stage.id, inventoryId)}
+          onCancel={handleConfirm.bind(this, "cancel", true, stage.id, inventoryId)}
         >
           <Button type="link">
             <CheckCircleTwoTone style={fontStyle} twoToneColor={color} />
@@ -291,12 +347,29 @@ const CropRecords = () => {
     }
   };
 
-  const handleConfirm = (confirm, stage, inventoryId, e) => {
+  const getLabourSave = (stage) => {
+    return (
+      <Button type="primary" onClick={handleConfirm.bind(this, "cancel", false, stage.id, 0)}>
+        Save
+      </Button>
+    )
+  };
+
+  const getMachinerySave = (stage) => {
+    return (
+      <Button type="primary" onClick={handleConfirm.bind(this, "cancel", false, stage.id, 0)}>
+        Save
+      </Button>
+    )
+  };
+
+  const handleConfirm = (confirm, complete, stage, inventoryId, e) => {
     e.persist();
-    updateStage(stage, inventoryId, confirm == "confirm" ? true : false);
+    updateStage(stage, inventoryId, confirm == "confirm" ? true : false, complete);
   };
 
   const [labour, setLabour] = useState({ isSet: false, man: 0, woman: 0, stage: 0, extra_cost: 0 });
+  const [machinery, setMachinery] = useState({ isSet: false, rent: 0, fuel: 0, man_power: 0});
   const enterLabour = (id, type, e) => {
     if (type === "man")
       setLabour((state) => ({ ...state, stage: id, man: e, isSet: true }));
@@ -304,6 +377,14 @@ const CropRecords = () => {
       setLabour((state) => ({ ...state, stage: id, woman: e, isSet: true }));
     else
       setLabour((state) => ({ ...state, stage: id, extra_cost: e, isSet: true }));
+  };
+  const enterMachinery = (id, type, e) => {
+    if (type === "rent")
+      setMachinery((state) => ({ ...state, stage: id, rent: e, isSet: true }));
+    else if (type === "fuel")
+      setMachinery((state) => ({ ...state, stage: id, fuel: e, isSet: true }));
+    else
+      setMachinery((state) => ({ ...state, stage: id, man_power: e, isSet: true }));
   };
 
   const expandedRowRender = (item) => {
@@ -367,7 +448,7 @@ const CropRecords = () => {
   }
 
   const onFinishEdit = (values) => {
-    values = {...values, id: selectedItem.id};
+    values = { ...values, id: selectedItem.id };
     CropService.editLayerRecord(values).then(async response => {
       message.success(response.data.message);
       let values = await formSearch.validateFields();
@@ -413,7 +494,7 @@ const CropRecords = () => {
     cropRecord.forEach(c => {
       c.Layers.forEach(l => {
         if (l.id === item.id) {
-          setSelectedItem({...item, farm: c.Farm.name, plot: c.name, layer: l.name});
+          setSelectedItem({ ...item, farm: c.Farm.name, plot: c.name, layer: l.name });
         }
       })
     });
@@ -421,7 +502,7 @@ const CropRecords = () => {
   };
 
   const deleteLayer = (confirm, item) => {
-    if(confirm === "confirm") {
+    if (confirm === "confirm") {
       CropService.deleteLayerRecord({ id: item.id }).then(async response => {
         message.success(response.data.message);
         const values = await formSearch.validateFields();
@@ -443,35 +524,83 @@ const CropRecords = () => {
                   <p>Stage {s.stage}</p>
                   <p>Activity: {s.activity}</p>
                   <p>{s.general ? `General: ${s.general}` : ""}</p>
-                  <p>{s.inm ? `INM: ${s.inm}` : ""}</p>
-                  <p>{s.ipm ? `IPM: ${s.ipm}` : ""}</p>
-                  <p>{getInventoryText(s)}</p>
-                  <p>{getMachineryText(s)}</p>
-                  <p><a href="http://www.krishivedika.com/" target="_blank">Purchase at KrishiVedika</a></p>
-                  {s.labour &&
-                    <>
-                    <Form form={formLabour} layout="inline" initialValues={initialValues}>
-                      <Form.Item name={`${s.id}_man_labour`} label="Man Labour Hours">
-                        <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "man")} placeholder="0" min={1} />
-                      </Form.Item>
-                      <Form.Item name={`${s.id}_woman_labour`} label="Woman Labour Hours">
-                        <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "woman")} placeholder="0" min={1} />
-                      </Form.Item>
-                      <div>
-                        <Form.Item name={`${s.id}_extra_cost`} label="Miscellaneous Costs">
-                          <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "extra_cost")} placeholder="0" min={1} />
-                        </Form.Item>
-                      </div>
-                    </Form>
-                    </>
-                  }
-                  <br></br>
+                  <Tabs defaultActiveKey="1">
+                    <TabPane tab="Material" key="1">
+                      <p>{s.inm ? `INM: ${s.inm}` : ""}</p>
+                      <p>{s.ipm ? `IPM: ${s.ipm}` : ""}</p>
+                      <p>{getInventoryText(s)}</p>
+                      <p><a href="http://www.krishivedika.com/" target="_blank">Purchase at KrishiVedika</a></p>
+                    </TabPane>
+                    <TabPane tab="Labour" key="2">
+                      {s.labour &&
+                        <>
+                          <Form form={formLabour} layout="inline" initialValues={initialValues}>
+                            <Form.Item name={`${s.id}_man_labour`} label="Man Labour Hours">
+                              <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "man")} placeholder="0" min={1} />
+                            </Form.Item>
+                            <Form.Item name={`${s.id}_woman_labour`} label="Woman Labour Hours">
+                              <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "woman")} placeholder="0" min={1} />
+                            </Form.Item>
+                            <Form.Item name={`${s.id}_extra_cost`} label="Miscellaneous Costs">
+                              <InputNumber disabled={s.completed || false} onChange={enterLabour.bind(this, s.id, "extra_cost")} placeholder="0" min={1} />
+                            </Form.Item>
+                            {getLabourSave(s)}
+                          </Form>
+                        </>
+                      }
+                      {!s.labour &&
+                        <p>No labour needed for this activity.</p>
+                      }
+                    </TabPane>
+                    <TabPane tab="Machinery" key="3">
+                      {s.machinery &&
+                        <>
+                        <p>{getMachineryText(s)}</p>
+                        <Form form={formMachinery} layout="inline" initialValues={initialValues}>
+                            <Form.Item name={`${s.id}_machinery_rent`} label="Rent">
+                              <InputNumber disabled={s.completed || false} onChange={enterMachinery.bind(this, s.id, "rent")} placeholder="0" min={1} />
+                            </Form.Item>
+                            <Form.Item name={`${s.id}_machinery_fuel`} label="Fuel">
+                              <InputNumber disabled={s.completed || false} onChange={enterMachinery.bind(this, s.id, "fuel")} placeholder="0" min={1} />
+                            </Form.Item>
+                            <Form.Item name={`${s.id}_machinery_man_power`} label="Man Power">
+                              <InputNumber disabled={s.completed || false} onChange={enterMachinery.bind(this, s.id, "man_power")} placeholder="0" min={1} />
+                            </Form.Item>
+                            {getMachinerySave(s)}
+                          </Form>
+                        <p><a href="http://www.krishivedika.com/" target="_blank">Purchase at KrishiVedika</a></p>
+                        </>
+                      }
+                      {!s.machinery &&
+                        <p>No machinery needed for this activity.</p>
+                      }
+                    </TabPane>
+                  </Tabs>
+                  <Card title="Costs" className="g-ant-card" style={{ marginTop: '10px' }}>
                   <Tooltip
-                  title={`Total: ${getTotalCostText(s).total}, Inventory: ${getTotalCostText(s).totalIventory}, Machinery: ${getTotalCostText(s).totalMachinery}, Labour: ${getTotalCostText(s).totalLabour}, Miscellaneous: ${getTotalCostText(s).totalOther || 0}`}
-                  placement="top"
-                  >
-                  <p>Total Activity Cost: {getTotalCostText(s)['total']}</p>
-                  </Tooltip>
+                      title={`Total: ${getTotalSystemCostText(s).total}, Inventory: ${getTotalSystemCostText(s).totalIventory}, Machinery: ${getTotalSystemCostText(s).totalMachinery}`}
+                      placement="top"
+                    >
+                      <p>System Estimated Activity Cost: {getTotalSystemCostText(s)['total']}</p>
+                    </Tooltip>
+                    <Tooltip
+                      title={`Total: ${getTotalCostText(s).total}, Inventory: ${getTotalCostText(s).totalIventory}, Machinery: ${getTotalCostText(s).totalMachinery}, Labour: ${getTotalCostText(s).totalLabour}, Miscellaneous: ${getTotalCostText(s).totalOther || 0}`}
+                      placement="top"
+                    >
+                      <p>Estimated Activity Cost: {getTotalCostText(s)['total']}</p>
+                    </Tooltip>
+                    {s.completed &&
+                      <Tooltip
+                        title={`Total: ${getTotalCostText(s).total}, Inventory: ${getTotalCostText(s).totalIventory}, Machinery: ${getTotalCostText(s).totalMachinery}, Labour: ${getTotalCostText(s).totalLabour}, Miscellaneous: ${getTotalCostText(s).totalOther || 0}`}
+                        placement="top"
+                      >
+                        <p>Total Actual Activity Cost: {getTotalCostText(s)['total']}</p>
+                      </Tooltip>
+                    }
+                    {!s.completed &&
+                      <p>Total Activity Cost: NA</p>
+                    }
+                  </Card>
                 </Timeline.Item>
               ))}
             </Timeline>

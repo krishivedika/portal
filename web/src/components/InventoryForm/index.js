@@ -37,16 +37,13 @@ const InventoryForm = (props) => {
 
   const onItemSelect = (e) => {
     const metrics = [];
-    let priceSlected = "";
     props.inventories.forEach(i => {
       if (i.item === e && i.metric !== "") {
         metrics.push(i.metric);
-        priceSlected = i.price;
       }
     });
     if (metrics.length === 0) setShowUnit(false);
     else setShowUnit(true);
-    props.form.setFieldsValue({'item' : e, 'metric':  "", "price": priceSlected});
     setValidMetrics(() => metrics);
     setPrice("");
   };
@@ -107,19 +104,12 @@ const InventoryForm = (props) => {
                     </Select>
                   </Form.Item>
                 }
-                  <Form.Item name="price" style={{display: 'none'}}>
-                    <Input value={`${price}`} />
-                  </Form.Item>
                   {props.type === "add_inventory" &&
-                    <Form.Item label="Item Price">
-                      <Input disabled placeholder={`${price}`} />
-                    </Form.Item>
+                    <p style={{marginLeft: "10px"}}>Estimated : {price}</p>
                   }
-                  {props.type === "edit_inventory" &&
-                    <Form.Item label="Item Price">
-                      <Input disabled placeholder={`${props.fields.price}`} />
-                    </Form.Item>
-                  }
+                  <Form.Item label="Price" name="price" rules={[{required: true}]}>
+                    <InputNumber placeholder="0" />
+                  </Form.Item>
                   <Form.Item name="quantity" label="Quantity"
                   rules={[
                     {

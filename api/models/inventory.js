@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
   class Inventory extends Model {};
   Inventory.init({
     item: DataTypes.STRING,
-    quantity: DataTypes.INTEGER,
+    quantity: DataTypes.DOUBLE,
     metric: DataTypes.STRING,
     price: DataTypes.INTEGER,
     isActive: {

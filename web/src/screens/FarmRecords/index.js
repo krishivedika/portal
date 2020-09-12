@@ -396,19 +396,36 @@ const FarmRecords = () => {
         footer={
           <Row justify="end">
             <Col>
-            <Form key="save" form={form} layout="inline">
-            <Form.Item>
-              <Button type="primary" htmlType="submit">Save</Button>
-            </Form.Item>
-            {action === 'add_farm' &&
+            {(action === "add_farm" || action === "edit_farm") &&
+              <Form key="save" form={form} layout="inline">
               <Form.Item>
-                <Button htmlType="button" onClick={onAdd}>Save And Add</Button>
+                <Button type="primary" htmlType="submit">Save</Button>
               </Form.Item>
+              {action === 'add_farm' &&
+                <Form.Item>
+                  <Button htmlType="button" onClick={onAdd}>Save And Add</Button>
+                </Form.Item>
+              }
+              <Form.Item>
+                <Button type="danger" onClick={onDrawerClose}>Cancel</Button>
+              </Form.Item>
+              </Form>
             }
-            <Form.Item>
-              <Button type="danger" onClick={onDrawerClose}>Cancel</Button>
-            </Form.Item>
-          </Form>
+            {(action === "add_svurvey" || action === "edit_survey") &&
+              <Form key="save" form={surveyForm} layout="inline">
+              <Form.Item>
+                <Button type="primary" htmlType="submit">Save</Button>
+              </Form.Item>
+              {action === 'add_survey' &&
+                <Form.Item>
+                  <Button htmlType="button" onClick={onAddSurvey}>Save And Add</Button>
+                </Form.Item>
+              }
+              <Form.Item>
+                <Button type="danger" onClick={onDrawerClose}>Cancel</Button>
+              </Form.Item>
+              </Form>
+            }
             </Col>
           </Row>
         }

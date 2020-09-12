@@ -42,8 +42,8 @@ const SurveyForm = (props) => {
 
   const removeFile = (file) => {
     UserService.deleteFile({survey: file.id}).then(res => {
-      setFilesList((state) => {
-        return state.filter(f => f.uid !== file.uid);
+      setFilesList(() => {
+        return fileList.filter(f => f.uid !== file.uid);
       });
       message.info(res.data.message);
     }).catch(err => {

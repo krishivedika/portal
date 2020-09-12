@@ -195,7 +195,7 @@ exports.addInventory = async (req, res) => {
 exports.editInventory = async (req, res) => {
   Inventory.findOne({ where: { id: req.body.id } }).then(async inventory => {
     if (inventory) {
-      inventory.update({ quantity: req.body.quantity }).then(() => {
+      inventory.update({ quantity: req.body.quantity, price: req.body.price }).then(() => {
         return res.status(200).send({
           message: "Inventory Updated Successfully!",
         });

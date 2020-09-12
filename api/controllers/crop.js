@@ -118,9 +118,10 @@ exports.addCropRecord = async (req, res) => {
         if (layer) return res.status(404).send({ message: "Crop in this Plot and Layer is already active", code: 2 });
       })
     }
+    const size = JSON.parse(farm.partitions).partitions.filter(p => p.item == req.body.plot)[0].area;
     try {
       if (!crop) {
-        crop = await Crop.create({ FarmId: farm.id, name: req.body.plot });
+        crop = await Crop.create({ FarmId: farm.id, size: size, name: req.body.plot });
       }
       const practice = await Practice.findOne({ where: { seed: req.body.seed, brand: req.body.brand, irrigation: req.body.irrigation } });
       const inventoryTypes = await InventoryType.findAll({ where: { isActive: true } });
@@ -346,51 +347,60 @@ exports.updateLayerRecord = (req, res) => {
       else if (layer.Crop.Farm.User.id !== req.userId) {
         return res.status(404).send({ message: "You dont have the permission to update this Crop" });
       }
+      console.log(req.body);
       const currentConfig = JSON.parse(layer.config);
       let selectedLayer = {};
       currentConfig.stages.forEach((layer, index) => {
         if (layer.id === req.body.stageId) {
           selectedLayer = layer;
-          layer.completed = true;
           if (req.body.labour) {
             layer["man_labour"] = req.body.man;
             layer["woman_labour"] = req.body.woman;
           }
           layer["extra_cost"] = req.body.extra_cost;
-          console.log(req.body);
+          if (req.body.machinery) {
+            layer["machinery_rent"] = req.body.machinery_rent;
+            layer["machinery_fuel"] = req.body.machinery_fuel;
+            layer["machinery_man_power"] = req.body.machinery_man_power;
+          }
           if (layer.state !== "presowing") {
-            layer.current = false;
-            if (index !== (currentConfig.stages.length - 1)) {
-              currentConfig.stages[index + 1].current = true;
+            if (req.body.complete) {
+              layer.current = false;
+              layer.completed = true;
+              if (index !== (currentConfig.stages.length - 1)) {
+                currentConfig.stages[index + 1].current = true;
+              }
             }
           }
         }
       });
       let values = { config: JSON.stringify(currentConfig), isStarted: true };
       layer.update(values).then(async l => {
+        const inventoryTypes = await InventoryType.findAll({ where: { isActive: true} });
+        const machineryTypes = await MachineryType.findAll({ where: { isActive: true} });
+        let inventories = machinery = [];
+        if (layer.Crop.Farm.Warehouses) {
+          inventories = await Inventory.findAll({ where: { WarehouseId: { [Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id) } } });
+          machinery = await Machinery.findAll({ where: { WarehouseId: { [Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id) } } });
+        }
         if (req.body.confirm) {
-          let inventories = machinery = [];
-          if (layer.Crop.Farm.Warehouses) {
-            inventories = await Inventory.findAll({ where: { WarehouseId: { [Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id) } } });
-            machinery = await Machinery.findAll({ where: { WarehouseId: { [Op.in]: layer.Crop.Farm.Warehouses.map(x => x.id) } } });
-          }
           Inventory.findOne({ where: { id: req.body.inventoryId } }).then(async i => {
             if (!i) {
-              return res.send({ message: 'Successfully Updated Activity', layer: l, inventories, machinery });
+              return res.send({ message: 'Successfully Updated Activity', layer: l, inventories, machinery, inventoryTypes, machineryTypes });
             }
             let quantity = 0;
             if (i.quantity > selectedLayer.inventory.quantity) {
               quantity = i.quantity - selectedLayer.inventory.quantity;
             }
             i.update({ quantity: quantity }).then(() => {
-              return res.send({ message: 'Successfully Updated Activity and Inventory', layer: l, inventories, machinery });
+              return res.send({ message: 'Successfully Updated Activity and Inventory', layer: l, inventories, machinery, inventoryTypes, machineryTypes });
             })
           }).catch(err => {
             console.log(err);
             return res.status(500).send({ message: 'Unknown error' });
           })
         } else {
-          return res.send({ message: 'Successfully Updated Activity', layer: l });
+          return res.send({ message: 'Successfully Updated Activity', layer: l, inventories, machinery, inventoryTypes, machineryTypes });
         }
       });
     }).catch(err => {
