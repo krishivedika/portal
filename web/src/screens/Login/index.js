@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { Spin, Form, Input, Button, Row, Col, Tabs, Modal, Typography, message } from "antd";
+import axios from "axios";
 
 import AuthService from "../../services/auth.js";
 import Routes from "../../routes";
@@ -31,14 +32,14 @@ const Login = (props) => {
   const [timer, setTimer] = useState(60);
 
   const handleLogin = (values) => {
-    console.log(values);
     if (props.type === 'member') {
       AuthService.login({ phone: values.phone, otp: values.otp }).then(response => {
         let currentUser;
         localStorage.setItem("user", JSON.stringify(response.data));
+        axios.defaults.headers.common['x-access-token'] = response.data.token;
         currentUser = AuthService.getCurrentUser();
         setState(state => ({ ...state, user: currentUser }));
-        redirectUser(currentUser.roles[0])
+        redirectUser(currentUser.roles[0]);
       }).catch(err => {
         console.log(err.response);
         if (err.response.data.code === 100) {
@@ -54,6 +55,7 @@ const Login = (props) => {
       AuthService.staffLogin({ email: values.email, password: values.password }).then(response => {
         let currentUser;
         localStorage.setItem("user", JSON.stringify(response.data));
+        axios.defaults.headers.common['x-access-token'] = response.data.token;
         currentUser = AuthService.getCurrentUser();
         setState(state => ({ ...state, user: currentUser }));
         redirectUser(currentUser.roles[0]);
@@ -76,6 +78,7 @@ const Login = (props) => {
 
   const redirectUser = (role) => {
     if (role === 'FARMER') props.history.push(Routes.PROFILE);
+    else if (role === 'SME') props.history.push(Routes.SME);
     else if (role === 'SADMIN') props.history.push(Routes.ADMIN);
     else props.history.push(Routes.USERMANAGEMENT);
   };

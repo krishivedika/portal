@@ -68,8 +68,9 @@ exports.signin = (req, res) => {
       if (response.data.type === "error" && req.body.phone !== '1234567890') {
         return res.status(400).send({ message: response.data.message, code: 100 });
       }
+      const expirtTime = 172800000;
       const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id, email: user.email }, config.SECRET_KEY, {
-        expiresIn: 1209600, // Fortnite
+        expiresIn: '2d',
       });
 
       let authorities = [];
@@ -77,14 +78,18 @@ exports.signin = (req, res) => {
         for (let i = 0; i < roles.length; i++) {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
-        res.cookie('token', token, { secure: config.NODE_ENV === "development" ? false : true, sameSite: 'None', httpOnly: true, expiresIn: 1209590 });
-        res.append("Set-Cookie", `token=${token};`);
+        if (config.NODE_ENV === "development") {
+          res.cookie('token', token, { domain: 'localhost', httpOnly: true, maxAge: expirtTime, sameSite: 'Lax' });
+        } else {
+          res.cookie('token', token, { domain: '.krishivedika.com', secure: true, sameSite: 'Lax', httpOnly: true, maxAge: expirtTime });
+        }
         return res.status(200).send({
           id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           phone: user.phone,
           roles: authorities,
+          token: token,
         });
       });
     })
@@ -131,9 +136,9 @@ exports.staffSignin = (req, res) => {
           code: 1,
         });
       }
-
+      const expirtTime = 172800000;
       const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id, email: user.email }, config.SECRET_KEY, {
-        expiresIn: 1209600, // Fortnite
+        expiresIn: '2d'
       });
 
       let authorities = [];
@@ -142,11 +147,10 @@ exports.staffSignin = (req, res) => {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
         if (config.NODE_ENV === "development") {
-          res.cookie('token', token, { httpOnly: true, expiresIn: 1209590 });
+          res.cookie('token', token, { domain: 'localhost',  httpOnly: true, maxAge: expirtTime, sameSite: 'Lax' });
         } else {
-          res.cookie('token', token, { secure: config.NODE_ENV === "development" ? false : true, sameSite: 'None', httpOnly: true, expiresIn: 1209590 });
+          res.cookie('token', token, { domain: '.krishivedika.com',  secure: true, sameSite: 'Lax', httpOnly: true, maxAge: expirtTime });
         }
-        res.append("Set-Cookie", `token=${token};`);
         return res.status(200).send({
           id: user.id,
           firstName: user.firstName,
@@ -154,6 +158,7 @@ exports.staffSignin = (req, res) => {
           email: user.email,
           phone: user.phone,
           roles: authorities,
+          token: token,
         });
       });
     })

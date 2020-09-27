@@ -16,8 +16,12 @@ const InventoryForm = (props) => {
   const [showUnit, setShowUnit] = useState(true);
   const [price, setPrice] = useState("");
   const [disabled, setDisabled] = useState(false);
+  const [showBrand, setShowBrand] = useState(false);
+  const [brands, setBrands] = useState([]);
+  const [seeds, setSeeds] = useState([]);
 
   useEffect(() => {
+    setPrice("");
     const fields = [];
     Object.entries(props.fields).forEach(entry => {
       fields.push({ name: entry[0], value: entry[1] });
@@ -32,6 +36,7 @@ const InventoryForm = (props) => {
       }
     });
     setInventories(() => inventories);
+    setBrands(() => props.brands);
     if (props.type === "edit_inventory") setDisabled(true);
   }, [props]);
 
@@ -46,6 +51,11 @@ const InventoryForm = (props) => {
     else setShowUnit(true);
     setValidMetrics(() => metrics);
     setPrice("");
+    if (e == "Seed") {
+      setShowBrand(true);
+    } else {
+      setShowBrand(false);
+    }
   };
 
   const onMetricSelect = async (e) => {
@@ -55,6 +65,16 @@ const InventoryForm = (props) => {
         setPrice(i.price);
       }
     })
+  };
+
+  const onBrandSelect = (e) => {
+    const tempSeeds = [];
+    brands.forEach(b => {
+      if (b.name === e) {
+        tempSeeds.push(b);
+      }
+    });
+    setSeeds(() => tempSeeds);
   };
 
   return (
@@ -83,12 +103,42 @@ const InventoryForm = (props) => {
                         message: "Please select Item",
                       },
                     ]}>
-                    <Select disabled={disabled} placeholder="Select Item" onSelect={onItemSelect}>
+                    <Select showSearch disabled={disabled} placeholder="Select Item" onSelect={onItemSelect}>
                       {inventoriesUnique.map(d => (
                         <Option key={d.id} value={d.item}>{d.item}</Option>
                       ))}
                     </Select>
                 </Form.Item>
+                {showBrand &&
+                <>
+                  <Form.Item name="brand" label="Brand"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please select Brand",
+                        },
+                      ]}>
+                      <Select defaultActiveFirstOption={false} placeholder="Select Brand" onSelect={onBrandSelect}>
+                        {brands.map(d => (
+                          <Option key={d.id} value={d.name}>{d.name}</Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                    <Form.Item name="seed" label="Seed"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select Seed",
+                      },
+                    ]}>
+                    <Select defaultActiveFirstOption={false} placeholder="Select Seed">
+                      {seeds.map(d => (
+                        <Option key={d.id} value={d.seed}>{d.seed}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </>
+                }
                 {showUnit &&
                 <Form.Item name="metric" label="Unit"
                     rules={[

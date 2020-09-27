@@ -33,4 +33,12 @@ module.exports = {
   // Azure Storage
   STORAGE_ACCOUNT_SURVEYS: process.env.STORAGE_ACCOUNT_SURVEYS,
   STORAGE_ACCOUNT_CONNECTION: process.env.STORAGE_ACCOUNT_CONNECTION,
+
+  // Agenda - Mongo Connection String
+  MONGO_CONNECTION_STRING: process.env.MONGO_CONNECTION_STRING,
+
+  // Notifications Timings
+  NOTIFICATIONS_HOUR: process.env.NOTIFICATIONS_HOUR,
+  NOTIFICATIONS_MINUTES: process.env.NOTIFICATIONS_MINUTES,
+
 };

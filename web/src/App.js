@@ -7,11 +7,16 @@ import './App.less';
 import Routes from "./routes";
 import AuthService from "./services/auth";
 import config from "./config";
-import { Admin, Login, Reset, Onboarding, UserProfile, Staff, FarmRecords, CropRecords, Home, Warehouse, Chc } from "./screens";
+import { Admin, Login, Reset, Onboarding, UserProfile, Staff, FarmRecords, CropRecords, Home, Warehouse, Chc, Tasks, Sme, Notifications } from "./screens";
 import { Header } from "./components";
 import { SharedContext } from "./context";
 
 axios.defaults.baseURL = config.REACT_APP_API_URL;
+axios.defaults.withCredentials = true;
+let token = AuthService.getCurrentUser();
+if (token) {
+  axios.defaults.headers.common['x-access-token'] = token.token;
+}
 
 const { Footer, Content } = Layout;
 
@@ -58,10 +63,13 @@ const App = (props) => {
                   <Route exact path={Routes.PROFILE} component={UserProfile} />
                   <Route exact path={Routes.FARMRECORDS} component={FarmRecords} />
                   <Route exact path={Routes.CROPRECORDS} component={CropRecords} />
+                  <Route exact path={Routes.TASKS} component={Tasks} />
                   <Route exact path={Routes.WAREHOUSE} component={Warehouse} />
                   <Route exact path={Routes.ADMIN} component={Admin} />
                   <Route exact path={Routes.USERMANAGEMENT} component={Staff} />
                   <Route exact path={Routes.CHC} component={Chc} />
+                  <Route exact path={Routes.SME} component={Sme} />
+                  <Route exact path={Routes.NOTIFICATIONS} component={Notifications} />
                 </Switch>
               </Content>
             </Spin>

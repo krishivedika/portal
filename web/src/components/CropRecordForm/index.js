@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DatePicker, Card, Form, Button, Input, Row, Col, message, Select } from "antd";
+import { Checkbox, DatePicker, Card, Form, Button, Input, Row, Col, message, Select } from "antd";
 import moment from 'moment';
 
 import AuthService from "../../services/auth";
@@ -24,10 +24,15 @@ const CropRecordForm = (props) => {
   const [cropTypes, setCropTypes] = useState([]);
   const [seeds, setSeeds] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [irrigations, setIrrigations] = useState([]);
+  const [allBrands, setAllBrands] = useState([]);
   const [layers, setLayers] = useState([]);
   const [showUsers, setShowUsers] = useState(true);
   const [fields, setFields] = useState([]);
+  const [irrigations, setIrrigations] = useState([]);
+  const [soils, setSoils] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+  const [cultivations, setCultivations] = useState([]);
+  const [farmings, setFarmings] = useState([]);
 
   useEffect(() => {
     setCrops(() => props.crops);
@@ -42,7 +47,7 @@ const CropRecordForm = (props) => {
       let fieldValues = [];
       props.fields.date = moment(new Date(props.fields.date), "DD-MM-YYYY");
       Object.entries(props.fields).forEach(entry => {
-        fieldValues.push({name: entry[0], value: entry[1]});
+        fieldValues.push({ name: entry[0], value: entry[1] });
       });
       setFields(() => fieldValues);
     }
@@ -52,13 +57,35 @@ const CropRecordForm = (props) => {
     CropService.getCropTypes().then(response => {
       setCropTypes(() => response.data.cropTypes);
       setBrands(() => response.data.brands);
-      setSeeds(() => response.data.seeds);
+      setAllBrands(() => response.data.brands);
       setIrrigations(() => response.data.irrigations);
+      setSoils(() => response.data.soils);
+      setSeasons(() => response.data.seasons);
+      setCultivations(() => response.data.cultivations);
+      setFarmings(() => response.data.farmings);
       setShowFields(true);
     }).catch(err => {
       console.log(err);
     });
   }, []);
+
+  const onBrandChange = (e) => {
+    if (e.target.checked) {
+      setBrands(() => [{id: 13, name: "Bayer Vijaya", seed: "Okra Seed A"}]);
+    } else {
+      setBrands(() => allBrands);
+    }
+  };
+
+  const selectBrand = (e) => {
+    const tempSeeds = [];
+    brands.forEach(b => {
+      if (b.name === e) {
+        tempSeeds.push(b);
+      }
+    });
+    setSeeds(() => tempSeeds);
+  };
 
   const selectMember = (e) => {
     setShowPlots(false);
@@ -108,7 +135,7 @@ const CropRecordForm = (props) => {
     crops.filter(x => x.FarmId === farm).forEach(crop => {
       crop.Layers.forEach(layer => {
         layers.forEach(l => {
-          if (l.name === layer.name && crop.name === e && layer.isActive === true) {
+          if (l.name === layer.name && crop.name === e && layer.isActive === true && layer.isCompleted === false) {
             l.isActive = false;
           }
         });
@@ -118,8 +145,11 @@ const CropRecordForm = (props) => {
     CropService.getCropTypes().then(response => {
       setCropTypes(() => response.data.cropTypes);
       setBrands(() => response.data.brands);
-      setSeeds(() => response.data.seeds);
       setIrrigations(() => response.data.irrigations);
+      setSoils(() => response.data.soils);
+      setSeasons(() => response.data.seasons);
+      setCultivations(() => response.data.cultivations);
+      setFarmings(() => response.data.farmings);
       setShowFields(true);
     }).catch(err => {
       console.log(err);
@@ -129,7 +159,7 @@ const CropRecordForm = (props) => {
   return (
     <div style={{ margin: '15px' }}>
       <Card
-        title={props.type === "add_crop" ? "Create New Crop Record": `Editing Crop: ${props.fields.farm} - ${props.fields.plot}`}
+        title={props.type === "add_crop" ? "Create New Crop Record" : `Editing Crop: ${props.fields.farm} - ${props.fields.plot}`}
         className="g-ant-card"
         extra={[
           <Form key="save" form={props.form} layout="inline">
@@ -218,33 +248,37 @@ const CropRecordForm = (props) => {
                       ))}
                     </Select>
                   </Form.Item>
-                  <Form.Item name="seed" label="Select Seed"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please Select Seed",
-                      },
-                    ]}>
+                    <Form.Item name="inventory" valuePropName="checked" style={{ fontWeight: 'bold' }}>
+                      <Checkbox style={{marginLeft: "150px"}} onChange={onBrandChange}>Only Inventory</Checkbox>
+                    </Form.Item>
+                    <Form.Item name="brand" label="Select Brand">
+                      <Select defaultActiveFirstOption={false} placeholder="Select Brand" onChange={selectBrand}>
+                        {brands.map(p => (
+                          <Option value={p.name} key={p.name}>{p.name}</Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  <Form.Item name="seed" label="Select Seed">
                     <Select placeholder="Select Seed">
                       {seeds.map(p => (
-                        <Option value={p.name} key={p.name}>{p.name}</Option>
+                        <Option value={p.seed} key={p.id}>{p.seed}</Option>
                       ))}
                     </Select>
                   </Form.Item>
-                  <Form.Item name="brand" label="Select Brand"
+                  <Form.Item name="season" label="Season"
                     rules={[
                       {
                         required: true,
-                        message: "Please Select Brand",
+                        message: "Please Select Season",
                       },
                     ]}>
-                    <Select placeholder="Select Brand">
-                      {brands.map(p => (
+                    <Select placeholder="Select Season">
+                      {seasons.map(p => (
                         <Option value={p.name} key={p.name}>{p.name}</Option>
                       ))}
                     </Select>
                   </Form.Item>
-                  <Form.Item name="irrigation" label="Select Irrigation"
+                  <Form.Item name="irrigation" label="Irrigation"
                     rules={[
                       {
                         required: true,
@@ -253,6 +287,45 @@ const CropRecordForm = (props) => {
                     ]}>
                     <Select placeholder="Select Irrigation">
                       {irrigations.map(p => (
+                        <Option value={p.name} key={p.name}>{p.name}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                  <Form.Item name="soil" label="Soil"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please Select Soil Type",
+                      },
+                    ]}>
+                    <Select placeholder="Select Soil">
+                      {soils.map(p => (
+                        <Option value={p.name} key={p.name}>{p.name}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                  <Form.Item name="cultivation" label="Cultivation Type"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please Select Cultivation Type",
+                      },
+                    ]}>
+                    <Select placeholder="Select Cultivation Type">
+                      {cultivations.map(p => (
+                        <Option value={p.name} key={p.name}>{p.name}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                  <Form.Item name="farming" label="Farming Type"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please Select Farming Type",
+                      },
+                    ]}>
+                    <Select placeholder="Select Farming Type">
+                      {farmings.map(p => (
                         <Option value={p.name} key={p.name}>{p.name}</Option>
                       ))}
                     </Select>

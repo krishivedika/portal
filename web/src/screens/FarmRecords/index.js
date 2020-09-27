@@ -42,7 +42,7 @@ const FarmRecords = () => {
   }
   columns = [...columns,
     { title: "Farm Name", dataIndex: "name", key: "name", ellipsis: true },
-    { title: "Khata", dataIndex: "khata", key: "khata", ellipsis: true },
+    { title: "Khatha", dataIndex: "khata", key: "khata", ellipsis: true },
     { title: "State", dataIndex: "state", key: "state" },
     { title: "District", dataIndex: "district", key: "district" },
     { title: "Mandal", dataIndex: "mandala", key: "mandala" },
@@ -376,7 +376,7 @@ const FarmRecords = () => {
             loading={loading}
             rowKey="id"
             bordered
-            expandable={{ expandedRowRender, expandRowByClick: true }}
+            expandable={{ expandedRowRender }}
           />
         </Col>
       </Row>
@@ -463,7 +463,9 @@ const FarmRecords = () => {
         onClose={onPartitionDrawerClose}
       >
         <Spin spinning={state.spinning} size="large">
+          {(action === "partition_farm") &&
           <PartitionForm onClose={onPartitionDrawerClose} form={partitionForm} onFinish={onFinishPartition} data={selectedItem}/>
+          }
         </Spin>
       </Drawer>
     </>

@@ -147,6 +147,7 @@ const OnBoardingForm = ({ history }) => {
                     message: "Please enter First Name",
                   },
                   { min: 2, message: 'First Name must be at least 2 characters' },
+                  { max: 200, message: 'First Name must be at max 200 characters' },
                 ]}>
                 <Input placeholder="Enter First Name" />
               </Form.Item>
@@ -156,6 +157,7 @@ const OnBoardingForm = ({ history }) => {
                     required: true,
                     message: "Please enter Last Name",
                   },
+                  { max: 200, message: 'Last Name must be at max 200 characters' },
                 ]}>
                 <Input placeholder="Enter Last Name" />
               </Form.Item>

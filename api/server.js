@@ -11,6 +11,8 @@ const cookieParser = require("cookie-parser");
 const config = require("./config");
 const constants = require("./constants");
 const db = require("./models");
+const { agenda } = require("./agenda");
+const jobs = require("./jobs");
 
 const app = express();
 // Cookies
@@ -34,6 +36,7 @@ app.use(helmet({
 // to enable CORS
 const whitelist = [config.ORIGIN];
 const corsOptions = {
+  credentials: true,
   origin: (origin, callback) => {
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true)
@@ -42,7 +45,7 @@ const corsOptions = {
     }
   }
 }
-app.use(cors({credentials: true, origin: whitelist}));
+app.use(cors(corsOptions));
 
 // middleware to auto parse the body
 app.use(bodyParser.json());
@@ -54,6 +57,7 @@ require('./routes/farm')(app);
 require('./routes/crop')(app);
 require('./routes/region')(app);
 require('./routes/warehouse')(app);
+require('./routes/notification')(app);
 
 const Role = db.role;
 const User = db.user;
@@ -111,6 +115,13 @@ const initial = () => {
 app.get("/", (_, res) => {
   res.json({ message: "Welcome to KVP API" });
 });
+
+// Start Agenda
+(async () => {
+  await agenda.start();
+  await agenda.define('create activity notification', { priority: 'high', concurrency: 10 }, jobs.createActivityNotification);
+  await agenda.define('flush new activity', { priority: 'high', concurrency: 10 }, jobs.flushNewActivity);
+})();
 
 const PORT = config.PORT;
 app.listen(PORT, () => {

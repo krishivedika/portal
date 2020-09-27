@@ -18,8 +18,10 @@ module.exports = (app) => {
 
   app.post("/user/member/bulk", [files.single('file'), commonValidations.verifyToken, commonValidations.isAdmin], controller.bulkOnboard);
 
-  app.post("/user/member/create", [commonValidations.verifyToken, commonValidations.checkNewUserUpdateDuplicateUser, validation.createProfile], controller.createMember);
+  app.post("/user/member/create", [commonValidations.verifyToken, commonValidations.checkNewUserUpdateDuplicateUser, validation.updateProfile], controller.createMember);
 
   app.post("/user/member/update", [commonValidations.verifyToken, commonValidations.checkUpdateDuplicateUser], controller.updateMember);
+
+  app.post("/user/member/delete", [commonValidations.verifyToken], controller.deleteMember);
 
 };

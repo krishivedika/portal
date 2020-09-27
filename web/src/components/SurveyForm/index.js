@@ -141,7 +141,7 @@ const SurveyForm = (props) => {
                   },
                 ]}
               >
-                <InputNumber placeholder={props.fields.number} />
+                <InputNumber placeholder="#"  min={1} />
               </Form.Item>
               <Form.Item {...layout}
                 name="subdivision"
@@ -149,7 +149,7 @@ const SurveyForm = (props) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please enter Subdivision",
+                    message: "Please enter Subdivision #",
                   },
                   { max: 4, message: 'Subdivision should be at max 4 characters' },
                 ]}
@@ -179,7 +179,7 @@ const SurveyForm = (props) => {
                   { max: 50, message: 'Land Type should be at max 50 characters' },
                 ]}
               >
-                <Input placeholder="Enter Land Type" />
+                <Input placeholder="Land Type" />
               </Form.Item>
               <Form.Item name="comment" label="Notes">
                 <TextArea onKeyUp={textAreaInput} maxLength={1000} autoSize={{minRows: 4}} placeholder="Enter Notes" />

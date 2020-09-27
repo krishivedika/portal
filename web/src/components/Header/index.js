@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Layout, Menu, Button, Row, Col, Dropdown } from "antd";
+import { Badge, Layout, Menu, Button, Row, Col, Dropdown } from "antd";
 import { useHistory, useLocation } from "react-router-dom";
-import { MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined, DownOutlined, WindowsFilled } from "@ant-design/icons";
+import { BellOutlined, MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined, DownOutlined, WindowsFilled } from "@ant-design/icons";
 
 import AuthService from "../../services/auth";
 import Routes from "../../routes";
 import constants from "../../constants";
 import logoImage from "../../images/logo.jpg";
 import { SharedContext } from "../../context";
+import { Notifications } from "../../components";
 
 const { Header } = Layout;
 
@@ -51,6 +52,9 @@ const NavigationBar = (props) => {
         case 'FARMER':
           setMenuItem(constants.MEMBER_MENU_ITEMS);
           break;
+        case 'SME':
+          setMenuItem(constants.SME);
+          break
         default:
           setMenuItem(constants.MAIN_MENU_ITEMS);
       }
@@ -111,6 +115,20 @@ const NavigationBar = (props) => {
               <Row justify="end">
                 <Menu mode="horizontal" selectedKeys={[]} >
                   {isLoggedIn &&
+                    <Menu.Item key="NOTIFICATIONS">
+                      <Dropdown trigger={['click', 'hover']}
+                      overlay={
+                        <Notifications />
+                      }
+                      overlayStyle={{width: (window.innerWidth / 2), backgroundColor: "#fff"}}
+                      >
+                        <Badge count={state.notificationCount} size="small">
+                          <BellOutlined style={{color: '#88c73f'}}/>
+                        </Badge>
+                      </Dropdown>
+                    </Menu.Item>
+                  }
+                  {isLoggedIn &&
                     <Menu.Item key="USER">
                       <Dropdown overlay={
                         <Menu >
@@ -142,16 +160,35 @@ const NavigationBar = (props) => {
               </Row>
             </Col>
           </>
-            <Col xs={{span: 2, offset: 4}} md={2} lg={0} xl={0}>
+            <Col xs={{span: 8, offset: 0}} md={5} lg={0} xl={0}>
+              <Menu
+                style={{display: "inline-block"}}
+                defaultSelectedKeys={["1"]}
+                defaultOpenKeys={["sub1"]}
+                mode="horizontal"
+              >
+                <Menu.Item key="NOTIFICATIONS">
+                  <Dropdown trigger={['click']}
+                    overlay={
+                      <Notifications />
+                    }
+                    overlayStyle={{width: (window.innerWidth), backgroundColor: "#fff"}}
+                    >
+                      <Badge count={state.notificationCount} size="small">
+                        <BellOutlined style={{color: '#88c73f'}}/>
+                      </Badge>
+                  </Dropdown>
+                </Menu.Item>
+              </Menu>
               <Button
                 className="nav-button"
                 type="primary"
                 onClick={toggleCollapsed}
                 style={{ marginBottom: 16 }}
-              >
+                >
                 {React.createElement(
                   collapsed ? MenuUnfoldOutlined : MenuFoldOutlined
-                )}
+                  )}
               </Button>
             </Col>
       </Row>

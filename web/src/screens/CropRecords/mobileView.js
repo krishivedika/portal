@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Popconfirm, Collapse, Row, Col, Button, List, Skeleton } from "antd";
-import { DeleteFilled } from "@ant-design/icons";
+import { EditFilled, DeleteFilled } from "@ant-design/icons";
 
 const { Panel } = Collapse;
 
@@ -67,9 +67,19 @@ const MobileView = (props) => {
                               event.stopPropagation();
                               props.showActivity(item);
                             }}
-                            key="list-loadmore-edit"
+                            key="list-loadmore-activity"
                           >
                             PoP
+                          </Button>,
+                          <Button
+                          type="secondary"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            props.editLayer(item);
+                          }}
+                          key="list-loadmore-edit"
+                          >
+                            Edit
                           </Button>,
                            <Button
                            type="secondary"

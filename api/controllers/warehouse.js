@@ -10,6 +10,7 @@ const Inventory = db.inventory;
 const InventoryType = db.inventoryType;
 const Machinery = db.machinery;
 const MachineryType = db.machineryType;
+const Brand = db.brand;
 
 // Warehouse End Points
 exports.warehouses = async (req, res) => {
@@ -65,7 +66,8 @@ exports.warehouses = async (req, res) => {
     const warehouses = await Warehouse.findAll({ where: where, include: include });
     const inventories = await InventoryType.findAll({ where: { isActive: true } });
     const machineries = await MachineryType.findAll({ where: { isActive: true } });
-    return res.status(200).send({ warehouses, csrUsers, inventories, machineries });
+    const brands = await Brand.findAll();
+    return res.status(200).send({ warehouses, csrUsers, inventories, machineries, brands });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ message: err.message });
@@ -113,8 +115,10 @@ exports.updateWarehouse = async (req, res) => {
         return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
       }
     }
-    else if (warehouse.UserId !== req.userId) {
-      return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
+    if ([5].includes(req.userRoleId)) {
+      if (warehouse.UserId !== req.userId) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
+      }
     }
     warehouse.update({...req.body}).then(() => {
       return res.send({ message: "Warehouse Successfully Updated!" });
@@ -146,8 +150,10 @@ exports.deleteWarehouse = async (req, res) => {
         return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
       }
     }
-    else if (warehouse.UserId !== req.userId) {
-      return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
+    if ([5].includes(req.userRoleId)) {
+      if (warehouse.UserId !== req.userId) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Warehouse" });
+      }
     }
     warehouse.update({ isActive: false }).then(() => {
       return res.send({ message: "Warehouse Successfully Deleted!" });
@@ -177,6 +183,8 @@ exports.addInventory = async (req, res) => {
           metric: req.body.metric,
           price: req.body.price,
           WarehouseId: req.body.warehouse,
+          seed: req.body.seed,
+          brand: req.body.brand,
         });
         return res.status(200).send({
           message: "Inventory Created Successfully!",

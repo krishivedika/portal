@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) => {
   class Brand extends Model {};
   Brand.init({
     name: DataTypes.STRING,
+    seed: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Brand',

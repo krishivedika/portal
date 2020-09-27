@@ -26,11 +26,14 @@ db.reset = require("../models/reset")(sequelize, Sequelize);
 db.region = require("../models/region")(sequelize, Sequelize);
 db.cropType = require("../models/cropType")(sequelize, Sequelize);
 db.seed = require("../models/seed")(sequelize, Sequelize);
-db.irrigation = require("../models/irrigation")(sequelize, Sequelize);
+db.irrigation = require("../models/irrigationDimension")(sequelize, Sequelize);
+db.cultivation = require("../models/cultivationDimension")(sequelize, Sequelize);
+db.soil = require("../models/soilDimension")(sequelize, Sequelize);
+db.farming = require("../models/farmingDimension")(sequelize, Sequelize);
+db.season = require("../models/seasonDimension")(sequelize, Sequelize);
 db.brand = require("../models/brand")(sequelize, Sequelize);
 db.userRole = require("../models/userRole")(sequelize, Sequelize);
 db.userAssociation = require("../models/userAssociation")(sequelize, Sequelize);
-db.practice = require("../models/practice")(sequelize, Sequelize);
 db.warehouse = require("../models/warehouse")(sequelize, Sequelize);
 db.warehouseFarm = require("../models/warehouseFarm")(sequelize, Sequelize);
 db.inventory = require("../models/inventory")(sequelize, Sequelize);
@@ -38,6 +41,8 @@ db.inventoryType = require("../models/inventoryType")(sequelize, Sequelize);
 db.machinery = require("../models/machinery")(sequelize, Sequelize);
 db.machineryType = require("../models/machineryType")(sequelize, Sequelize);
 db.activity = require("../models/activity")(sequelize, Sequelize);
+db.activityMaster = require("../models/activityMaster")(sequelize, Sequelize);
+db.notification = require("../models/notification")(sequelize, Sequelize);
 
 // Associations
 db.role.belongsToMany(db.user, {
@@ -79,6 +84,9 @@ db.warehouse.hasMany(db.machinery);
 db.warehouse.belongsToMany(db.farm, {through: 'WarehouseFarms'});
 db.farm.belongsToMany(db.warehouse, {through: 'WarehouseFarms'});
 
-db.ROLES = ["farmer", "admin", "csr", "sadmin", "field_agent"];
+db.user.hasMany(db.notification);
+db.notification.belongsTo(db.user);
+
+db.ROLES = ["farmer", "admin", "csr", "sadmin", "field_agent", "sme"];
 
 module.exports = db;

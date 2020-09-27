@@ -22,11 +22,12 @@ const PartitionForm = (props) => {
       if (data.length == 0) {
         data.push({item: "Plot 1", area: tempSizeFixed});
         fields.push({name: "Plot 1", value: tempSizeFixed});
+      } else {
+        data.forEach(item => {
+          item.area = parseFloat(item.area);
+          fields.push({name: item.item, value: item.area});
+        });
       }
-      data.forEach(item => {
-        item.area = parseFloat(item.area);
-        fields.push({name: item.item, value: item.area});
-      });
       return data;
     });
     setFields(() => fields);
@@ -98,8 +99,6 @@ const PartitionForm = (props) => {
     } else {
       setPartitions((state) => {
         const newData = [...state.slice(0, state.length - 1)];
-        chart.data(newData);
-        chart.render();
         return newData;
       });
     }
@@ -145,7 +144,7 @@ const PartitionForm = (props) => {
                     },
                   })
                   ]}>
-                    <InputNumber  style={{width: '100%'}} precision={4} placeholder='Acres' onChange={(e) => onInputChange(e, p.item)} />
+                    <InputNumber  style={{width: '100%'}} precision={4} placeholder='Acres' onChange={(e) => onInputChange(e, p.item)} min={0.0001} />
                   </Form.Item>
                   <Form.Item>
                     <Checkbox.Group>

@@ -4,6 +4,8 @@ module.exports = (sequelize, DataTypes) => {
   class Inventory extends Model {};
   Inventory.init({
     item: DataTypes.STRING,
+    brand: DataTypes.STRING,
+    seed: DataTypes. STRING,
     quantity: DataTypes.DOUBLE,
     metric: DataTypes.STRING,
     price: DataTypes.INTEGER,

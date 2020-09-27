@@ -25,6 +25,7 @@ const Warehouse = () => {
   const [csrUsers, setCsrUsers] = useState([]);
   const [inventories, setInventories] = useState([]);
   const [machineries, setMachineries] = useState([]);
+  const [brands, setBrands] = useState([]);
 
   useEffect(() => {
     fetchAndUpdateRecords();
@@ -104,6 +105,7 @@ const Warehouse = () => {
         setCsrUsers(() => response.data.csrUsers);
         setInventories(() => response.data.inventories);
         setMachineries(() => response.data.machineries);
+        setBrands(() => response.data.brands);
         setLoading(false);
       }
     );
@@ -335,10 +337,11 @@ const Warehouse = () => {
               form={formInventory}
               onAdd={onAdd}
               inventories={inventories}
+              brands={brands}
               onFinish={onFinishInventory}
               onClose={onInventoryDrawerClose}
             />
-          }
+            }
           {action === "edit_inventory" &&
             <InventoryForm
               type={action}
@@ -346,6 +349,7 @@ const Warehouse = () => {
               form={formInventory}
               onAdd={onAdd}
               inventories={inventories}
+              brands={brands}
               onFinish={onFinishUpdateInventory}
               onClose={onInventoryDrawerClose}
             />

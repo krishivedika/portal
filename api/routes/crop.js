@@ -16,10 +16,20 @@ module.exports = (app) => {
 
   app.get("/crop/layer", [commonValidations.verifyToken], controller.getLayerRecord);
 
+  app.get("/crop/activities", [commonValidations.verifyToken], controller.getActivities);
+
+  app.post("/crop/activity/create", [commonValidations.verifyToken], controller.createActivity);
+
+  app.post("/crop/activity/delete", [commonValidations.verifyToken], controller.deleteActivity);
+
+  app.get("/crop/layer/activity", [commonValidations.verifyToken], controller.getLayerActivity);
+
   app.post("/crop/layer/edit", [commonValidations.verifyToken], controller.editLayerRecord);
 
   app.post("/crop/layer/update", [commonValidations.verifyToken], controller.updateLayerRecord);
 
   app.post("/crop/layer/delete", [commonValidations.verifyToken], controller.deleteLayerRecord);
+
+  app.post("/crop/layer/abandon", [commonValidations.verifyToken], controller.abandonLayerRecord);
 
 };

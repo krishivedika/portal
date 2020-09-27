@@ -23,6 +23,10 @@ class CropService {
     return axios.post(`/crop/delete`, data);
   }
 
+  getLayerActivity(data) {
+    return axios.get(`crop/layer/activity`, {params: data});
+  }
+
   getLayerRecord(data) {
     return axios.get(`crop/layer`, {params: data});
   }
@@ -37,6 +41,22 @@ class CropService {
 
   deleteLayerRecord(data) {
     return axios.post(`crop/layer/delete`, data);
+  }
+
+  abandonLayerRecord(data) {
+    return axios.post(`crop/layer/abandon`, data);
+  }
+
+  getActivities(data) {
+    return axios.get(`/crop/activities`, {params: data});
+  }
+
+  createActivityRecord(data) {
+    return axios.post(`crop/activity/create`, data);
+  }
+
+  deleteActivityRecord(data) {
+    return axios.post(`crop/activity/delete`, data);
   }
 
 }

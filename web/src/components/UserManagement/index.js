@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Spin, Modal, Drawer, Button, Row, Col, Table, Upload, Input, Form, message, Tag, Checkbox, Tooltip } from "antd";
-import { PlusOutlined, EditOutlined, LikeOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, LikeOutlined, DeleteFilled } from "@ant-design/icons";
 
 import "./index.less";
 import UserService from "../../services/user";
@@ -88,6 +88,15 @@ const UserManagement = (props) => {
               />
             </Tooltip>
           )}
+          {item.isActive &&
+            <Tooltip placement="top" title='Delete'>
+              <Button
+                type="link"
+                onClick={() => deleteUser(item)}
+                icon={<DeleteFilled />}
+              />
+            </Tooltip>
+          }
         </>
       ),
     },
@@ -139,6 +148,15 @@ const UserManagement = (props) => {
       csr: item.managedBy[0]?.id,
     });
     setShowDrawer(true);
+  };
+
+  const deleteUser = (item) => {
+    UserService.deleteUser(item).then(response => {
+      message.success(response.data.message);
+      fetchAndUpdateUsers();
+    }).catch(err => {
+      message.error(err.response.data.message);
+    });
   };
 
   const [form] = Form.useForm();

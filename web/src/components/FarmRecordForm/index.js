@@ -176,7 +176,7 @@ const FarmRecordForm = (props) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please input Member",
+                        message: "Please select Member",
                       },
                     ]}>
                     <Select placeholder="Select Member" onChange={selectUser}>
@@ -190,7 +190,7 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Owner Type",
+                      message: "Please select Owner Type",
                     },
                   ]}>
                   <Radio.Group onChange={selectOwnerType}>
@@ -203,7 +203,7 @@ const FarmRecordForm = (props) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please input Land Owner Relationship",
+                        message: "Please select Land Owner Relationship",
                       }
                     ]}>
                     <Select placeholder="Select Land Owner Relationship">
@@ -234,7 +234,7 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Owner First Name",
+                      message: "Please enter Owner First Name",
                     },
                   ]}>
                   <Input disabled={ownerType} placeholder="Enter First Name" />
@@ -243,8 +243,9 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Owner Last Name",
+                      message: "Please enter Owner Last Name",
                     },
+                    { max: 200, message: 'Owner name must be at max 200 characters' },
                   ]}>
                   <Input disabled={ownerType} placeholder="Enter Last Name" />
                 </Form.Item>
@@ -252,7 +253,7 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Owner Gender",
+                      message: "Please select Owner Gender",
                     },
                   ]}>
                   <Radio.Group disabled={ownerType} >
@@ -265,18 +266,19 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Owner Age",
+                      message: "Please enter Owner Age",
                     },
                   ]}>
-                  <InputNumber disabled={ownerType} placeholder="Age" min={18} />
+                  <InputNumber disabled={ownerType} placeholder="Age" min={18} max={120}/>
                 </Form.Item>
                 <Form.Item name="name" label="Farm Name"
                   rules={[
                     {
                       required: true,
-                      message: "Please input Farm Name",
+                      message: "Please enter Farm Name",
                     },
                     { min: 2, message: 'Farm Name must be at least 2 characters' },
+                    { max: 200, message: 'Farm Name must be at max 200 characters' },
                   ]}>
                   <Input placeholder="Enter Farm Name" />
                 </Form.Item>
@@ -288,7 +290,7 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input State",
+                      message: "Please select State",
                     },
                   ]}>
                   <Select placeholder="Select State" onSelect={selectState}>
@@ -299,7 +301,7 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input District",
+                      message: "Please select District",
                     },
                   ]}>
                   <Select showSearch placeholder="Select District" onChange={selectDistrict}>
@@ -312,9 +314,8 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Mandal",
+                      message: "Please select Mandal",
                     },
-                    { min: 2, message: 'Mandal must be at least 2 characters' },
                   ]}>
                   <Select showSearch placeholder="Select Mandal" onChange={selectMandal}>
                     {mandals.map(d => (
@@ -326,9 +327,8 @@ const FarmRecordForm = (props) => {
                   rules={[
                     {
                       required: true,
-                      message: "Please input Village",
+                      message: "Please select Village",
                     },
-                    { min: 2, message: 'Village must be at least 2 characters' },
                   ]}>
                   <Select showSearch placeholder="Select Village / Village">
                     {villages.map(d => (
@@ -336,15 +336,15 @@ const FarmRecordForm = (props) => {
                     ))}
                   </Select>
                 </Form.Item>
-                <Form.Item name="khata" label="Khata #"
+                <Form.Item name="khata" label="Khatha #"
                   rules={[
                     {
                       required: true,
-                      message: "Please input Khata #",
+                      message: "Please enter Khatha #",
                     },
-                    { max: 10, message: 'Khata # should be at max 10 characters' },
+                    { max: 10, message: 'Khatha # should be at max 10 characters' },
                   ]}>
-                  <Input placeholder="Khata #" />
+                  <Input placeholder="Khatha #" />
                 </Form.Item>
               </Card>
               <Card title="Warehouse" className="g-ant-card" style={{ marginTop: '20px' }}>

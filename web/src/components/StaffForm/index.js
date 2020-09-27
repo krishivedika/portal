@@ -61,6 +61,7 @@ const StaffForm = (props) => {
                       <Option value="csr">CSR</Option>
                       <Option value="field_agent">Field Agent</Option>
                       <Option value="farmer">Farmer</Option>
+                      <Option value="sme">SME</Option>
                     </Select>
                   </Form.Item>
                 }
@@ -70,6 +71,8 @@ const StaffForm = (props) => {
                       required: true,
                       message: "Please enter First Name",
                     },
+                    { min: 2, message: 'First Name must be at least 2 characters' },
+                    { max: 200, message: 'First Name must be at max 200 characters' },
                   ]}>
                   <Input placeholder="Enter First Name" />
                 </Form.Item>
@@ -79,6 +82,7 @@ const StaffForm = (props) => {
                       required: true,
                       message: "Please enter Last Name",
                     },
+                    { max: 200, message: 'Last Name must be at max 200 characters' },
                   ]}>
                   <Input placeholder="Enter Last Name" />
                 </Form.Item>
@@ -122,6 +126,8 @@ const StaffForm = (props) => {
                       required: true,
                       message: "Please enter Phone.",
                     },
+                    { min: 10, message: 'Phone Number must be at least 10 characters' },
+                    { max: 10, message: 'Phone Number must be at least 10 characters' },
                   ]}>
                   <Input placeholder="Enter Phone" />
                 </Form.Item>

@@ -4,6 +4,7 @@
   "description": "API for KVP webapp.",
   "private": true,
   "dependencies": {
+    "agenda": "^3.1.0",
     "axios": "^0.19.2",
     "azure-storage": "^2.10.3",
     "bcryptjs": "2.4.3",
@@ -15,6 +16,8 @@
     "express": "4.17.1",
     "helmet": "3.23.3",
     "jsonwebtoken": "8.5.1",
+    "moment-timezone": "^0.5.31",
+    "mongoose": "^5.10.7",
     "morgan": "1.10.0",
     "multer": "^1.4.2",
     "mysql2": "2.1.0",
@@ -37,11 +40,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/freelancing-forever/vintc.git"
+    "url": "git+https://github.com/krishivedika/portal.git"
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/freelancing-forever/vintc/issues"
+    "url": "https://github.com/krishivedika/portal/issues"
   },
-  "homepage": "https://github.com/freelancing-forever/vintc#readme"
+  "homepage": "https://github.com/krishivedika/portal#readme"
 }

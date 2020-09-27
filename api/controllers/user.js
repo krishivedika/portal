@@ -187,7 +187,6 @@ exports.bulkOnboardPrep = async (req, res) => {
     .on('end', async () => {
       let valid = true;
       entries.forEach(e => {
-        console.log(e);
         if (Object.keys(e).length !== 9) valid = false;
       });
       if (!valid) {
@@ -290,13 +289,21 @@ exports.createMember = async (req, res) => {
         );
       }
       user.update(updatedValues).then(() => {
-        user.setManagedBy([req.body.csr]).then(() => {
+        if (roleId === 5) {
+          user.setManagedBy([req.body.csr]).then(() => {
+            user.setRoles([roleId]).then(() => {
+              return res.status(200).send({
+                user: user,
+              });
+            })
+          });
+        } else {
           user.setRoles([roleId]).then(() => {
             return res.status(200).send({
               user: user,
             });
           })
-        });
+        }
       });
     })
   }).catch((err) => {
@@ -324,6 +331,7 @@ exports.updateMember = (req, res) => {
       let updatedValues = { ...req.body };
       updatedValues.age = common.convertAgeToDate(req.body.age);
       updatedValues.updatedBy = req.userEmail;
+      updatedValues.isActive = true;
       let roleId;
       Object.keys(constants.ROLES).forEach((key) => {
         if (constants.ROLES[key].name === req.body.role) {
@@ -347,5 +355,35 @@ exports.updateMember = (req, res) => {
     .catch((err) => {
       console.log(err);
       return res.status(500).send({ message: err.message });
+    });
+};
+
+exports.deleteMember = (req, res) => {
+  User.scope("withoutPassword")
+    .findOne({
+      where: {
+        id: req.body.id,
+      },
+      include: [
+        {
+          model: Role,
+        },
+      ],
+    })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: "User Not found" });
+      }
+      if (req.userRoleId < user.Roles[0].id) {
+        user.update({ isActive: false }).then(() => {
+          return res.send({ message: "User successfully deleted" });
+        })
+          .catch((err) => {
+            console.log(err);
+            return res.status(500).send({ message: err.message });
+          });
+      } else {
+        return res.status(404).send({ message: "You don't have the permission to delete this user" });
+      }
     });
 };

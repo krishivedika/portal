@@ -8,7 +8,7 @@ const Op = Sequelize.Op;
 const User = db.user;
 
 const verifyToken = (req, res, next) => {
-  let token = req.cookies.token;
+  let token = req.headers['x-access-token'];
   if (!token) {
     return res.status(403).send({
       message: "No token provided",
@@ -17,6 +17,7 @@ const verifyToken = (req, res, next) => {
 
   jwt.verify(token, config.SECRET_KEY, (err, decoded) => {
     if (err) {
+      console.log(err);
       return res.status(403).send({
         message: "Unauthorized",
       });

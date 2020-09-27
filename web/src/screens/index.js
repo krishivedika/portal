@@ -9,5 +9,8 @@ import CropRecords from "./CropRecords";
 import Home from "./Home";
 import Warehouse from "./Warehouse";
 import Chc from "./Chc"
+import Tasks from "./Tasks";
+import Sme from "./Sme";
+import Notifications from "./Notifications";
 
-export { Home, Admin, Login, Onboarding, UserProfile, Staff, Reset, FarmRecords, CropRecords, Warehouse, Chc };
+export { Home, Admin, Login, Onboarding, UserProfile, Staff, Reset, FarmRecords, CropRecords, Warehouse, Chc, Tasks, Sme, Notifications };

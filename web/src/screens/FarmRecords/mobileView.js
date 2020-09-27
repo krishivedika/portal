@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Collapse, Row, Col, Button, List, Skeleton } from "antd";
 import { EditFilled, DeleteFilled, ReloadOutlined, AppstoreOutlined } from "@ant-design/icons";
+import { SharedContext } from "../../context";
 
 const { Panel } = Collapse;
 
 const MobileView = (props) => {
   const [farms, setFarms] = useState(props.farms);
   const [surveys, setSurveys] = useState([]);
+  const [state, setState] = useContext(SharedContext);
 
   const callback = (key) => {
     props.farms.forEach(farm => {
@@ -18,7 +20,7 @@ const MobileView = (props) => {
 
   useEffect(() => {
     setFarms(props.farms);
-  }, [props]);
+  }, [props.farms]);
 
   const RenderActions = (item) => {
     return (
@@ -95,7 +97,7 @@ const MobileView = (props) => {
                 >
                   <List
                     itemLayout="horizontal"
-                    dataSource={[{ number: 'Survey #', subdivision: 'Subdivision #', extent: 'Acres' }]}
+                    dataSource={surveys.length > 0 ? [{ number: 'Survey #', subdivision: 'Subdivision #', extent: 'Acres' }] : []}
                     renderItem={(item) => (
                       <List.Item key={item.id}
                       >
@@ -131,7 +133,7 @@ const MobileView = (props) => {
                         </Button>,
                         ]: null}
                       >
-                        <Skeleton active loading={false}>
+                        <Skeleton active loading={state.spinning}>
                           <List.Item.Meta title={`${item.number} (${item.subdivision}) Extent: ${item.extent.toFixed(4)}`}></List.Item.Meta>
                         </Skeleton>
                       </List.Item>

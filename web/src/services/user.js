@@ -22,6 +22,10 @@ class UserService {
     return axios.post(`/user/member/update`, data);
   }
 
+  deleteUser(data) {
+    return axios.post(`/user/member/delete`, data);
+  }
+
   uploadMembersCheck(data, config) {
     return axios.post(`/user/member/bulk/check`, data, config);
   }

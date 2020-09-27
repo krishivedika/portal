@@ -17,6 +17,7 @@ const MachineryForm = (props) => {
   const [disabled, setDisabled] = useState(false);
 
   useEffect(() => {
+    setPrice("");
     const fields = [];
     Object.entries(props.fields).forEach(entry => {
       fields.push({ name: entry[0], value: entry[1] });

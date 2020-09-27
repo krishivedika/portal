@@ -23,7 +23,6 @@ const UserProfile = () => {
     const user = AuthService.getCurrentUser();
     UserService.getUser({ id: user.id }).then(response => {
       setAge(response);
-      console.log(response.data);
       setUserProfile(() => response.data.user);
       setCurrentForm(() => response.data.user);
     }).catch(err => {

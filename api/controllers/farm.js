@@ -234,8 +234,10 @@ exports.deleteFarmRecord = async (req, res) => {
         return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
       }
     }
-    else if (farm.userId !== req.userId) {
-      return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
+    if ([5].includes(req.userRoleId)) {
+      if (farm.userId !== req.userId) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
+      }
     }
     farm.update({ isActive: false }).then(() => {
       return res.send({ message: "Farm Record Successfully Deleted!" });
@@ -360,9 +362,10 @@ exports.deleteSurveyRecord = (req, res) => {
         return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
       }
     }
-    else if (survey.Farm.User.id !== req.userId) {
-      console.log(survey.Farm.User.id);
-      return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
+    if ([5].includes(req.userRoleId)) {
+      if (survey.Farm.User.id !== req.userId) {
+        return res.status(404).send({ message: "You dont have the permission to delete this Farm" });
+      }
     }
     survey.update({ isActive: false }).then(() => {
       return res.send({ message: "Survey Record Successfully Deleted!" });

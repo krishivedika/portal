@@ -10,6 +10,7 @@ export default {
   HELP: '/help',
   FARMRECORDS: '/farmrecords',
   CROPRECORDS: '/croprecords',
+  TASKS: '/tasks',
   WAREHOUSE: '/warehouse',
   ANALYTICS: '/analytics',
   LOGOUT: '/logout',
@@ -17,4 +18,6 @@ export default {
   SERVICES: '/services',
   RESET: '/reset',
   CHC: '/chc',
+  SME: '/sme',
+  NOTIFICATIONS: '/notifications',
 };
