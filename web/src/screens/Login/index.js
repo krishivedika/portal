@@ -32,11 +32,12 @@ const Login = (props) => {
   const [timer, setTimer] = useState(60);
 
   const handleLogin = (values) => {
+    let isLocal = document.location.href.includes("localhost");
+    let domain = isLocal ? "localhost" : ".krishivedika.com";
     if (props.type === 'member') {
       AuthService.login({ phone: values.phone, otp: values.otp }).then(response => {
         let currentUser;
-        localStorage.setItem("user", JSON.stringify(response.data));
-        axios.defaults.headers.common['x-access-token'] = response.data.token;
+        document.cookie=`user=${JSON.stringify(response.data)};domain=${domain};`;
         currentUser = AuthService.getCurrentUser();
         setState(state => ({ ...state, user: currentUser }));
         redirectUser(currentUser.roles[0]);
@@ -54,8 +55,7 @@ const Login = (props) => {
     } else if (props.type === 'staff') {
       AuthService.staffLogin({ email: values.email, password: values.password }).then(response => {
         let currentUser;
-        localStorage.setItem("user", JSON.stringify(response.data));
-        axios.defaults.headers.common['x-access-token'] = response.data.token;
+        document.cookie=`user=${JSON.stringify(response.data)};domain=${domain}`;
         currentUser = AuthService.getCurrentUser();
         setState(state => ({ ...state, user: currentUser }));
         redirectUser(currentUser.roles[0]);

@@ -4,6 +4,9 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
 import { SharedContextProvider } from "./context";
+import axios from "axios";
+
+axios.defaults.withCredentials = true;
 
 ReactDOM.render(
   <SharedContextProvider>

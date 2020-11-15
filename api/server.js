@@ -15,6 +15,7 @@ const { agenda } = require("./agenda");
 const jobs = require("./jobs");
 
 const app = express();
+
 // Cookies
 app.use(cookieParser());
 
@@ -34,7 +35,7 @@ app.use(helmet({
 }));
 
 // to enable CORS
-const whitelist = [config.ORIGIN];
+const whitelist = config.ORIGIN.split(",");
 const corsOptions = {
   credentials: true,
   origin: (origin, callback) => {

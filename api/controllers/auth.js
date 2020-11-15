@@ -22,7 +22,7 @@ exports.signup = (req, res) => {
     const userObj = {
       ...req.body,
       isActive: true,
-      isOnboarded: false,
+      isOnboarded: true,
       age: age,
     }
 
@@ -68,9 +68,9 @@ exports.signin = (req, res) => {
       if (response.data.type === "error" && req.body.phone !== '1234567890') {
         return res.status(400).send({ message: response.data.message, code: 100 });
       }
-      const expirtTime = 172800000;
-      const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id, email: user.email }, config.SECRET_KEY, {
-        expiresIn: '2d',
+      const expiryTime = 86400000;
+      const token = jwt.sign({ roles: [userRole.name.toUpperCase()], firstName: user.firstName, lastName: user.lastName, phone: user.phone, id: user.id, role: userRole.name, roleId: userRole.id }, config.SECRET_KEY, {
+        expiresIn: '1d',
       });
 
       let authorities = [];
@@ -79,9 +79,9 @@ exports.signin = (req, res) => {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
         if (config.NODE_ENV === "development") {
-          res.cookie('token', token, { domain: 'localhost', httpOnly: true, maxAge: expirtTime, sameSite: 'Lax' });
+          res.cookie('token', token, { domain: 'localhost', httpOnly: false, maxAge: expiryTime });
         } else {
-          res.cookie('token', token, { domain: '.krishivedika.com', secure: true, sameSite: 'Lax', httpOnly: true, maxAge: expirtTime });
+          res.cookie('token', token, { domain: '.krishivedika.com', secure: true, httpOnly: true, sameSite: 'Lax', maxAge: expiryTime });
         }
         return res.status(200).send({
           id: user.id,
@@ -89,7 +89,6 @@ exports.signin = (req, res) => {
           lastName: user.lastName,
           phone: user.phone,
           roles: authorities,
-          token: token,
         });
       });
     })
@@ -136,9 +135,9 @@ exports.staffSignin = (req, res) => {
           code: 1,
         });
       }
-      const expirtTime = 172800000;
-      const token = jwt.sign({ id: user.id, role: userRole.name, roleId: userRole.id, email: user.email }, config.SECRET_KEY, {
-        expiresIn: '2d'
+      const expiryTime = 86400000;
+      const token = jwt.sign({ roles: [userRole.name.toUpperCase()], firstName: user.firstName, lastName: user.lastName, email: user.email, id: user.id, role: userRole.name, roleId: userRole.id }, config.SECRET_KEY, {
+        expiresIn: '1d'
       });
 
       let authorities = [];
@@ -147,9 +146,9 @@ exports.staffSignin = (req, res) => {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
         if (config.NODE_ENV === "development") {
-          res.cookie('token', token, { domain: 'localhost',  httpOnly: true, maxAge: expirtTime, sameSite: 'Lax' });
+          res.cookie('token', token, { domain: 'localhost',  httpOnly: false, maxAge: expiryTime });
         } else {
-          res.cookie('token', token, { domain: '.krishivedika.com',  secure: true, sameSite: 'Lax', httpOnly: true, maxAge: expirtTime });
+          res.cookie('token', token, { domain: '.krishivedika.com',  secure: true, httpOnly: true, sameSite: 'Lax', maxAge: expiryTime });
         }
         return res.status(200).send({
           id: user.id,
@@ -158,7 +157,6 @@ exports.staffSignin = (req, res) => {
           email: user.email,
           phone: user.phone,
           roles: authorities,
-          token: token,
         });
       });
     })
@@ -169,7 +167,11 @@ exports.staffSignin = (req, res) => {
 };
 
 exports.logout = (req, res) => {
-  res.clearCookie('token');
+  if (config.NODE_ENV === "development") {
+    res.clearCookie('token');
+  } else {
+    res.clearCookie('token', { domain: '.krishivedika.com' });
+  }
   return res.status(403).send({ message: 'Logged out' });
 };
 
@@ -193,7 +195,6 @@ exports.forgotPasswordCheck = (req, res) => {
           attempts += 1;
         }
       });
-      console.log(attempts);
       if (attempts > 3) {
         return res.status(404).send({ message: "Maximum Retries reached for a day, try again later." });
       }

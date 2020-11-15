@@ -1,5 +1,4 @@
 import axios from "axios";
-
 class AuthService {
   login(data) {
     return axios.post(`/signin`, data);
@@ -22,7 +21,9 @@ class AuthService {
   }
 
   logout() {
-    localStorage.removeItem("user");
+    let isLocal = document.location.href.includes("localhost");
+    let domain = isLocal ? "localhost" : ".krishivedika.com";
+    document.cookie=`user=;expires=Thu, 01 Jan 1970 00:00:01 GMT;domain=${domain}`;
     return axios.post(`/logout`);
   }
 
@@ -43,7 +44,14 @@ class AuthService {
   }
 
   getCurrentUser() {
-    return JSON.parse(localStorage.getItem("user"));
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    };
+    const user = getCookie("user");
+    if(!user) return undefined;
+    return JSON.parse(getCookie("user"));
   }
 }
 

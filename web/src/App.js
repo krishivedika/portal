@@ -13,10 +13,6 @@ import { SharedContext } from "./context";
 
 axios.defaults.baseURL = config.REACT_APP_API_URL;
 axios.defaults.withCredentials = true;
-let token = AuthService.getCurrentUser();
-if (token) {
-  axios.defaults.headers.common['x-access-token'] = token.token;
-}
 
 const { Footer, Content } = Layout;
 
