@@ -202,7 +202,7 @@ const ActivityForm = (props) => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="days" label="Day to(-)/from(+) Sowing Date"
+          {/* <Form.Item name="days" label="Day to(-)/from(+) Sowing Date"
             rules={[
               {
                 required: true,
@@ -210,7 +210,7 @@ const ActivityForm = (props) => {
               },
             ]}>
             <InputNumber placeholder="Enter Day" />
-          </Form.Item>
+          </Form.Item> */}
           
         </Form>
       </Card>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Spin, Input, Table, Row, Col, Card, Tooltip, Form, message, Button, Drawer, Descriptions, Select, Tag, List } from "antd";
-import { DeleteFilled, EditFilled } from "@ant-design/icons";
+import { DeleteFilled, EditFilled, CaretUpFilled, CaretDownOutlined, CaretDownFilled } from "@ant-design/icons";
 
 import CropService from "../../services/crop";
 import { SharedContext } from "../../context";
@@ -29,6 +29,31 @@ const Sme = () => {
 
   const columns = [
     { title: "Name", dataIndex: "name", key: "crop" },
+    {
+      title: 'Order',
+      colSpan: 1,
+      dataIndex: 'order',
+      render: (value, row, index) => {
+        const prev = filteredActivties[index - 1];
+
+        const obj = {
+          children: value,
+          props: {},
+        };
+        var length = filteredActivties.filter(x => x.order === row.order).length;
+
+        obj.props.rowSpan = length;
+
+        // These two are merged into above cell
+
+        if (prev && prev.order === row.order) {
+          obj.props.rowSpan = 0;
+        }
+
+        return obj;
+
+      },
+    },
     { title: "Type", dataIndex: "type", key: "type" },
     {
       title: "Seasons", dataIndex: "seasons", key: "name",
@@ -55,16 +80,33 @@ const Sme = () => {
       key: "action",
       render: (_, item) => (
         <>
-          <Tooltip placement="top" title='Delete Activity'>
+          <Tooltip placement="top" title='Edit Activity'>
             <Button
               type="link"
               onClick={() => openFormForEdit(item)}
               icon={<EditFilled />}
             />
           </Tooltip>
+
+          <Tooltip placement="top" title='Up'>
+            <Button
+              type="link"
+              onClick={() => changeOrder(item, -1)}
+              icon={<CaretUpFilled />}
+            />
+          </Tooltip>
+
+          <Tooltip placement="top" title='Down'>
+            <Button
+              type="link"
+              onClick={() => changeOrder(item, 1)}
+              icon={<CaretDownFilled />}
+            />
+          </Tooltip>
         </>
       ),
-    }
+    },
+
 
   ]
   useEffect(() => {
@@ -134,9 +176,35 @@ const Sme = () => {
   };
 
   const openFormForEdit = (item) => {
-    debugger;
     setSelectedActivity(item);
     setShowDrawer(true);
+  }
+
+  const changeOrder = (item, pos, isParallel) => {
+    let activities = [...filteredActivties];
+    const index = activities.indexOf(item);
+    let targetItem;
+    let targetIndex;
+    do {
+      targetIndex = index + pos;
+      targetItem = activities[targetIndex];
+      pos = pos + pos;
+    } while (targetItem.order === item.order);
+
+    const targetOrder = targetItem.order;
+    const sourceItem = activities[index];
+    const sourceOrder = sourceItem.order;
+    sourceItem.order = targetOrder;
+    targetItem.order = sourceOrder;
+
+    const sourceData = CropService.changeActivityOrder(sourceItem);
+    const targetData = CropService.changeActivityOrder(targetItem);
+
+    Promise.all([sourceData, targetData]).then((responses) => {
+      setFilteredActivities(activities.sort((a, b) => a.order - b.order));
+    });
+
+
   }
 
   const closeNewForm = () => {
@@ -166,10 +234,11 @@ const Sme = () => {
 
     for (let index = 0; index < types.length; index++) {
       const element = types[index];
-      let activity = cropActivites.find(x => x.type === element );
-      let result = { name: '', type: '', seasons: [], soils: [], irrigations: [], cultivations: [], farmingMethods: [] };
+      let activity = cropActivites.find(x => x.type === element);
+      let result = { name: '', type: '', order: 0, seasons: [], soils: [], irrigations: [], cultivations: [], farmingMethods: [] };
       result.name = activity.name;
       result.type = activity.type;
+      result.order = activity.order;
       result.soils = cropActivites.filter(x => x.dimensionType === 'soil' && x.type === element);
       result.seasons = cropActivites.filter(x => x.dimensionType === 'season' && x.type === element);
       result.irrigations = cropActivites.filter(x => x.dimensionType === 'irrigation' && x.type === element);
@@ -179,8 +248,8 @@ const Sme = () => {
 
     }
 
-    setFilteredActivities(allActivities);
-    console.log(allActivities);
+    setFilteredActivities(allActivities.sort((a, b) => a.order - b.order));
+    
   }
 
   const fetchAndUpdateRecords = async (values = { search: "" }) => {
