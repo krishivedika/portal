@@ -232,8 +232,8 @@ exports.addCropRecord = async (req, res) => {
         });
         const users = await User.scope("withoutPassword").findAll(
           {where: {'$Roles.UserRoles.roleId$': {[Op.in]: [6]}},
-          include: [{model: Role, through: 'UserRoles'}]
-        });
+            include: [{model: Role, through: 'UserRoles'}]
+          });
         users.forEach(u => {
           Notification.create({
             UserId: u.id,
@@ -461,8 +461,8 @@ exports.editLayerRecord = async (req, res) => {
         });
         const users = await User.scope("withoutPassword").findAll(
           {where: {'$Roles.UserRoles.roleId$': {[Op.in]: [6]}},
-          include: [{model: Role, through: 'UserRoles'}]
-        });
+            include: [{model: Role, through: 'UserRoles'}]
+          });
         users.forEach(u => {
           Notification.create({
             UserId: u.id,
@@ -1071,6 +1071,19 @@ exports.deleteActivity = async (req, res) => {
   if ([6].includes(req.userRoleId)) {
     ActivityMaster.update({ isActive: false }, { where: { id: req.body.id } }).then(() => {
       return res.send({ message: 'Successfully Deleted Activity' });
+    }).catch(err => {
+      console.log(err);
+      return res.status(500).send({ message: 'Unknown error' });
+    });
+  } else {
+    return res.status(500).send({ message: 'You dont have the permissions to do this' });
+  }
+}
+
+exports.changeOrder = async (req, res) => {
+  if ([6].includes(req.userRoleId)) {
+    ActivityMaster.update({ order: req.body.order }, { where: { name: req.body.name, type: req.body.type } }).then(() => {
+      return res.send({ message: 'Successfully Updated Order' });
     }).catch(err => {
       console.log(err);
       return res.status(500).send({ message: 'Unknown error' });

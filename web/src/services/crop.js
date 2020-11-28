@@ -59,6 +59,10 @@ class CropService {
     return axios.post(`crop/activity/delete`, data);
   }
 
+  changeActivityOrder(data){
+    return axios.post(`crop/activity/changeOrder`, data);
+  }
+
 }
 
 let cropServiceInstance = new CropService();
