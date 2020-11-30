@@ -1082,7 +1082,7 @@ exports.deleteActivity = async (req, res) => {
 
 exports.changeOrder = async (req, res) => {
   if ([6].includes(req.userRoleId)) {
-    ActivityMaster.update({ order: req.body.order }, { where: { name: req.body.name, type: req.body.type } }).then(() => {
+    ActivityMaster.update({ day: req.body.day }, { where: { name: req.body.name, type: req.body.type } }).then(() => {
       return res.send({ message: 'Successfully Updated Order' });
     }).catch(err => {
       console.log(err);
