@@ -56,23 +56,23 @@ const Sme = () => {
     },
     { title: "Type", dataIndex: "type", key: "type" },
     {
-      title: "Seasons", dataIndex: "seasons", key: "name",
+      title: "Seasons", dataIndex: "seasons", key: "name", ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
-      title: "Soils", dataIndex: "soils", key: "soils",
+      title: "Soils", dataIndex: "soils", key: "soils", textWrap: 'break-word', ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
-      title: "Irrigations", dataIndex: "irrigations", key: "irrigations",
+      title: "Irrigations", dataIndex: "irrigations", key: "irrigations", ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
-      title: "Cultivations", dataIndex: "cultivations", key: "cultivations",
+      title: "Cultivations", dataIndex: "cultivations", key: "cultivations", ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
-      title: "Farming Technologies", dataIndex: "farmingMethods", key: "farmingMethods",
+      title: "Farming Technologies", dataIndex: "farmingMethods", key: "farmingMethods", ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
