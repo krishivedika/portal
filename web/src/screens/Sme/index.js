@@ -12,7 +12,7 @@ const Sme = () => {
 
   const capitalize = (s) => {
     if (typeof s !== 'string') return ''
-    return s.charAt(0).toUpperCase() + s.slice(1)
+    return s.charAt(0) + s.slice(1)
   }
 
   const [formSearch] = Form.useForm();
@@ -30,9 +30,9 @@ const Sme = () => {
   const columns = [
     { title: "Name", dataIndex: "name", key: "crop" },
     {
-      title: 'Order',
+      title: 'Day',
       colSpan: 1,
-      dataIndex: 'order',
+      dataIndex: 'day',
       render: (value, row, index) => {
         const prev = filteredActivties[index - 1];
 
@@ -40,13 +40,13 @@ const Sme = () => {
           children: value,
           props: {},
         };
-        var length = filteredActivties.filter(x => x.order === row.order).length;
+        var length = filteredActivties.filter(x => x.day === row.day).length;
 
         obj.props.rowSpan = length;
 
         // These two are merged into above cell
 
-        if (prev && prev.order === row.order) {
+        if (prev && prev.day === row.day) {
           obj.props.rowSpan = 0;
         }
 
@@ -56,23 +56,23 @@ const Sme = () => {
     },
     { title: "Type", dataIndex: "type", key: "type" },
     {
-      title: "Seasons", dataIndex: "seasons", key: "name",
+      title: "Seasons", dataIndex: "seasons", key: "name", ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
-      title: "Soils", dataIndex: "soils", key: "soils",
+      title: "Soils", dataIndex: "soils", key: "soils", textWrap: 'break-word', ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
-      title: "Irrigations", dataIndex: "irrigations", key: "irrigations",
+      title: "Irrigations", dataIndex: "irrigations", key: "irrigations", ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
-      title: "Cultivations", dataIndex: "cultivations", key: "cultivations",
+      title: "Cultivations", dataIndex: "cultivations", key: "cultivations", ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
-      title: "Farming Technologies", dataIndex: "farmingMethods", key: "farmingMethods",
+      title: "Farming Technologies", dataIndex: "farmingMethods", key: "farmingMethods", ellipsis: true,
       render: tags => renderTags(tags)
     },
     {
@@ -137,7 +137,7 @@ const Sme = () => {
           </Tooltip>]}
         >
           <List.Item.Meta
-            title={tag.dimension.toUpperCase()}
+            title={tag.dimension}
           />
         </List.Item>
       )}
@@ -189,19 +189,19 @@ const Sme = () => {
       targetIndex = index + pos;
       targetItem = activities[targetIndex];
       pos = pos + pos;
-    } while (targetItem.order === item.order);
+    } while (targetItem.day === item.day);
 
-    const targetOrder = targetItem.order;
+    const targetOrder = targetItem.day;
     const sourceItem = activities[index];
-    const sourceOrder = sourceItem.order;
-    sourceItem.order = targetOrder;
-    targetItem.order = sourceOrder;
+    const sourceOrder = sourceItem.day;
+    sourceItem.day = targetOrder;
+    targetItem.day = sourceOrder;
 
     const sourceData = CropService.changeActivityOrder(sourceItem);
     const targetData = CropService.changeActivityOrder(targetItem);
 
     Promise.all([sourceData, targetData]).then((responses) => {
-      setFilteredActivities(activities.sort((a, b) => a.order - b.order));
+      setFilteredActivities(activities.sort((a, b) => a.day - b.day));
     });
 
 
@@ -226,6 +226,10 @@ const Sme = () => {
     return self.indexOf(value) === index
   }
 
+  const getOrderNumber =  () => {
+      return filteredActivties.length + 1;
+  }
+
   const prepareActivites = async (activties) => {
     const formValues = await formSearch.validateFields();
     let cropActivites = activties.filter(x => x.crop === formValues.crop);
@@ -235,10 +239,10 @@ const Sme = () => {
     for (let index = 0; index < types.length; index++) {
       const element = types[index];
       let activity = cropActivites.find(x => x.type === element);
-      let result = { name: '', type: '', order: 0, seasons: [], soils: [], irrigations: [], cultivations: [], farmingMethods: [] };
+      let result = { name: '', type: '', day: 0, seasons: [], soils: [], irrigations: [], cultivations: [], farmingMethods: [] };
       result.name = activity.name;
       result.type = activity.type;
-      result.order = activity.order;
+      result.day = activity.day;
       result.soils = cropActivites.filter(x => x.dimensionType === 'soil' && x.type === element);
       result.seasons = cropActivites.filter(x => x.dimensionType === 'season' && x.type === element);
       result.irrigations = cropActivites.filter(x => x.dimensionType === 'irrigation' && x.type === element);
@@ -248,8 +252,8 @@ const Sme = () => {
 
     }
 
-    setFilteredActivities(allActivities.sort((a, b) => a.order - b.order));
-    
+    setFilteredActivities(allActivities.sort((a, b) => a.day - b.day));
+
   }
 
   const fetchAndUpdateRecords = async (values = { search: "" }) => {
@@ -359,7 +363,7 @@ const Sme = () => {
         onClose={() => setShowDrawer(false)}
       >
         <Spin spinning={state.spinning} size="large">
-          <ActivityForm form={form} selectedCrop={formSearch.getFieldValue('crop')} selectedActivity={selectedActivity} onFinish={onFinish} dimensions={dimensions} onClose={closeNewForm} />
+          <ActivityForm form={form} selectedCrop={formSearch.getFieldValue('crop')} activityOrder={getOrderNumber(formSearch.getFieldValue('crop'))} selectedActivity={selectedActivity} onFinish={onFinish} dimensions={dimensions} onClose={closeNewForm} />
         </Spin>
       </Drawer>
     </>

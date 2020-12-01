@@ -54,6 +54,8 @@ const ActivityForm = (props) => {
     props.form.setFieldsValue({crop:props.selectedCrop});
     props.form.setFieldsValue({type:props.selectedActivity.type});
     props.form.setFieldsValue({activity:props.selectedActivity.name});
+    props.form.setFieldsValue({days:props.selectedActivity.day});
+    props.form.setFieldsValue({order:props.activityOrder});
   }, [props]);
 
   const selectState = async (e) => {
@@ -158,7 +160,7 @@ const ActivityForm = (props) => {
             ]}>
             <Input placeholder="Enter Activity Name" />
           </Form.Item>
-          <Form.Item name="order" label="Order"
+          {/* <Form.Item name="order" label="Order"
             rules={[
               {
                 required: true,
@@ -166,7 +168,7 @@ const ActivityForm = (props) => {
               },
             ]}>
             <InputNumber placeholder="0" />
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item name="season" label="Season">
             <Select mode="multiple" placeholder="Select Season">
               {seasons.map(p => (
@@ -202,7 +204,7 @@ const ActivityForm = (props) => {
               ))}
             </Select>
           </Form.Item>
-          {/* <Form.Item name="days" label="Day to(-)/from(+) Sowing Date"
+          <Form.Item name="days" label="Day to(-)/from(+) Sowing Date"
             rules={[
               {
                 required: true,
@@ -210,7 +212,7 @@ const ActivityForm = (props) => {
               },
             ]}>
             <InputNumber placeholder="Enter Day" />
-          </Form.Item> */}
+          </Form.Item>
           
         </Form>
       </Card>
