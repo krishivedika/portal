@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Spin, Row, Col, Card, Skeleton, Form, message, Button, Drawer, Descriptions } from "antd";
+import { Spin, Row, Col, Card, Skeleton, Form, message, Button, Drawer, Descriptions, Modal, Input } from "antd";
 
 import AuthService from "../../services/auth";
 import UserService from "../../services/user";
@@ -14,6 +14,8 @@ const UserProfile = () => {
   const [currentForm, setCurrentForm] = useState({});
   const [showDrawer, setShowDrawer] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [changePassword, setChangePassword] = useState(false);
+  const [formForgot] = Form.useForm();
 
   const setAge = (response) => {
     if (response.data.user.age) response.data.user.age = new Date().getFullYear() - new Date(response.data.user.age).getFullYear();
@@ -53,8 +55,80 @@ const UserProfile = () => {
     });
   }
 
+  const handleChangePassword = async () => {
+    const values = await formForgot.validateFields();
+    AuthService.changePassword(values).then(response => {
+      formForgot.resetFields();
+      message.success(response.data.message);
+    })
+    exitChangePassword();
+  };
+
+  const exitChangePassword = () => {
+    setChangePassword(false);
+  };
+
   return (
     <Row style={{ marginTop: '20px' }}>
+      <Modal
+        title="Change Password"
+        visible={changePassword}
+        footer={null}
+        onOk={handleChangePassword}
+        onCancel={exitChangePassword}
+      >
+        <Spin spinning={state.spinning} size="large">
+          <Form form={formForgot} >
+            <Form.Item name="oldPassword" label="Old Password"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter Password.",
+                },
+                { min: 6, message: 'Password must be atleast 6 characters long.' },
+              ]}>
+              <Input.Password placeholder="" />
+            </Form.Item>
+
+            <Form.Item name="password" label="New Password"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter Password.",
+                },
+                { min: 6, message: 'Password must be atleast 6 characters long.' },
+              ]}>
+              <Input.Password placeholder="" />
+            </Form.Item>
+
+            <Form.Item name="conPass" label="Confirm Password" dependencies={['password']} hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "Please confirm your password!",
+                },
+                { min: 6, message: 'Password must be atleast 6 characters long.' },
+                ({ getFieldValue }) => ({
+                  validator(rule, value) {
+                    if (!value || getFieldValue('password') === value) {
+                      return Promise.resolve();
+                    }
+
+                    return Promise.reject('The two passwords that you entered do not match!');
+                  },
+                }),
+              ]}>
+              <Input.Password placeholder="" />
+            </Form.Item>
+
+            <div style={{ textAlign: "right" }}>
+              <Button style={{ marginRight: '5px' }} type="primary" onClick={handleChangePassword}>Ok</Button>
+
+              <Button onClick={exitChangePassword}>Cancel</Button>
+            </div>
+          </Form>
+        </Spin>
+      </Modal>
       <Col xs={0} xl={12}>
         <div>
           <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%' }} />
@@ -71,31 +145,36 @@ const UserProfile = () => {
                 <Skeleton active />
               </>
             }
-                <Row>
-                  <Col xs={{span: 7, offset: 17}} md={{span: 4, offset: 20}}>
-                    <Button type="primary" onClick={() => setShowDrawer(true)}>Edit Profile</Button>
-                  </Col>
-                </Row>
-                <Card title="Profile" className="g-ant-card" style={{ marginTop: '20px' }}>
-                  <Descriptions loading={loading} column={1} bordered>
-                    <Descriptions.Item label="First Name">{userProfile.firstName} </Descriptions.Item>
-                    <Descriptions.Item label="Last Name">{userProfile.lastName}</Descriptions.Item>
-                    <Descriptions.Item label="Gender">{userProfile.gender}</Descriptions.Item>
-                    {userProfile.age &&
-                      <Descriptions.Item label="Age">{userProfile.age}</Descriptions.Item>
-                    }
-                    {!userProfile.age &&
-                      <Descriptions.Item label="Age"></Descriptions.Item>
-                    }
-                    <Descriptions.Item label="Email">{userProfile.email}</Descriptions.Item>
-                    <Descriptions.Item label="Phone">{userProfile.phone}</Descriptions.Item>
-                    {userProfile.roles && userProfile.roles[0].name.toUpperCase() === 'FARMER' &&
-                      <>
-                        <Descriptions.Item label="Ration">{userProfile.ration}</Descriptions.Item>
-                      </>
-                    }
-                  </Descriptions>
-                </Card>
+            <Row>
+              <Col xs={{span: 7, offset: 17}} md={{span: 4, offset: 20}}>
+                <Button type="primary" onClick={() => setShowDrawer(true)}>Edit Profile</Button>
+              </Col>
+            </Row>
+            <Card title="Profile" className="g-ant-card" style={{ marginTop: '20px' }}>
+              <Descriptions loading={loading} column={1} bordered>
+                <Descriptions.Item label="First Name">{userProfile.firstName} </Descriptions.Item>
+                <Descriptions.Item label="Last Name">{userProfile.lastName}</Descriptions.Item>
+                <Descriptions.Item label="Gender">{userProfile.gender}</Descriptions.Item>
+                {userProfile.age &&
+                  <Descriptions.Item label="Age">{userProfile.age}</Descriptions.Item>
+                }
+                {!userProfile.age &&
+                  <Descriptions.Item label="Age"></Descriptions.Item>
+                }
+                <Descriptions.Item label="Email">{userProfile.email}</Descriptions.Item>
+                <Descriptions.Item label="Phone">{userProfile.phone}</Descriptions.Item>
+                {userProfile.roles && userProfile.roles[0].name.toUpperCase() === 'FARMER' &&
+                  <>
+                    <Descriptions.Item label="Ration">{userProfile.ration}</Descriptions.Item>
+                  </>
+                }
+              </Descriptions>
+
+              {userProfile.Roles && userProfile.Roles[0].name.toUpperCase() !== 'FARMER' &&
+                <Button type="primary" onClick={() => setChangePassword(true)}>Change Password</Button>
+              }
+
+            </Card>
           </Col>
           <Col xs={{ span: 22, offset: 1 }} xl={{ span: 22 }}>
             {loading &&
@@ -106,19 +185,19 @@ const UserProfile = () => {
                 <Skeleton active />
               </>
             }
-                <Card title="Demographics" className="g-ant-card" style={{ marginTop: '20px' }}>
-                  <Descriptions loading={loading} column={1} bordered >
-                    <Descriptions.Item label="Address">{userProfile.address}</Descriptions.Item>
-                    {(userProfile.Roles && userProfile.Roles[0].name.toUpperCase() === 'FARMER') &&
-                      <>
-                        <Descriptions.Item label="District">{userProfile.district}</Descriptions.Item>
-                        <Descriptions.Item label="Mandal">{userProfile.mandala}</Descriptions.Item>
-                        <Descriptions.Item label="Village">{userProfile.panchayat}</Descriptions.Item>
-                        <Descriptions.Item label="Hamlet">{userProfile.hamlet}</Descriptions.Item>
-                      </>
-                    }
-                  </Descriptions>
-                </Card>
+            <Card title="Demographics" className="g-ant-card" style={{ marginTop: '20px' }}>
+              <Descriptions loading={loading} column={1} bordered >
+                <Descriptions.Item label="Address">{userProfile.address}</Descriptions.Item>
+                {(userProfile.Roles && userProfile.Roles[0].name.toUpperCase() === 'FARMER') &&
+                  <>
+                    <Descriptions.Item label="District">{userProfile.district}</Descriptions.Item>
+                    <Descriptions.Item label="Mandal">{userProfile.mandala}</Descriptions.Item>
+                    <Descriptions.Item label="Village">{userProfile.panchayat}</Descriptions.Item>
+                    <Descriptions.Item label="Hamlet">{userProfile.hamlet}</Descriptions.Item>
+                  </>
+                }
+              </Descriptions>
+            </Card>
           </Col>
         </Row>
       </Col>

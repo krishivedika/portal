@@ -43,6 +43,10 @@ class AuthService {
     return axios.post(`/otp/resend`, data);
   }
 
+  changePassword(data) {
+    return axios.post(`/changePassword`, data);
+  }
+
   getCurrentUser() {
     const getCookie = (name) => {
       const value = `; ${document.cookie}`;
