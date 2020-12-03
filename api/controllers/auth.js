@@ -290,3 +290,21 @@ exports.resendOtp = (req, res) => {
     return res.send({ message: 'Failed to send OTP' });
   });
 };
+
+exports.changePassword = (req, res) => {
+  User.findOne({ where: { email: req.userEmail } }).then(user => {
+    const passwordIsValid = bcrypt.compareSync(
+      req.body.oldPassword,
+      user.password
+    );
+
+    if (passwordIsValid) {
+      const newPassword = bcrypt.hashSync(req.body.password, 8);
+      user.update({ password: newPassword }).then(() => {
+        return res.send({ message: 'Password updated successfully' });
+      });
+    } else {
+      return res.send({ message: 'Please enter a valid old password' });
+    }
+  });
+}
