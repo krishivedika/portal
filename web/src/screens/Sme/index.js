@@ -226,10 +226,6 @@ const Sme = () => {
     return self.indexOf(value) === index
   }
 
-  const getOrderNumber =  () => {
-      return filteredActivties.length + 1;
-  }
-
   const prepareActivites = async (activties) => {
     const formValues = await formSearch.validateFields();
     let cropActivites = activties.filter(x => x.crop === formValues.crop);
@@ -363,7 +359,7 @@ const Sme = () => {
         onClose={() => setShowDrawer(false)}
       >
         <Spin spinning={state.spinning} size="large">
-          <ActivityForm form={form} selectedCrop={formSearch.getFieldValue('crop')} activityOrder={getOrderNumber(formSearch.getFieldValue('crop'))} selectedActivity={selectedActivity} onFinish={onFinish} dimensions={dimensions} onClose={closeNewForm} />
+          <ActivityForm form={form} selectedCrop={formSearch.getFieldValue('crop')}  selectedActivity={selectedActivity} onFinish={onFinish} dimensions={dimensions} onClose={closeNewForm} />
         </Spin>
       </Drawer>
     </>
