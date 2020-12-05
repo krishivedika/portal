@@ -980,15 +980,8 @@ exports.createActivity = async (req, res) => {
     try {
       const { crop, days, activity, type, order } = req.body;
       const activities = await ActivityMaster.findAll({ where: { crop: crop } });
-      let found = false;
-      activities.forEach(a => {
-        if (a.order == order) {
-          found = true;
-        }
-      });
-      if (found) {
-        return res.status(500).send({ message: 'Crop with this order already exists' });
-      }
+      req.body.order = 1;
+
       const mlm = {
         inventory: { name: req.body["0_inm_material_name"], quantity: req.body["0_inm_material_quantity"], metric: req.body["0_inm_material_metric"] },
         inventoryIpm: { name: req.body["0_ipm_material_name"], quantity: req.body["0_ipm_material_quantity"], metric: req.body["0_ipm_material_metric"] },

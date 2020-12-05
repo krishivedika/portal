@@ -55,7 +55,6 @@ const ActivityForm = (props) => {
     props.form.setFieldsValue({type:props.selectedActivity.type});
     props.form.setFieldsValue({activity:props.selectedActivity.name});
     props.form.setFieldsValue({days:props.selectedActivity.day});
-    props.form.setFieldsValue({order:props.activityOrder});
   }, [props]);
 
   const selectState = async (e) => {
