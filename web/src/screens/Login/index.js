@@ -85,6 +85,7 @@ const Login = (props) => {
   };
 
   useEffect(() => {
+    setShowForgotOtp(true);
     const currentUser = AuthService.getCurrentUser();
     if (currentUser) redirectUser(currentUser.roles[0]);
   });
