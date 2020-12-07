@@ -40,9 +40,5 @@ module.exports = {
   // Notifications Timings
   NOTIFICATIONS_HOUR: process.env.NOTIFICATIONS_HOUR,
   NOTIFICATIONS_MINUTES: process.env.NOTIFICATIONS_MINUTES,
-  
-  //Inputs API Integration
-  INPUTS_API_URL: process.env.INPUTS_API_URL,
-  INPUTS_API_AUTH_KEY: process.env.INPUTS_API_AUTH_KEY,
 
 };
