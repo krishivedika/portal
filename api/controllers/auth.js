@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const config = require("../config");
 const db = require("../models");
-const { sms, email } = require("../utils");
+const { sms, email, misc } = require("../utils");
 const { common } = require("../helpers");
 const { ROLES } = require("../constants");
 
@@ -29,6 +29,12 @@ exports.signup = (req, res) => {
     User.create(userObj)
       .then((user) => {
         user.setRoles([5]).then(() => {
+          misc.onboardFarmer({
+            firstname: req.body.firstName,
+            lastname: req.body.lastName,
+            email: 'test@gmail.com',
+            telephone: req.body.phone,
+          })
           res.send({ message: "Member was registered successfully" });
         });
       })
@@ -146,9 +152,9 @@ exports.staffSignin = (req, res) => {
           authorities.push(`${roles[i].name.toUpperCase()}`);
         }
         if (config.NODE_ENV === "development") {
-          res.cookie('token', token, { domain: 'localhost',  httpOnly: false, maxAge: expiryTime });
+          res.cookie('token', token, { domain: 'localhost', httpOnly: false, maxAge: expiryTime });
         } else {
-          res.cookie('token', token, { domain: '.krishivedika.com',  secure: true, httpOnly: true, sameSite: 'Lax', maxAge: expiryTime });
+          res.cookie('token', token, { domain: '.krishivedika.com', secure: true, httpOnly: true, sameSite: 'Lax', maxAge: expiryTime });
         }
         return res.status(200).send({
           id: user.id,
