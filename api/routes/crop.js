@@ -22,6 +22,8 @@ module.exports = (app) => {
 
   app.post("/crop/activity/delete", [commonValidations.verifyToken], controller.deleteActivity);
 
+  app.post("/crop/activity/changeOrder", [commonValidations.verifyToken], controller.changeOrder);
+
   app.get("/crop/layer/activity", [commonValidations.verifyToken], controller.getLayerActivity);
 
   app.post("/crop/layer/edit", [commonValidations.verifyToken], controller.editLayerRecord);

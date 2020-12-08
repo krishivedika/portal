@@ -1,5 +1,6 @@
 const controller = require("../controllers/auth");
 const validation = require("../validations/auth");
+const commonValidations = require("../validations/common");
 
 module.exports = (app) => {
 
@@ -30,4 +31,6 @@ module.exports = (app) => {
   app.post("/reset", [validation.reset], controller.resetPassword);
 
   app.post("/signin", [validation.signin], controller.signin);
+
+  app.post("/changePassword", [commonValidations.verifyToken], controller.changePassword);
 };

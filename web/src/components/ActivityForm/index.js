@@ -49,6 +49,12 @@ const ActivityForm = (props) => {
     });
     setInventoryTypes(() => inventories);
     setMachineryTypes(props.dimensions.machinery);
+
+    // setting properties for edit
+    props.form.setFieldsValue({crop:props.selectedCrop});
+    props.form.setFieldsValue({type:props.selectedActivity.type});
+    props.form.setFieldsValue({activity:props.selectedActivity.name});
+    props.form.setFieldsValue({days:props.selectedActivity.day});
   }, [props]);
 
   const selectState = async (e) => {
@@ -153,7 +159,7 @@ const ActivityForm = (props) => {
             ]}>
             <Input placeholder="Enter Activity Name" />
           </Form.Item>
-          <Form.Item name="order" label="Order"
+          {/* <Form.Item name="order" label="Order"
             rules={[
               {
                 required: true,
@@ -161,7 +167,7 @@ const ActivityForm = (props) => {
               },
             ]}>
             <InputNumber placeholder="0" />
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item name="season" label="Season">
             <Select mode="multiple" placeholder="Select Season">
               {seasons.map(p => (
@@ -206,56 +212,7 @@ const ActivityForm = (props) => {
             ]}>
             <InputNumber placeholder="Enter Day" />
           </Form.Item>
-          <Form.Item name="state" label="State"
-            rules={[
-              {
-                required: false,
-                message: "Please input State",
-              },
-            ]}>
-            <Select showSearch allowClear placeholder="Select State" onChange={selectState}>
-              <Option value="ANDHRA PRADESH">Andhra Pradesh</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="district" label="District"
-            rules={[
-              {
-                required: requiredRegion,
-                message: "Please enter Village if region is a dimension",
-              },
-            ]}>
-            <Select mode="multiple" mode="multiple" showSearch allowClear placeholder="Select District" onChange={selectDistrict}>
-              {districts.map(d => (
-                <Option key={d} value={d}>{d}</Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item name="mandala" label="Mandal"
-            rules={[
-              {
-                required: requiredRegion,
-                message: "Please enter Mandal if region is a dimension",
-              },
-            ]}>
-            <Select mode="multiple" showSearch allowClear placeholder="Mandal" onChange={selectMandal}>
-              {mandals.map(d => (
-                <Option key={d} value={d}>{d}</Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item name="panchayat" label="Village"
-            rules={[
-              {
-                required: requiredRegion,
-                message: "Please enter Village if region is a dimension",
-              },
-            ]}>
-            <Select mode="multiple" showSearch allowClear placeholder="Select Village / Panchayat">
-              {villages.map(d => (
-                <Option key={d} value={d}>{d}</Option>
-              ))}
-            </Select>
-          </Form.Item>
+          
         </Form>
       </Card>
       <Card

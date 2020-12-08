@@ -68,6 +68,7 @@ const Login = (props) => {
 
   useEffect(() => {
     let interval;
+    setShowForgotOtp(true);
     interval = setInterval(() => {
       setTimer(state => state - 1);
     }, 1000)
@@ -84,6 +85,7 @@ const Login = (props) => {
   };
 
   useEffect(() => {
+    setShowForgotOtp(true);
     const currentUser = AuthService.getCurrentUser();
     if (currentUser) redirectUser(currentUser.roles[0]);
   });
@@ -296,7 +298,7 @@ const Login = (props) => {
               ]}>
               <Input placeholder="Enter Email" />
             </Form.Item>
-            {showForgotOtp &&
+            {/* {showForgotOtp &&
               <Form.Item name="otp" label="OTP"
                 rules={[
                   {
@@ -308,7 +310,7 @@ const Login = (props) => {
                 ]}>
                 <Input placeholder="Enter OTP" />
               </Form.Item>
-            }
+            } */}
             <div style={{textAlign: "right"}}>
               {showForgotOtp &&
                 <Button style={{marginRight: '5px'}} type="primary" onClick={handleForgot}>Ok</Button>

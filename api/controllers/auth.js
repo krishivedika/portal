@@ -227,22 +227,19 @@ exports.forgotPassword = (req, res) => {
     if (!user) {
       return res.status(404).send({ message: "User Not found, check email address" });
     } else {
-      sms.verifyOtp(user.phone, req.body.otp).then(response => {
-        if (response.data.type === "error") {
-          return res.status(400).send({ message: response.data.message, code: 100 });
-        } else {
-          const resetObj = {
-            key: uuidv4(config.SECRET_KEY, uuidv4.URL),
-            email: req.body.email,
-            isActive: true,
-          }
-          res.send({ message: "Email sent with reset link, please check inbox" });
-          Reset.findAll({ where: { email: req.body.email } }).then(resets => {
-            resets.forEach(async reset => {
-              await reset.update({ isActive: false });
-            });
-            Reset.create(resetObj).then(reset => {
-              const emailBody = `
+
+      const resetObj = {
+        key: uuidv4(config.SECRET_KEY, uuidv4.URL),
+        email: req.body.email,
+        isActive: true,
+      }
+      res.send({ message: "Email sent with reset link, please check inbox" });
+      Reset.findAll({where: {email: req.body.email}}).then(resets => {
+        resets.forEach(async reset => {
+          await reset.update({isActive: false});
+        });
+        Reset.create(resetObj).then(reset => {
+          const emailBody = `
                 Dear KVP Member,
                 <br><br>
                 You have requested to reset password.
@@ -253,11 +250,9 @@ exports.forgotPassword = (req, res) => {
                 Thanks,
                 KVP Admin.
                 `
-              email.sendEmail(req.body.email, 'KVP: Forgot Password', emailBody);
-            });
-          })
-        }
-      });
+          email.sendEmail(req.body.email, 'KVP: Forgot Password', emailBody);
+        });
+      })
     }
   });
   return;
@@ -301,3 +296,21 @@ exports.resendOtp = (req, res) => {
     return res.send({ message: 'Failed to send OTP' });
   });
 };
+
+exports.changePassword = (req, res) => {
+  User.findOne({ where: { email: req.userEmail } }).then(user => {
+    const passwordIsValid = bcrypt.compareSync(
+      req.body.oldPassword,
+      user.password
+    );
+
+    if (passwordIsValid) {
+      const newPassword = bcrypt.hashSync(req.body.password, 8);
+      user.update({ password: newPassword }).then(() => {
+        return res.send({ message: 'Password updated successfully' });
+      });
+    } else {
+      return res.send({ message: 'Please enter a valid old password' });
+    }
+  });
+}

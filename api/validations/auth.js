@@ -61,8 +61,7 @@ const staffSignin = (req, res, next) => {
 
 const forgot = (req, res, next) => {
   const validationRule = {
-    email: "required|string",
-    otp: "required|string",
+    email: "required|string"
   };
   validator(req.body, validationRule, {}, (err, status) => {
     if (!status) {
