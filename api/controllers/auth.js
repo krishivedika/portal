@@ -34,7 +34,9 @@ exports.signup = (req, res) => {
             lastname: req.body.lastName,
             email: 'test@gmail.com',
             telephone: req.body.phone,
-          })
+          }).catch(err => {
+            console.log(err);
+          });
           res.send({ message: "Member was registered successfully" });
         });
       })
