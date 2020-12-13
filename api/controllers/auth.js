@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const config = require("../config");
 const db = require("../models");
-const { sms, email, misc } = require("../utils");
+const { sms, email, misc, logger } = require("../utils");
 const { common } = require("../helpers");
 const { ROLES } = require("../constants");
 
@@ -29,12 +29,25 @@ exports.signup = (req, res) => {
     User.create(userObj)
       .then((user) => {
         user.setRoles([5]).then(() => {
+          logger.debug("Member was registered successfully");
           misc.onboardFarmer({
             firstname: req.body.firstName,
             lastname: req.body.lastName,
             email: 'test@gmail.com',
             telephone: req.body.phone,
-          })
+          }).then(res => {
+            logger.debug("Member was registered successfully in Inputs");
+            logger.debug(JSON.stringify(res.data));
+          }).catch(err => {
+            logger.debug("Member was registration failed in Inputs");
+            if (error.response) {
+              logger.debug(JSON.stringify(error.response.data));
+            } else if (error.request) {
+              logger.debug(JSON.stringify(error.request));
+            } else {
+              logger.debug(JSON.stringify(error.message));
+            }
+          });
           res.send({ message: "Member was registered successfully" });
         });
       })
